@@ -10,6 +10,13 @@ export interface Bike {
   primary: boolean;
 }
 
+export interface Activity {
+  id: string;
+  name: string;
+  distance: number;
+  type: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -18,23 +25,35 @@ export class StravaService {
   private baseUrl = 'http://localhost:8000/api/strava';
   private router = inject(Router);
 
-  user = signal<{ athlete_id: number; firstname: string } | null>(null);
-  bikes = signal<Bike[]>([]);
+  public user = signal<{ athlete_id: number; firstname: string } | null>(null);
+  public bikes = signal<Bike[]>([]);
+  public activities = signal<Activity[]>([]);
 
-  fetchUser() {
+  public fetchUser() {
     return this.http
       .get<{ athlete_id: number; firstname: string }>(`${this.baseUrl}/me/`)
       .pipe(tap((userData) => this.user.set(userData)));
   }
 
-  fetchBikes(athleteId: number) {
+  public fetchBikes(athleteId: number) {
     return this.http
       .get<{ bikes: Bike[] }>(`${this.baseUrl}/bikes/${athleteId}/`)
       .pipe(tap((res) => this.bikes.set(res.bikes)));
   }
 
-  // dashboard.ts
-  logout() {
+  // Ändere den Typ von { activities: Activity[] } zu Activity[]
+  public fetchActivities() {
+    return this.http
+      .get<Activity[]>(`${this.baseUrl}/api/strava/activities/`) // ID nicht mehr in URL
+      .pipe(
+        tap((res) => {
+          console.log('Empfangene Aktivitäten:', res); // Debug: Siehst du hier die Liste?
+          this.activities.set(res);
+        }),
+      );
+  }
+
+  public logout() {
     this.http.post('http://localhost:8000/api/strava/logout/', {}).subscribe({
       next: (res) => {
         this.router.navigate(['/login']);

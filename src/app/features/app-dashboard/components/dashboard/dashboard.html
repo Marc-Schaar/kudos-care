@@ -5,3 +5,9 @@
     <li>{{ bike.name }}</li>
   }
 </ul>
+
+<ul>
+  @for (activity of activities(); track $index) {
+    <li>{{ activity.name }}</li>
+  }
+</ul>
