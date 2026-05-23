@@ -1,0 +1,7 @@
+<H1>Dashbioard</H1>
+<button (click)="logout()">logout</button>
+<ul>
+  @for (bike of bikes(); track $index) {
+    <li>{{ bike.name }}</li>
+  }
+</ul>

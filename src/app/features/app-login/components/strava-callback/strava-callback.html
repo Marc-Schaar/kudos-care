@@ -1,0 +1,13 @@
+<div style="text-align: center; margin-top: 5rem">
+  @if (status() === 'loading') {
+    <h3>🔄 Kudos werden synchronisiert...</h3>
+    <p>Verbindung mit Strava wird hergestellt.</p>
+  } @else if (status() === 'error') {
+    <h3 style="color: #e53e3e">❌ Fehler bei der Verbindung</h3>
+    <p>{{ errorMessage }}</p>
+    <button (click)="retry()">Zurück zum Login</button>
+  } @else {
+    <h3 style="color: #38a169">✅ Kudo Care erfolgreich verknüpft!</h3>
+    <p>Leite weiter zum Dashboard...</p>
+  }
+</div>

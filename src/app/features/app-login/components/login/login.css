@@ -1,0 +1,31 @@
+.connect-box {
+  text-align: center;
+  padding: 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  max-width: 400px;
+  margin: 2rem auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.strava-btn {
+  background-color: #fc4c02;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.strava-btn:hover {
+  background-color: #e34402;
+}
+.strava-brand {
+  font-style: italic;
+  letter-spacing: -0.5px;
+}
