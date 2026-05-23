@@ -39,7 +39,9 @@ export class StravaService {
       next: (res) => {
         this.router.navigate(['/login']);
       },
-      error: (err) => {},
+      error: (err) => {
+        console.error('Logout failed', err);
+      },
     });
   }
 }
