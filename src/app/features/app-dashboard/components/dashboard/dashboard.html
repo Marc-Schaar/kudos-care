@@ -10,6 +10,8 @@
 <ul>
   <h2>Aktivitäten:</h2>
   @for (activity of activities(); track $index) {
-    <li>- {{ activity.name }} {{ activity.distance }} {{ activity.type }}</li>
+    <li (click)="goToActivity(+activity.id)">
+      - {{ activity.name }} {{ activity.distance }} {{ activity.type }}
+    </li>
   }
 </ul>

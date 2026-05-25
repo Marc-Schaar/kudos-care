@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { switchMap, tap } from 'rxjs';
 
 export interface Bike {
   id: string;
@@ -22,7 +22,7 @@ export interface Activity {
 })
 export class StravaService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:8000/api/strava';
+  private baseUrl = 'http://localhost:8000/api';
   private router = inject(Router);
 
   public user = signal<{ athlete_id: number; firstname: string } | null>(null);
@@ -31,20 +31,26 @@ export class StravaService {
 
   public fetchUser() {
     return this.http
-      .get<{ athlete_id: number; firstname: string }>(`${this.baseUrl}/me/`)
+      .get<{ athlete_id: number; firstname: string }>(`${this.baseUrl}/strava/me/`)
       .pipe(tap((userData) => this.user.set(userData)));
   }
 
   public fetchBikes(athleteId: number) {
     return this.http
-      .get<{ bikes: Bike[] }>(`${this.baseUrl}/bikes/${athleteId}/`)
+      .get<{ bikes: Bike[] }>(`${this.baseUrl}/strava/bikes/${athleteId}/`)
       .pipe(tap((res) => this.bikes.set(res.bikes)));
   }
 
-  public fetchActivities() {
+  public syncAndFetchActivities() {
+    return this.http
+      .post(`${this.baseUrl}/strava/sync/`, {})
+      .pipe(switchMap(() => this.fetchActivities()));
+  }
+
+  private fetchActivities() {
     return this.http.get<Activity[]>(`${this.baseUrl}/activities/`).pipe(
       tap((res) => {
-        console.log('Empfangene Aktivitäten:', res); // Debug: Siehst du hier die Liste?
+        console.log('Empfangene Aktivitäten:', res);
         this.activities.set(res);
       }),
     );

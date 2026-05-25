@@ -20,10 +20,14 @@ export class Dashboard implements OnInit {
     this.stravaService.fetchUser().subscribe({
       next: (user) => {
         (this.stravaService.fetchBikes(user.athlete_id).subscribe(),
-          this.stravaService.fetchActivities().subscribe());
+          this.stravaService.syncAndFetchActivities().subscribe());
       },
       error: () => this.router.navigate(['/login']),
     });
+  }
+
+  public goToActivity(activityId: number) {
+    this.router.navigate(['/activity', activityId]);
   }
 
   public logout() {
