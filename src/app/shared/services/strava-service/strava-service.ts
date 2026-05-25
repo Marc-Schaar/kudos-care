@@ -41,16 +41,13 @@ export class StravaService {
       .pipe(tap((res) => this.bikes.set(res.bikes)));
   }
 
-  // Ändere den Typ von { activities: Activity[] } zu Activity[]
   public fetchActivities() {
-    return this.http
-      .get<Activity[]>(`${this.baseUrl}/api/strava/activities/`) // ID nicht mehr in URL
-      .pipe(
-        tap((res) => {
-          console.log('Empfangene Aktivitäten:', res); // Debug: Siehst du hier die Liste?
-          this.activities.set(res);
-        }),
-      );
+    return this.http.get<Activity[]>(`${this.baseUrl}/activities/`).pipe(
+      tap((res) => {
+        console.log('Empfangene Aktivitäten:', res); // Debug: Siehst du hier die Liste?
+        this.activities.set(res);
+      }),
+    );
   }
 
   public logout() {

@@ -1,13 +1,15 @@
-<H1>Dashbioard</H1>
+<H1>Dashboard</H1>
 <button (click)="logout()">logout</button>
 <ul>
+  <h2>Fahrräder:</h2>
   @for (bike of bikes(); track $index) {
-    <li>{{ bike.name }}</li>
+    <li>- {{ bike.name }}</li>
   }
 </ul>
 
 <ul>
+  <h2>Aktivitäten:</h2>
   @for (activity of activities(); track $index) {
-    <li>{{ activity.name }}</li>
+    <li>- {{ activity.name }} {{ activity.distance }} {{ activity.type }}</li>
   }
 </ul>
