@@ -16,6 +16,8 @@ import {
 } from 'chart.js';
 import { ActivityDetailModel } from '../../models/activity-detail-model';
 import { WeatherTimeline } from '../../models/weather-timeline';
+import { Map } from '../map/map';
+import { AbsPipe } from '../../../../abs-pipe';
 
 Chart.register(
   LineController,
@@ -32,7 +34,7 @@ Chart.register(
 
 @Component({
   selector: 'app-activity-detail',
-  imports: [],
+  imports: [Map, AbsPipe],
   templateUrl: './activity-detail.html',
   styleUrl: './activity-detail.css',
 })
@@ -88,10 +90,7 @@ export class ActivityDetail implements OnInit {
   }
 
   private renderClimateChart(weatherData: WeatherTimeline) {
-    if (this.chart) {
-      this.chart.destroy();
-    }
-    console.log(weatherData);
+    if (this.chart) this.chart.destroy();
 
     this.chart = new Chart(this.climateChartRef.nativeElement, {
       type: 'line',
@@ -142,7 +141,7 @@ export class ActivityDetail implements OnInit {
     });
   }
 
-  getWindColor(val: number | undefined): string {
+  public getWindColor(val: number | undefined): string {
     if (!val || val < 0) return 'green';
     if (val < 5) return 'orange';
     return 'red';

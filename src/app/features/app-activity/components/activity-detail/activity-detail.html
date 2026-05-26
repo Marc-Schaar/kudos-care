@@ -1,21 +1,43 @@
-<h1>Aktivät Wetter</h1>
-<h2>{{ activityService.activityData()?.name }}</h2>
-<h2>Wetter-Check</h2>
-<div class="chart-container" style="height: 250px">
-  <canvas #climateChart></canvas>
-</div>
+<div class="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
+  <header class="border-b pb-4">
+    <h1 class="text-3xl font-bold text-gray-900">{{ activityService.activityData()?.name }}</h1>
+    <p class="text-gray-500">Detaillierte Analyse deiner Fahrt</p>
+  </header>
 
-<h2>Leistungs-Check (Wind)</h2>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h2 class="text-lg font-semibold mb-4 text-gray-800">Klima-Check</h2>
+      <div class="h-64">
+        <canvas #climateChart></canvas>
+      </div>
+    </section>
 
-<div class="wind-stats">
-  <span>Durchschnittlicher Gegenwind:</span>
-  <strong
-    [style.color]="getWindColor(activityService.activityData()?.weather_timeline.avg_headwind)"
-  >
-    {{ activityService.activityData()?.weather_timeline.avg_headwind }} km/h
-  </strong>
-</div>
+    <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-gray-800">Leistungs-Check (Wind)</h2>
+        <div class="px-3 py-1 rounded-full bg-gray-50 text-sm font-medium">
+          <span>Schnitt: </span>
+          <strong
+            [style.color]="
+              getWindColor(activityService.activityData()?.weather_timeline?.avg_headwind)
+            "
+          >
+            {{ activityService.activityData()?.weather_timeline?.avg_headwind | abs }} km/h
+          </strong>
+        </div>
+      </div>
+      <div class="h-64">
+        <canvas #windChart></canvas>
+      </div>
+    </section>
 
-<div class="chart-container" style="height: 250px">
-  <canvas #windChart></canvas>
+    <section
+      class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+    >
+      <h2 class="text-lg font-semibold mb-4 text-gray-800">Streckenverlauf</h2>
+      <div class="h-96 rounded-xl overflow-hidden border">
+        <app-map [routeGeoJson]="activityService.activityData()?.geo_json_full"></app-map>
+      </div>
+    </section>
+  </div>
 </div>
