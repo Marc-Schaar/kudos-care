@@ -14,6 +14,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { ActivityDetailModel } from '../../models/activity-detail-model';
+import { WeatherTimeline } from '../../models/weather-timeline';
 
 Chart.register(
   LineController,
@@ -38,7 +40,9 @@ export class ActivityDetail implements OnInit {
   private route = inject(ActivatedRoute);
   public activityService = inject(ActivityService);
 
-  @ViewChild('weatherChart') weatherChartRef!: ElementRef;
+  @ViewChild('climateChart') climateChartRef!: ElementRef;
+  @ViewChild('windChart') windChartRef!: ElementRef;
+
   chart: any;
 
   ngOnInit(): void {
@@ -50,21 +54,47 @@ export class ActivityDetail implements OnInit {
 
   getActivityDetail(id: number) {
     this.activityService.getActivityDetail(id).subscribe({
-      next: (data) => {
-        console.log('Details geladen:', data);
-        this.renderWeatherChart(data.weather_timeline);
+      next: (data: ActivityDetailModel) => {
+        this.renderCharts(data.weather_timeline);
       },
       error: (err) => console.error('Fehler beim Laden:', err),
     });
   }
 
-  private renderWeatherChart(weatherData: any) {
+  private renderCharts(weatherData: WeatherTimeline) {
+    this.renderClimateChart(weatherData);
+    this.renderWindChart(weatherData);
+  }
+
+  private renderWindChart(weatherData: WeatherTimeline) {
+    new Chart(this.windChartRef.nativeElement, {
+      type: 'line',
+      data: {
+        labels: weatherData.time,
+        datasets: [
+          { label: 'Wind (m/s)', data: weatherData.wind_speed_10m, borderColor: '#ff9f40' },
+          {
+            label: 'Gegenwind (km/h)',
+            data: weatherData.headwind,
+            borderColor: '#d32f2f',
+            borderDash: [5, 5],
+          },
+        ],
+      },
+      options: {
+        /* ... */
+      },
+    });
+  }
+
+  private renderClimateChart(weatherData: WeatherTimeline) {
     if (this.chart) {
       this.chart.destroy();
     }
+    console.log(weatherData);
 
-    this.chart = new Chart(this.weatherChartRef.nativeElement, {
-      type: 'line', // Das funktioniert jetzt, da LineController registriert ist
+    this.chart = new Chart(this.climateChartRef.nativeElement, {
+      type: 'line',
       data: {
         labels: weatherData.time.slice(0, 15),
         datasets: [
@@ -74,13 +104,7 @@ export class ActivityDetail implements OnInit {
             borderColor: '#3e95cd',
             tension: 0.1,
           },
-          {
-            label: 'Wind (m/s)',
-            data: weatherData.wind_speed_10m.slice(0, 15),
-            borderColor: '#ff9f40',
-            backgroundColor: 'rgba(255, 159, 64, 0.1)',
-            yAxisID: 'y1',
-          },
+
           {
             label: 'Regen (mm)',
             data: weatherData.precipitation.slice(0, 15),
@@ -99,12 +123,7 @@ export class ActivityDetail implements OnInit {
             title: { display: true, text: 'Temperatur (°C)' },
             beginAtZero: true,
           },
-          y1: {
-            type: 'linear',
-            position: 'right',
-            title: { display: true, text: 'Wind (m/s)' },
-            grid: { drawOnChartArea: false },
-          },
+
           y2: {
             position: 'right',
             title: { display: true, text: 'Regen (mm)' },
@@ -113,7 +132,19 @@ export class ActivityDetail implements OnInit {
             display: weatherData.precipitation.some((v: number) => v > 0),
           },
         },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+        },
       },
     });
+  }
+
+  getWindColor(val: number | undefined): string {
+    if (!val || val < 0) return 'green';
+    if (val < 5) return 'orange';
+    return 'red';
   }
 }

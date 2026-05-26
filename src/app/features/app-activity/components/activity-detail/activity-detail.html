@@ -1,6 +1,21 @@
 <h1>Aktivät Wetter</h1>
 <h2>{{ activityService.activityData()?.name }}</h2>
-<div class="chart-container" style="width: 100%; height: 300px">
-  <canvas #weatherChart></canvas>
+<h2>Wetter-Check</h2>
+<div class="chart-container" style="height: 250px">
+  <canvas #climateChart></canvas>
 </div>
-<div>Gegenwind: {{ activityService.activityData()?.weather_timeline.avg_headwind }} km/h</div>
+
+<h2>Leistungs-Check (Wind)</h2>
+
+<div class="wind-stats">
+  <span>Durchschnittlicher Gegenwind:</span>
+  <strong
+    [style.color]="getWindColor(activityService.activityData()?.weather_timeline.avg_headwind)"
+  >
+    {{ activityService.activityData()?.weather_timeline.avg_headwind }} km/h
+  </strong>
+</div>
+
+<div class="chart-container" style="height: 250px">
+  <canvas #windChart></canvas>
+</div>
