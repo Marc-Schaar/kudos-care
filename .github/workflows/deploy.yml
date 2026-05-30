@@ -32,6 +32,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            echo "SSH Verbindung erfolgreich!"
             sudo mkdir -p /var/www/kudos_care_frontend
             sudo chown -R $USER:$USER /var/www/kudos_care_frontend
             rm -rf /var/www/kudos_care_frontend/*
