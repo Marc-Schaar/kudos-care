@@ -41,13 +41,7 @@ export class StravaService {
       .pipe(tap((res) => this.bikes.set(res.bikes)));
   }
 
-  public syncAndFetchActivities() {
-    return this.http
-      .post(`${this.baseUrl}/strava/sync/`, {})
-      .pipe(switchMap(() => this.fetchActivities()));
-  }
-
-  private fetchActivities() {
+  public fetchActivities() {
     return this.http.get<Activity[]>(`${this.baseUrl}/activities/`).pipe(
       tap((res) => {
         console.log('Empfangene Aktivitäten:', res);
