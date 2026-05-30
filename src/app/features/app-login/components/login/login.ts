@@ -9,7 +9,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class Login {
   private clientId = '249812';
-  private redirectUri = environment.apiUrl + '/strava-callback';
+  private redirectUri = environment.redirectUrl + '/strava-callback';
 
   connectWithStrava() {
     const stravaAuthUrl =
