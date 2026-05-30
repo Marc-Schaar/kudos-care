@@ -27,6 +27,6 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: 'frontend/dist/kudo_care_frontend/browser/*'
+          source: 'frontend/dist/kudos_care_frontend/browser/*'
           target: '/var/www/kudo_care_frontend'
           strip_components: 4
