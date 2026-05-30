@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from './../../../../../environments/environment';
 
 @Component({
   selector: 'app-strava-callback',
@@ -12,6 +13,7 @@ export class StravaCallback {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private http = inject(HttpClient);
+  private baseUrl = environment.apiUrl;
 
   status = signal<'loading' | 'success' | 'error'>('loading');
   error = false;
@@ -38,7 +40,7 @@ export class StravaCallback {
   }
 
   exchangeCodeWithBackend(code: string) {
-    const backendUrl = 'http://localhost:8000/api/strava/auth/';
+    const backendUrl = `${this.baseUrl}/strava/auth/`;
 
     this.http.post<any>(backendUrl, { code: code }).subscribe({
       next: (res) => {
