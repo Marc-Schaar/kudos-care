@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { switchMap, tap } from 'rxjs';
+import { environment } from './../../../../environments/environment';
+import { tap } from 'rxjs';
 
 export interface Bike {
   id: string;
@@ -22,7 +23,7 @@ export interface Activity {
 })
 export class StravaService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = environment.apiUrl;
   private router = inject(Router);
 
   public user = signal<{ athlete_id: number; firstname: string } | null>(null);
@@ -51,7 +52,7 @@ export class StravaService {
   }
 
   public logout() {
-    this.http.post('http://localhost:8000/api/strava/logout/', {}).subscribe({
+    this.http.post(`${this.baseUrl}/strava/logout/`, {}).subscribe({
       next: (res) => {
         this.router.navigate(['/login']);
       },
