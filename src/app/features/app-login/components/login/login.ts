@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -8,7 +9,7 @@ import { Component } from '@angular/core';
 })
 export class Login {
   private clientId = '249812';
-  private redirectUri = 'http://localhost:4200/strava-callback';
+  private redirectUri = environment.apiUrl + '/strava-callback';
 
   connectWithStrava() {
     const stravaAuthUrl =
