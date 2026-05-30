@@ -16,10 +16,6 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Debug Path
-        run: |
-          ls -R  # Listet alle Dateien und Ordner rekursiv auf
-
       - name: Install and Build
         run: |
           npm install
@@ -56,4 +52,4 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo systemctl restart nginx
+            /usr/bin/sudo /usr/bin/systemctl restart nginx
