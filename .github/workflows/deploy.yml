@@ -16,6 +16,10 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Debug Path
+        run: |
+          ls -R  # Listet alle Dateien und Ordner rekursiv auf
+
       - name: Install and Build
         run: |
           npm install
