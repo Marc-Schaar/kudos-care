@@ -10,23 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Build Angular App
+      - name: Install and Build
         run: |
-          cd frontend
           npm install
           npm run build -- --configuration production
+        working-directory: ./kudos_care_frontend
 
-      - name: Copy Files to Server
-        uses: appleboy/scp-action@master
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: 'frontend/dist/kudos_care_frontend/browser/*'
-          target: '/var/www/kudo_care_frontend'
-          strip_components: 4
+          script: |
+            sudo mkdir -p /var/www/kudos_care_frontend
+            sudo chown -R $USER:$USER /var/www/kudos_care_frontend
+            rm -rf /var/www/kudos_care_frontend/*
+            # Hinweis: Du musst die Dateien jetzt noch vom Runner auf den Server übertragen
+            # Am besten nutzt du dafür den 'appleboy/scp-action' Schritt
