@@ -1,24 +1,32 @@
-deploy-frontend:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
+name: Deploy Frontend
 
-    - name: Build Angular App
-      run: |
-        cd frontend
-        npm install
-        npm run build -- --configuration production
+on:
+  push:
+    branches:
+      - main
 
-    - name: Copy Files to Server
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: 'frontend/dist/DEIN-PROJEKT-NAME/browser/*'
-        target: '/var/www/kudo_care_frontend'
-        strip_components: 4
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build Angular App
+        run: |
+          cd frontend
+          npm install
+          npm run build -- --configuration production
+
+      - name: Copy Files to Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: 'frontend/dist/DEIN-PROJEKT-NAME/browser/*'
+          target: '/var/www/kudo_care_frontend'
+          strip_components: 4
