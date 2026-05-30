@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'localhost:8000/api',
+  apiUrl: 'https://kudos-care.marc-schaar.com/api',
   redirectUrl: 'http://localhost:4200',
 };
