@@ -44,19 +44,18 @@ export class StravaService {
       .pipe(tap((userData) => this.user.set(userData)));
   }
 
-  public fetchBikes(athleteId: number) {
-    return (
-      this.http
-        // .get<{ bikes: Bike[] }>(`${this.baseUrl}/strava/bikes/${athleteId}/`)
-        .get<{ bikes: Bike[] }>(`${this.baseUrl}/maintenance/bikes/`)
-        .pipe(tap((res) => this.bikes.set(res.bikes)))
+  public fetchBikes() {
+    return this.http.get<{ bikes: Bike[] }>(`${this.baseUrl}/maintenance/bikes/`).pipe(
+      tap((res) => {
+        console.log(res);
+        this.bikes.set(res.bikes);
+      }),
     );
   }
 
   public fetchActivities() {
     return this.http.get<Activity[]>(`${this.baseUrl}/activities/`).pipe(
       tap((res) => {
-        console.log('Empfangene Aktivitäten:', res);
         this.activities.set(res);
       }),
     );

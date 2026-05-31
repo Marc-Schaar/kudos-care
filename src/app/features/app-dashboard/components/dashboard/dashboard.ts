@@ -20,7 +20,7 @@ export class Dashboard implements OnInit {
     this.stravaService.fetchUser().subscribe({
       next: (user) => {
         (this.stravaService.syncDataBase().subscribe(),
-          this.stravaService.fetchBikes(user.athlete_id).subscribe(),
+          this.stravaService.fetchBikes().subscribe(),
           this.stravaService.fetchActivities().subscribe());
         // this.stravaService.syncAndFetchActivities().subscribe()
       },
