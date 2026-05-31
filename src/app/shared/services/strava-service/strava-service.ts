@@ -9,10 +9,14 @@ export interface BikeResponse {
 }
 
 export interface Bike {
-  id: string;
+  id: number;
   name: string;
-  distance: number;
-  primary: boolean;
+  strava_bike_id: string;
+  bike_type: string;
+  bike_type_display: string;
+  retired: boolean;
+  total_distance_km: number | null;
+  warn_status: string;
 }
 
 export interface Activity {
@@ -51,12 +55,7 @@ export class StravaService {
   public fetchBikes() {
     return this.http.get<BikeResponse>(`${this.baseUrl}/maintenance/bikes/`).pipe(
       tap((res) => {
-        console.log(res);
-        const mappedBikes = res.bikes.map((bike) => ({
-          ...bike,
-          stravaId: (bike as any).strava_bike_id,
-        }));
-        this.bikes.set(mappedBikes);
+        this.bikes.set(res.bikes);
       }),
     );
   }
