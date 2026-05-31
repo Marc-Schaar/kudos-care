@@ -1,4 +1,3 @@
-// src/app/auth.interceptor.ts
 import { HttpInterceptorFn } from '@angular/common/http';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {

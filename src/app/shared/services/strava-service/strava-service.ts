@@ -3,6 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from './../../../../environments/environment';
 import { tap } from 'rxjs';
+import { NotificationService } from '../notification-service/notification-service';
 
 export interface BikeResponse {
   bikes: Bike[];
@@ -30,9 +31,10 @@ export interface Activity {
   providedIn: 'root',
 })
 export class StravaService {
-  private http = inject(HttpClient);
-  private baseUrl = environment.apiUrl;
-  private router = inject(Router);
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = environment.apiUrl;
+  private readonly router = inject(Router);
+  private readonly notificationService: NotificationService = inject(NotificationService);
 
   public user = signal<{ athlete_id: number; firstname: string } | null>(null);
   public bikes = signal<Bike[]>([]);
@@ -41,7 +43,7 @@ export class StravaService {
   public syncDataBase() {
     return this.http.post(`${this.baseUrl}/strava/sync/`, {}).pipe(
       tap((res) => {
-        console.log('Datenbank-Synchronisierung erfolgreich', res);
+        this.notificationService.show('Datenbank-Synchronisierung erfolgreich', 'success');
       }),
     );
   }

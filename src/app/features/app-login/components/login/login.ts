@@ -8,7 +8,7 @@ import { environment } from '../../../../../environments/environment';
   styleUrl: './login.css',
 })
 export class Login {
-  private clientId = '249812';
+  private clientId = environment.clientID;
   private redirectUri = environment.redirectUrl + '/strava-callback';
 
   connectWithStrava() {

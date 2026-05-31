@@ -1,0 +1,5 @@
+@if (service.notification(); as note) {
+  <div class="toast {{ note.type }}">
+    {{ note.message }}
+  </div>
+}
