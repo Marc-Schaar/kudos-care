@@ -22,7 +22,6 @@ export class Dashboard implements OnInit {
         (this.stravaService.syncDataBase().subscribe(),
           this.stravaService.fetchBikes().subscribe(),
           this.stravaService.fetchActivities().subscribe());
-        // this.stravaService.syncAndFetchActivities().subscribe()
       },
       error: () => this.router.navigate(['/login']),
     });
@@ -30,6 +29,10 @@ export class Dashboard implements OnInit {
 
   public goToActivity(activityId: number) {
     this.router.navigate(['/activity', activityId]);
+  }
+
+  public goToBike(bikeId: number) {
+    this.router.navigate(['/maintenance/bikes', bikeId]);
   }
 
   public logout() {

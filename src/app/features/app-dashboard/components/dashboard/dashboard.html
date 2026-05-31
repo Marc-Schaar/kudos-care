@@ -3,7 +3,7 @@
 <ul>
   <h2>Fahrräder:</h2>
   @for (bike of bikes(); track $index) {
-    <li>- {{ bike.name }}</li>
+    <li (click)="goToBike(+bike.id)">- {{ bike.name }}</li>
   }
 </ul>
 

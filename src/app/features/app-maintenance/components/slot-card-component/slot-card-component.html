@@ -1,0 +1,43 @@
+<div class="slot-card" [class]="slot().warn_status | warnClass">
+  <div class="slot-header">
+    <span class="slot-name">{{ slot().display_name }}</span>
+    <span class="slot-status" [class]="slot().warn_status | warnClass">
+      {{ slot().warn_status | warnLabel }}
+    </span>
+  </div>
+
+  @if (slot().mounted_component; as comp) {
+    <div class="component-info">
+      <span class="comp-name">
+        {{ comp.brand || '—' }}
+        @if (comp.model_name) {
+          <span class="comp-model">{{ comp.model_name }}</span>
+        }
+      </span>
+      @if (comp.installed_at) {
+        <span class="comp-date">seit {{ comp.installed_at | date: 'dd.MM.yyyy' }}</span>
+      }
+    </div>
+
+    <!-- Wear-Balken nur wenn wir km-Daten haben -->
+    @if (wearPct() > 0) {
+      <div class="wear-bar-wrap">
+        <div class="wear-bar">
+          <div
+            class="wear-fill"
+            [class]="slot().warn_status | warnClass"
+            [style.width.%]="wearPct()"
+          ></div>
+        </div>
+        <span class="wear-label">{{ wearPct() }}%</span>
+      </div>
+    }
+
+    <button class="replace-btn" (click)="addComponent.emit(slot().id)">Tauschen</button>
+  } @else {
+    <div class="empty-slot">
+      <span class="empty-label">Keine Komponente montiert</span>
+      <button class="add-btn" (click)="addComponent.emit(slot().id)">+ Hinzufügen</button>
+    </div>
+  }
+</div>

@@ -17,4 +17,9 @@ export const routes: Routes = [
         (m) => m.ActivityDetail,
       ),
   },
+
+  {
+    path: 'maintenance',
+    loadChildren: () => import('./maintenances.routes').then((m) => m.MAINTENANCE_ROUTES),
+  },
 ];

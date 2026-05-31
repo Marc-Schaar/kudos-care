@@ -1,0 +1,88 @@
+<div class="overlay" (click)="onOverlayClick($event)">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-header">
+      <div class="dialog-label">NEUE KOMPONENTE</div>
+      <button class="close-btn" (click)="close.emit()">✕</button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label class="label">Hersteller</label>
+        <input
+          class="input"
+          type="text"
+          [(ngModel)]="brand"
+          name="brand"
+          placeholder="z.B. Shimano, Continental…"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="field">
+        <label class="label">Modell</label>
+        <input
+          class="input"
+          type="text"
+          [(ngModel)]="modelName"
+          name="modelName"
+          placeholder="z.B. Dura-Ace, GP5000…"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Einbaudatum</label>
+          <input class="input" type="date" [(ngModel)]="installedAt" name="installedAt" />
+        </div>
+
+        <div class="field">
+          <label class="label">
+            km-Stand bei Einbau
+            @if (bikeDistanceKm()) {
+              <span class="field-hint">(aktuell {{ bikeDistanceKm() | number: '1.0-0' }} km)</span>
+            }
+          </label>
+          <input
+            class="input"
+            type="number"
+            [(ngModel)]="distanceAtInstall"
+            name="distanceAtInstall"
+            [placeholder]="bikeDistanceKm()?.toFixed(0) ?? '0'"
+            step="0.1"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Notizen</label>
+        <textarea
+          class="input textarea"
+          [(ngModel)]="notes"
+          name="notes"
+          placeholder="Optional…"
+          rows="2"
+        ></textarea>
+      </div>
+
+      <div class="field-checkbox">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="isMounted" name="isMounted" />
+          <span>Direkt montieren (ersetzt aktuelle Komponente)</span>
+        </label>
+      </div>
+
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="close.emit()">Abbrechen</button>
+        <button type="submit" class="btn-save" [disabled]="saving()">
+          {{ saving() ? 'Speichern…' : 'Speichern' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

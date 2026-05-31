@@ -1,3 +1,71 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
 @import 'tailwindcss';
+
+/* ── CSS Variables ─────────────────────────────────────────────────────────── */
+:root {
+  --bg: #0e0f11;
+  --surface: #16181c;
+  --border: #252830;
+  --text: #e8e9ec;
+  --muted: #5a5d6b;
+  --accent: #c8f060; /* Neon-Lime: technisch, sportlich */
+  --accent-subtle: rgba(200, 240, 96, 0.04);
+
+  /* Warn-Ampel */
+  --ok: #4ade80;
+  --warn: #f59e0b;
+  --critical: #f43f5e;
+}
+
+/* Optional: Light-Mode Support */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --border: #dde0e8;
+    --text: #1a1c22;
+    --muted: #8a8fa0;
+    --accent: #5a8f00;
+    --accent-subtle: rgba(90, 143, 0, 0.05);
+  }
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+/* ── Date Pipe: Angular's built-in DatePipe benötigt LOCALE_ID ───────────── */
+/* Stelle sicher dass in app.config.ts folgendes steht:
+   import { LOCALE_ID } from '@angular/core';
+   import { registerLocaleData } from '@angular/common';
+   import localeDe from '@angular/common/locales/de';
+   registerLocaleData(localeDe);
+   providers: [{ provide: LOCALE_ID, useValue: 'de' }]
+*/

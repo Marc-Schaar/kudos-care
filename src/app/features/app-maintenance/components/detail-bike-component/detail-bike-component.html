@@ -1,0 +1,94 @@
+<div class="page">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a routerLink="/maintenance">Wartung</a>
+    <span class="sep">/</span>
+    <span>{{ bike()?.name ?? '...' }}</span>
+  </nav>
+
+  @if (loading()) {
+    <div class="loading-bar"></div>
+  }
+
+  @if (bike(); as bike) {
+    <!-- Bike Header -->
+    <header class="bike-header">
+      <div class="bike-header-left">
+        <span class="type-label">{{ bike.bike_type_display }}</span>
+        <h1 class="bike-title">{{ bike.name }}</h1>
+        <div class="bike-stats">
+          @if (bike.total_distance_km != null) {
+            <div class="stat">
+              <span class="stat-label">Gesamt</span>
+              <span class="stat-value">{{ bike.total_distance_km | number: '1.0-0' }} km</span>
+            </div>
+          }
+          <div class="stat">
+            <span class="stat-label">Status</span>
+            <span class="warn-badge" [class]="bike.warn_status | warnClass">
+              {{ bike.warn_status | warnLabel }}
+            </span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Slots</span>
+            <span class="stat-value">{{ bike.slots.length }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kritische Slots Zusammenfassung -->
+      @if (criticalCount() > 0) {
+        <div class="alert-banner critical">
+          <span class="alert-icon">⚠</span>
+          <span>{{ criticalCount() }} Komponente(n) überfällig</span>
+        </div>
+      }
+      @if (warnCount() > 0) {
+        <div class="alert-banner warn">
+          <span class="alert-icon">○</span>
+          <span>{{ warnCount() }} Komponente(n) bald fällig</span>
+        </div>
+      }
+    </header>
+
+    <!-- Slot-Gruppen -->
+    <div class="groups">
+      @for (group of slotGroups(); track group.category) {
+        <section class="group">
+          <div class="group-header">
+            <div class="group-title-row">
+              <span class="group-dot" [class]="group.worst_status | warnClass"></span>
+              <h2 class="group-title">{{ group.category_display }}</h2>
+              <span class="group-count">{{ group.slots.length }}</span>
+            </div>
+          </div>
+
+          <div class="slots-grid">
+            @for (slot of group.slots; track slot.id) {
+              <app-slot-card-component
+                [slot]="slot"
+                [bikeDistanceKm]="bike.total_distance_km"
+                (addComponent)="openAddDialog($event)"
+              />
+            }
+          </div>
+        </section>
+      }
+    </div>
+
+    <!-- Slot hinzufügen Button -->
+    <button class="add-slot-btn" (click)="openAddSlotDialog()">
+      + Komponenten-Slot hinzufügen
+    </button>
+  }
+</div>
+
+<!-- Dialog -->
+@if (dialogSlotId() != null) {
+  <app-add-component-dialog-component
+    [slotId]="dialogSlotId()!"
+    [bikeDistanceKm]="bike()?.total_distance_km ?? null"
+    (close)="closeDialog()"
+    (saved)="onComponentSaved()"
+  />
+}
