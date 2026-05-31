@@ -30,6 +30,14 @@ export class StravaService {
   public bikes = signal<Bike[]>([]);
   public activities = signal<Activity[]>([]);
 
+  public syncDataBase() {
+    return this.http.post(`${this.baseUrl}/strava/sync/`, {}).pipe(
+      tap((res) => {
+        console.log('Datenbank-Synchronisierung erfolgreich', res);
+      }),
+    );
+  }
+
   public fetchUser() {
     return this.http
       .get<{ athlete_id: number; firstname: string }>(`${this.baseUrl}/strava/me/`)
