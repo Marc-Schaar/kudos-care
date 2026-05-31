@@ -17,7 +17,7 @@ import {
 import { ActivityDetailModel } from '../../models/activity-detail-model';
 import { WeatherTimeline } from '../../models/weather-timeline';
 import { Map } from '../map/map';
-import { AbsPipe } from '../../../../abs-pipe';
+import { AbsPipe } from '../../../../shared/pipes/abs/abs-pipe';
 
 Chart.register(
   LineController,

@@ -37,9 +37,12 @@ export class StravaService {
   }
 
   public fetchBikes(athleteId: number) {
-    return this.http
-      .get<{ bikes: Bike[] }>(`${this.baseUrl}/strava/bikes/${athleteId}/`)
-      .pipe(tap((res) => this.bikes.set(res.bikes)));
+    return (
+      this.http
+        // .get<{ bikes: Bike[] }>(`${this.baseUrl}/strava/bikes/${athleteId}/`)
+        .get<{ bikes: Bike[] }>(`${this.baseUrl}/maintenance/bikes/`)
+        .pipe(tap((res) => this.bikes.set(res.bikes)))
+    );
   }
 
   public fetchActivities() {
