@@ -4,6 +4,10 @@ import { Router } from '@angular/router';
 import { environment } from './../../../../environments/environment';
 import { tap } from 'rxjs';
 
+export interface BikeResponse {
+  bikes: Bike[];
+}
+
 export interface Bike {
   id: string;
   name: string;
@@ -45,10 +49,14 @@ export class StravaService {
   }
 
   public fetchBikes() {
-    return this.http.get<{ bikes: Bike[] }>(`${this.baseUrl}/maintenance/bikes/`).pipe(
+    return this.http.get<BikeResponse>(`${this.baseUrl}/maintenance/bikes/`).pipe(
       tap((res) => {
         console.log(res);
-        this.bikes.set(res.bikes);
+        const mappedBikes = res.bikes.map((bike) => ({
+          ...bike,
+          stravaId: (bike as any).strava_bike_id,
+        }));
+        this.bikes.set(mappedBikes);
       }),
     );
   }
