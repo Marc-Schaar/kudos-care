@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from './../../../../environments/environment';
-import { tap } from 'rxjs';
+import { of, tap } from 'rxjs';
 import { NotificationService } from '../notification-service/notification-service';
 
 export interface BikeResponse {
@@ -52,14 +52,6 @@ export class StravaService {
     return this.http
       .get<{ athlete_id: number; firstname: string }>(`${this.baseUrl}/strava/me/`)
       .pipe(tap((userData) => this.user.set(userData)));
-  }
-
-  public fetchBikes() {
-    return this.http.get<BikeResponse>(`${this.baseUrl}/maintenance/bikes/`).pipe(
-      tap((res) => {
-        this.bikes.set(res.bikes);
-      }),
-    );
   }
 
   public fetchActivities() {

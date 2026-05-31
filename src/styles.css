@@ -9,9 +9,10 @@
   --surface: #16181c;
   --border: #252830;
   --text: #e8e9ec;
-  --muted: #5a5d6b;
-  --accent: #c8f060; /* Neon-Lime: technisch, sportlich */
+  --muted: #8a8e9d;
+  --accent: #c8f060;
   --accent-subtle: rgba(200, 240, 96, 0.04);
+  --surface2: #1c1f25;
 
   /* Warn-Ampel */
   --ok: #4ade80;
@@ -60,12 +61,3 @@ body {
   background: var(--border);
   border-radius: 3px;
 }
-
-/* ── Date Pipe: Angular's built-in DatePipe benötigt LOCALE_ID ───────────── */
-/* Stelle sicher dass in app.config.ts folgendes steht:
-   import { LOCALE_ID } from '@angular/core';
-   import { registerLocaleData } from '@angular/common';
-   import localeDe from '@angular/common/locales/de';
-   registerLocaleData(localeDe);
-   providers: [{ provide: LOCALE_ID, useValue: 'de' }]
-*/

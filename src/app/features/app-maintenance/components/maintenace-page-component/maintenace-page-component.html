@@ -1,1 +1,125 @@
-<p>maintenace-page-component works!</p>
+<div class="page">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-eyebrow">KudosCare · Wartung</div>
+    <h1 class="page-title">Meine <span class="title-accent">Räder</span></h1>
+  </header>
+
+  <!-- Summary Bar -->
+  @if (!loading() && activeBikes().length > 0) {
+    <div class="summary-bar">
+      <div class="sum-item">
+        <span class="sum-label">Räder gesamt</span>
+        <span class="sum-val">{{ activeBikes().length }}</span>
+      </div>
+      <div class="sum-div"></div>
+      <div class="sum-item">
+        <span class="sum-label">Handlungsbedarf</span>
+        <div class="sum-pills">
+          @if (criticalCount() > 0) {
+            <span class="status-pill critical">
+              <span class="dot dot-crit"></span>
+              {{ criticalCount() }} überfällig
+            </span>
+          }
+          @if (warnCount() > 0) {
+            <span class="status-pill warn">
+              <span class="dot dot-warn"></span>
+              {{ warnCount() }} bald fällig
+            </span>
+          }
+          @if (criticalCount() === 0 && warnCount() === 0) {
+            <span class="status-pill ok">Alles in Ordnung</span>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading Skeleton -->
+  @if (loading()) {
+    <div class="skeleton-bar"></div>
+    <div class="bikes-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  }
+
+  @if (!loading() && activeBikes().length > 0) {
+    <div class="section-divider">
+      <span class="divider-label">Aktive Räder</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="bikes-grid">
+      @for (bike of activeBikes(); track bike.id) {
+        <a
+          class="bike-card"
+          [class]="cardClass(bike)"
+          [routerLink]="['/maintenance/bikes', bike.id]"
+        >
+          <div class="card-top">
+            <span class="type-badge">{{ bike.bike_type_display }}</span>
+            <span class="status-pill" [class]="bike.warn_status | warnClass">
+              @if (bike.warn_status === 'critical') {
+                <span class="dot dot-crit"></span>
+              } @else if (bike.warn_status === 'warn') {
+                <span class="dot dot-warn"></span>
+              }
+              {{ bike.warn_status | warnLabel }}
+            </span>
+          </div>
+
+          <h2 class="bike-name">{{ bike.name }}</h2>
+
+          @if (bike.total_distance_km != null) {
+            <div class="bike-km">
+              <strong>{{ bike.total_distance_km | number: '1.0-0' }}</strong> km gefahren
+            </div>
+          }
+
+          <div class="card-footer">
+            <span class="arrow-btn">Details ansehen →</span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+
+  <!-- Pensionierte Räder -->
+  @if (!loading() && retiredBikes().length > 0) {
+    <div class="section-divider" style="margin-top: 2.5rem">
+      <span class="divider-label">Pensioniert</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="bikes-grid">
+      @for (bike of retiredBikes(); track bike.id) {
+        <a class="bike-card retired" [routerLink]="['/maintenance/bikes', bike.id]">
+          <div class="card-top">
+            <span class="type-badge">{{ bike.bike_type_display }}</span>
+            <span class="retired-badge">Pensioniert</span>
+          </div>
+          <h2 class="bike-name">{{ bike.name }}</h2>
+          @if (bike.total_distance_km != null) {
+            <div class="bike-km">
+              <strong>{{ bike.total_distance_km | number: '1.0-0' }}</strong> km gefahren
+            </div>
+          }
+          <div class="card-footer">
+            <span class="arrow-btn">Details →</span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+
+  @if (!loading() && allBikes().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">⬡</div>
+      <p class="empty-title">Keine Räder gefunden</p>
+      <p class="empty-sub">Synchronisiere dein Strava-Profil um deine Räder zu laden.</p>
+    </div>
+  }
+</div>

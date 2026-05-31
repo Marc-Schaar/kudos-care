@@ -1,6 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Bike } from '../../../../shared/services/strava-service/strava-service';
-import { tap } from 'rxjs';
+import { map, Observable, of, tap } from 'rxjs';
 import { environment } from './../../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import {
@@ -24,16 +23,157 @@ export class BikeService {
   public selectedSlot = signal<ComponentSlotDetail | null>(null);
   public templates = signal<ComponentTemplate[]>([]);
 
-  fetchBikes() {
-    return this.http
-      .get<BikeList[]>(`${this.baseUrl}/maintenance/bikes/`)
-      .pipe(tap((res) => this.bikes.set(res)));
+  private devMode = true;
+
+  private mokedBikes: BikeList[] = [
+    {
+      id: 1,
+      strava_bike_id: 101,
+      name: 'Trek Emonda',
+      bike_type: 'road',
+      bike_type_display: 'Rennrad',
+      retired: false,
+      total_distance_km: 12500,
+      warn_status: 'ok',
+    },
+    {
+      id: 2,
+      strava_bike_id: 102,
+      name: 'Altes Stahl-RR',
+      bike_type: 'road',
+      bike_type_display: 'Rennrad',
+      retired: true,
+      total_distance_km: 45000,
+      warn_status: 'unknown',
+    },
+
+    // --- Mountainbike Kategorie ---
+    {
+      id: 3,
+      strava_bike_id: 201,
+      name: 'Specialized Stumpjumper',
+      bike_type: 'mtb',
+      bike_type_display: 'Mountainbike',
+      retired: false,
+      total_distance_km: 3200,
+      warn_status: 'warn',
+    },
+    {
+      id: 4,
+      strava_bike_id: 202,
+      name: 'Downhill Schlitten',
+      bike_type: 'mtb',
+      bike_type_display: 'Mountainbike',
+      retired: false,
+      total_distance_km: 800,
+      warn_status: 'critical',
+    },
+
+    // --- Gravel & CX ---
+    {
+      id: 5,
+      strava_bike_id: 301,
+      name: 'Canyon Grail',
+      bike_type: 'gravel',
+      bike_type_display: 'Gravel',
+      retired: false,
+      total_distance_km: 8900,
+      warn_status: 'ok',
+    },
+    {
+      id: 6,
+      strava_bike_id: 302,
+      name: 'Crosser Training',
+      bike_type: 'cx',
+      bike_type_display: 'Cyclocross',
+      retired: false,
+      total_distance_km: 2100,
+      warn_status: 'warn',
+    },
+
+    // --- E-Bikes ---
+    {
+      id: 7,
+      strava_bike_id: 401,
+      name: 'Turbo Levo SL',
+      bike_type: 'ebike_mtb',
+      bike_type_display: 'E-MTB',
+      retired: false,
+      total_distance_km: 4500,
+      warn_status: 'ok',
+    },
+    {
+      id: 8,
+      strava_bike_id: 402,
+      name: 'Commuter E-Bike',
+      bike_type: 'ebike_city',
+      bike_type_display: 'E-Stadtrad',
+      retired: false,
+      total_distance_km: 12000,
+      warn_status: 'critical',
+    },
+    {
+      id: 9,
+      strava_bike_id: 403,
+      name: 'E-Road Pro',
+      bike_type: 'ebike_road',
+      bike_type_display: 'E-Rennrad',
+      retired: false,
+      total_distance_km: 1500,
+      warn_status: 'ok',
+    },
+
+    // --- City & Sonstiges ---
+    {
+      id: 10,
+      strava_bike_id: 501,
+      name: 'Bahnhofsrad',
+      bike_type: 'city',
+      bike_type_display: 'Stadtrad',
+      retired: false,
+      total_distance_km: 500,
+      warn_status: 'ok',
+    },
+    {
+      id: 11,
+      strava_bike_id: 502,
+      name: 'Einrad / Lastenrad',
+      bike_type: 'other',
+      bike_type_display: 'Sonstiges',
+      retired: false,
+      total_distance_km: 150,
+      warn_status: 'unknown',
+    },
+  ];
+
+  public fetchBikes(): Observable<BikeList[]> {
+    if (this.devMode) {
+      this.bikes.set(this.mokedBikes);
+      return of(this.mokedBikes);
+    } else {
+      return this.http.get<{ bikes: BikeList[] }>(`${this.baseUrl}/maintenance/bikes/`).pipe(
+        map((response) => response.bikes),
+        tap((res) => this.bikes.set(res)),
+      );
+    }
   }
 
   fetchBikeDetails(bikeId: number) {
-    return this.http
-      .get<BikeDetail>(`${this.baseUrl}/maintenance/bikes/${bikeId}/`)
-      .pipe(tap((res) => this.selectedBike.set(res)));
+    if (this.devMode) {
+      const bike = this.mokedBikes.find((b) => b.id === bikeId) || null;
+      const details: BikeDetail = {
+        ...bike!,
+        slots: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      this.selectedBike.set(details);
+      return of(details);
+    } else {
+      return this.http
+        .get<BikeDetail>(`${this.baseUrl}/maintenance/bikes/${bikeId}/`)
+        .pipe(tap((res) => this.selectedBike.set(res)));
+    }
   }
 
   updateBike(

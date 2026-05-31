@@ -100,7 +100,7 @@ export interface ComponentSlotDetail extends ComponentSlotList {
 
 export interface BikeList {
   id: number;
-  strava_bike_id: string;
+  strava_bike_id: number;
   name: string;
   bike_type: BikeType;
   bike_type_display: string;
