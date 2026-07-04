@@ -17,6 +17,7 @@ export class Login {
       `client_id=${this.clientId}` +
       `&redirect_uri=${encodeURIComponent(this.redirectUri)}` +
       `&response_type=code` +
+      `&approval_prompt=force` +
       `&scope=profile:read_all,activity:read_all`;
 
     window.location.href = stravaAuthUrl;
