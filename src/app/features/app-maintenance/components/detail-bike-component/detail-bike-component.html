@@ -92,3 +92,13 @@
     (saved)="onComponentSaved()"
   />
 }
+
+@if (showAddSlotDialog() && bike(); as bike) {
+  <app-add-slot-dialog-component
+    [bikeId]="bike.id"
+    [bikeType]="bike.bike_type"
+    [existingTemplateIds]="existingTemplateIds()"
+    (close)="closeAddSlotDialog()"
+    (created)="onSlotCreated($event)"
+  />
+}

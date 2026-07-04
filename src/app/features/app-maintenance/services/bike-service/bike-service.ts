@@ -7,6 +7,7 @@ import {
   BikeDetail,
   BikeList,
   ComponentSlotDetail,
+  ComponentSlotList,
   ComponentTemplate,
   CreateComponentPayload,
 } from '../../models/maintenance.models';
@@ -23,7 +24,7 @@ export class BikeService {
   public selectedSlot = signal<ComponentSlotDetail | null>(null);
   public templates = signal<ComponentTemplate[]>([]);
 
-  private devMode = true;
+  private devMode = false;
 
   private mokedBikes: BikeList[] = [
     {
@@ -233,7 +234,7 @@ export class BikeService {
   // ── Slot zu Bike hinzufügen ─────────────────────────────────────────────────
 
   addSlot(bikeId: number, templateId: number, customName = '') {
-    return this.http.post(`${this.baseUrl}/maintenance/bikes/${bikeId}/slots/`, {
+    return this.http.post<ComponentSlotList>(`${this.baseUrl}/maintenance/bikes/${bikeId}/slots/`, {
       template: templateId,
       custom_name: customName,
     });

@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { Dashboard } from './app/features/app-dashboard/components/dashboard/dashboard';
-import { Login } from './app/features/app-login/components/login/login';
-import { StravaCallback } from './app/features/app-login/components/strava-callback/strava-callback';
-import { authGuard } from './app/features/app-login/guard/auth-guard';
+import { Dashboard } from '../features/app-dashboard/components/dashboard/dashboard';
+import { Login } from '../features/app-login/components/login/login';
+import { StravaCallback } from '../features/app-login/components/strava-callback/strava-callback';
+import { authGuard } from '../features/app-login/guard/auth-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -13,7 +13,7 @@ export const routes: Routes = [
     path: 'activity/:id',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./app/features/app-activity/components/activity-detail/activity-detail').then(
+      import('../features/app-activity/components/activity-detail/activity-detail').then(
         (m) => m.ActivityDetail,
       ),
   },

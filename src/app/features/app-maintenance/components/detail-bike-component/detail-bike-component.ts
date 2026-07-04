@@ -8,6 +8,7 @@ import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { DecimalPipe } from '@angular/common';
 import { SlotCardComponent } from '../slot-card-component/slot-card-component';
 import { AddComponentDialogComponent } from '../add-component-dialog-component/add-component-dialog-component';
+import { AddSlotDialogComponent } from '../add-slot-dialog-component/add-slot-dialog-component';
 
 @Component({
   selector: 'app-detail-bike-component',
@@ -17,6 +18,7 @@ import { AddComponentDialogComponent } from '../add-component-dialog-component/a
     DecimalPipe,
     SlotCardComponent,
     AddComponentDialogComponent,
+    AddSlotDialogComponent,
   ],
   templateUrl: './detail-bike-component.html',
   styleUrl: './detail-bike-component.css',
@@ -28,6 +30,7 @@ export class DetailBikeComponent implements OnInit {
   public bike = this.bikeService.selectedBike;
   public loading = signal(false);
   public dialogSlotId = signal<number | null>(null);
+  public showAddSlotDialog = signal(false);
 
   public slotGroups = computed<SlotGroup[]>(() => {
     const b = this.bike();
@@ -42,6 +45,8 @@ export class DetailBikeComponent implements OnInit {
   public warnCount = computed(
     () => this.bike()?.slots.filter((s) => s.warn_status === 'warn').length ?? 0,
   );
+
+  public existingTemplateIds = computed(() => this.bike()?.slots.map((s) => s.template) ?? []);
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
@@ -69,6 +74,19 @@ export class DetailBikeComponent implements OnInit {
   }
 
   openAddSlotDialog() {
-    // TODO: Slot-Auswahl Dialog implementieren
+    this.showAddSlotDialog.set(true);
+  }
+
+  closeAddSlotDialog() {
+    this.showAddSlotDialog.set(false);
+  }
+
+  onSlotCreated(newSlotId: number) {
+    this.showAddSlotDialog.set(false);
+    const id = this.bike()?.id;
+    if (!id) return;
+    this.bikeService.fetchBikeDetails(id).subscribe({
+      complete: () => this.dialogSlotId.set(newSlotId),
+    });
   }
 }
