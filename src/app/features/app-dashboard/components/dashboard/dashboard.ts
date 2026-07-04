@@ -18,9 +18,11 @@ export class Dashboard implements OnInit {
 
   ngOnInit() {
     this.stravaService.fetchUser().subscribe({
-      next: (user) => {
-        (this.stravaService.syncDataBase().subscribe(),
-          this.stravaService.fetchActivities().subscribe());
+      next: () => {
+        this.stravaService.syncDataBase().subscribe({
+          next: () => this.stravaService.fetchActivities().subscribe(),
+          error: () => this.stravaService.fetchActivities().subscribe(),
+        });
       },
       error: () => this.router.navigate(['/login']),
     });

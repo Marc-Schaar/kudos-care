@@ -8,7 +8,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      const msg = err.error.message || 'Ein Fehler ist aufgetreten';
+      const msg = err.error?.message || err.error?.detail || err.error?.error || 'Ein Fehler ist aufgetreten';
       service.show(msg, 'error');
       return throwError(() => err);
     }),

@@ -4,6 +4,7 @@ import { routes } from './app.routes';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { authInterceptor } from './interceptors/auth-interceptor/auth-interceptor';
+import { errorInterceptor } from './interceptors/error-interceptor/error-interceptor';
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
@@ -16,7 +17,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor]),
+      withInterceptors([authInterceptor, errorInterceptor]),
       withXsrfConfiguration({
         cookieName: 'csrftoken',
         headerName: 'X-CSRFToken',
