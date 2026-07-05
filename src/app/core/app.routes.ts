@@ -10,6 +10,14 @@ export const routes: Routes = [
   { path: 'strava-callback', component: StravaCallback },
   { path: 'dashboard', canActivate: [authGuard], component: Dashboard },
   {
+    path: 'activities',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('../features/app-activity/components/activity-list/activity-list').then(
+        (m) => m.ActivityList,
+      ),
+  },
+  {
     path: 'activity/:id',
     canActivate: [authGuard],
     loadComponent: () =>

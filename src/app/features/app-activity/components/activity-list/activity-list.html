@@ -1,0 +1,43 @@
+<div class="page">
+  <nav class="breadcrumb">
+    <a routerLink="/dashboard">Dashboard</a>
+    <span class="sep">/</span>
+    <span>Alle Aktivitäten</span>
+  </nav>
+
+  <header class="page-header">
+    <div class="header-eyebrow">KudosCare · Aktivitäten</div>
+    <h1 class="page-title">Alle <span class="title-accent">Aktivitäten</span></h1>
+  </header>
+
+  @if (loading()) {
+    <div class="activity-list">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  } @else {
+    <div class="activity-list">
+      @for (activity of activities(); track activity.id) {
+        <a class="activity-row" [routerLink]="['/activity', activity.id]">
+          <div class="activity-main">
+            <span class="activity-name">{{ activity.name }}</span>
+            @if (activity.start_date) {
+              <span class="activity-date">{{ activity.start_date | date: 'dd.MM.yyyy' }}</span>
+            }
+          </div>
+          <div class="activity-metrics">
+            <span>{{ (activity.distance ?? 0) / 1000 | number: '1.0-1' }} km</span>
+            <span>{{ formatDuration(activity.elapsed_time) }}</span>
+          </div>
+        </a>
+      } @empty {
+        <div class="empty-state">
+          <div class="empty-icon">⬡</div>
+          <p class="empty-title">Noch keine Aktivitäten</p>
+          <p class="empty-sub">Synchronisiere dein Strava-Profil im Dashboard, um Fahrten zu laden.</p>
+        </div>
+      }
+    </div>
+  }
+</div>
