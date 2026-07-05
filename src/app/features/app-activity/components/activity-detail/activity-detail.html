@@ -76,6 +76,19 @@
           <div class="chart-wrap">
             <canvas #windChart></canvas>
           </div>
+          <div class="wind-legend">
+            <div class="legend-row">
+              <span class="legend-gradient legend-gradient-critical"></span>
+              <span class="legend-label">Gegenwind</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-gradient legend-gradient-ok"></span>
+              <span class="legend-label">Rückenwind</span>
+            </div>
+            <p class="legend-hint">
+              Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
+            </p>
+          </div>
         } @else {
           <div class="card-empty">Keine Wetterdaten verfügbar.</div>
         }

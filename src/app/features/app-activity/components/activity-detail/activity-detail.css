@@ -168,6 +168,58 @@
   height: 260px;
 }
 
+/* ── Wind-Legende ──────────────────────────────────────────────── */
+.wind-legend {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.legend-gradient {
+  width: 60px;
+  height: 8px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legend-gradient-critical {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--critical) 20%, var(--muted)),
+    var(--critical)
+  );
+}
+
+.legend-gradient-ok {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--ok) 20%, var(--muted)),
+    var(--ok)
+  );
+}
+
+.legend-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.legend-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
 .map-wrap {
   height: 420px;
   border: 1px solid var(--border);
