@@ -66,6 +66,7 @@ export class ActivityDetail implements OnInit {
   public loading = signal(false);
   public error = signal<string | null>(null);
   public chartMode = signal<ChartMode>('wind');
+  public mapMode = signal<ChartMode>('wind');
 
   private climateChart: Chart | undefined;
   private conditionChart: Chart | undefined;
@@ -138,6 +139,10 @@ export class ActivityDetail implements OnInit {
     if (this.currentWeatherData) {
       this.renderConditionChart(this.currentWeatherData);
     }
+  }
+
+  public setMapMode(mode: ChartMode) {
+    this.mapMode.set(mode);
   }
 
   private renderConditionChart(weatherData: Partial<WeatherTimeline>) {

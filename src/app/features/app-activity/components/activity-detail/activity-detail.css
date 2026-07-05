@@ -272,6 +272,8 @@
 .map-wrap {
   height: 420px;
   border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
 }
 
 .card-empty {

@@ -131,16 +131,16 @@
             <button
               type="button"
               class="toggle-btn"
-              [class.active]="chartMode() === 'wind'"
-              (click)="setChartMode('wind')"
+              [class.active]="mapMode() === 'wind'"
+              (click)="setMapMode('wind')"
             >
               Wind
             </button>
             <button
               type="button"
               class="toggle-btn"
-              [class.active]="chartMode() === 'rain'"
-              (click)="setChartMode('rain')"
+              [class.active]="mapMode() === 'rain'"
+              (click)="setMapMode('rain')"
             >
               Regen
             </button>
@@ -148,10 +148,10 @@
         </div>
         @if (data.geo_json_full.features.length) {
           <div class="map-wrap">
-            <app-map [routeGeoJson]="data.geo_json_full" [mode]="chartMode()"></app-map>
+            <app-map [routeGeoJson]="data.geo_json_full" [mode]="mapMode()"></app-map>
           </div>
           <div class="wind-legend">
-            @if (chartMode() === 'wind') {
+            @if (mapMode() === 'wind') {
               <div class="legend-row">
                 <span class="legend-gradient legend-gradient-critical"></span>
                 <span class="legend-label">Gegenwind</span>
