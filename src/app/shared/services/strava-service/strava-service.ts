@@ -64,7 +64,10 @@ export class StravaService {
 
   public logout() {
     this.http.post(`${this.baseUrl}/strava/logout/`, {}).subscribe({
-      next: (res) => {
+      next: () => {
+        this.user.set(null);
+        this.bikes.set([]);
+        this.activities.set([]);
         this.router.navigate(['/login']);
       },
       error: (err) => {

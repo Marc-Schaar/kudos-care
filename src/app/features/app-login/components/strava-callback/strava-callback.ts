@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from './../../../../../environments/environment';
+import { StravaService } from '../../../../shared/services/strava-service/strava-service';
 
 @Component({
   selector: 'app-strava-callback',
@@ -13,6 +14,7 @@ export class StravaCallback {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private http = inject(HttpClient);
+  private stravaService = inject(StravaService);
   private baseUrl = environment.apiUrl;
 
   status = signal<'loading' | 'success' | 'error'>('loading');
@@ -46,6 +48,12 @@ export class StravaCallback {
     this.http.post<any>(backendUrl, { code: code, scope: scope }).subscribe({
       next: (res) => {
         this.status.set('success');
+        if (res?.athlete) {
+          this.stravaService.user.set({
+            athlete_id: res.athlete.id,
+            firstname: res.athlete.firstname,
+          });
+        }
         setTimeout(() => this.router.navigate(['/dashboard']), 2000);
       },
       error: (err) => {

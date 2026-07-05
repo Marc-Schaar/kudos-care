@@ -15,9 +15,6 @@ export const authGuard = () => {
 
   return stravaService.fetchUser().pipe(
     map(() => true),
-    catchError(() => {
-      router.navigate(['/login']);
-      return of(false);
-    }),
+    catchError(() => of(router.createUrlTree(['/login']))),
   );
 };

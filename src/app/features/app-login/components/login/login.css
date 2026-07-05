@@ -29,3 +29,8 @@
   font-style: italic;
   letter-spacing: -0.5px;
 }
+.switch-account-hint {
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
