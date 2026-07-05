@@ -45,7 +45,8 @@ Chart.register(
 );
 
 type WindStatus = 'ok' | 'warn' | 'critical';
-type ChartMode = 'wind' | 'rain';
+type MapMode = 'wind' | 'rain';
+type ClimateMode = 'temperature' | 'rain';
 
 @Component({
   selector: 'app-activity-detail',
@@ -61,15 +62,15 @@ export class ActivityDetail implements OnInit {
   public activityService = inject(ActivityService);
 
   @ViewChild('climateChart') climateChartRef!: ElementRef;
-  @ViewChild('conditionChart') conditionChartRef!: ElementRef;
+  @ViewChild('windChart') windChartRef!: ElementRef;
 
   public loading = signal(false);
   public error = signal<string | null>(null);
-  public chartMode = signal<ChartMode>('wind');
-  public mapMode = signal<ChartMode>('wind');
+  public climateMode = signal<ClimateMode>('temperature');
+  public mapMode = signal<MapMode>('wind');
 
   private climateChart: Chart | undefined;
-  private conditionChart: Chart | undefined;
+  private windChart: Chart | undefined;
   private currentWeatherData: Partial<WeatherTimeline> | null = null;
 
   private readonly muted = getComputedStyle(document.documentElement)
@@ -125,31 +126,31 @@ export class ActivityDetail implements OnInit {
   private renderCharts(weatherData: Partial<WeatherTimeline>) {
     if (!weatherData.time?.length) return;
     this.currentWeatherData = weatherData;
-    this.renderClimateChart(weatherData);
-    this.renderConditionChart(weatherData);
+    this.renderClimateSection(weatherData);
+    this.renderWindChart(weatherData);
   }
 
   private timeLabels(times: string[] | undefined): string[] {
     return (times ?? []).map((t) => this.datePipe.transform(t, 'HH:mm') ?? t);
   }
 
-  public setChartMode(mode: ChartMode) {
-    if (this.chartMode() === mode) return;
-    this.chartMode.set(mode);
+  public setClimateMode(mode: ClimateMode) {
+    if (this.climateMode() === mode) return;
+    this.climateMode.set(mode);
     if (this.currentWeatherData) {
-      this.renderConditionChart(this.currentWeatherData);
+      this.renderClimateSection(this.currentWeatherData);
     }
   }
 
-  public setMapMode(mode: ChartMode) {
+  public setMapMode(mode: MapMode) {
     this.mapMode.set(mode);
   }
 
-  private renderConditionChart(weatherData: Partial<WeatherTimeline>) {
-    if (this.chartMode() === 'rain') {
+  private renderClimateSection(weatherData: Partial<WeatherTimeline>) {
+    if (this.climateMode() === 'rain') {
       this.renderRainChart(weatherData);
     } else {
-      this.renderWindChart(weatherData);
+      this.renderTemperatureChart(weatherData);
     }
   }
 
@@ -160,8 +161,8 @@ export class ActivityDetail implements OnInit {
       0,
     );
 
-    this.conditionChart?.destroy();
-    this.conditionChart = new Chart(this.conditionChartRef.nativeElement, {
+    this.windChart?.destroy();
+    this.windChart = new Chart(this.windChartRef.nativeElement, {
       type: 'line',
       data: {
         labels: this.timeLabels(weatherData.time),
@@ -210,8 +211,8 @@ export class ActivityDetail implements OnInit {
       0,
     );
 
-    this.conditionChart?.destroy();
-    this.conditionChart = new Chart(this.conditionChartRef.nativeElement, {
+    this.climateChart?.destroy();
+    this.climateChart = new Chart(this.climateChartRef.nativeElement, {
       type: 'line',
       data: {
         labels: this.timeLabels(weatherData.time),
@@ -245,29 +246,21 @@ export class ActivityDetail implements OnInit {
     });
   }
 
-  private renderClimateChart(weatherData: Partial<WeatherTimeline>) {
+  private renderTemperatureChart(weatherData: Partial<WeatherTimeline>) {
     this.climateChart?.destroy();
-    const precipitation = weatherData.precipitation ?? [];
 
     this.climateChart = new Chart(this.climateChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: this.timeLabels(weatherData.time?.slice(0, 15)),
+        labels: this.timeLabels(weatherData.time),
         datasets: [
           {
             label: 'Temperatur (°C)',
-            data: (weatherData.temperature_2m ?? []).slice(0, 15),
+            data: weatherData.temperature_2m ?? [],
             borderColor: this.accent,
             backgroundColor: this.accent,
             pointRadius: 0,
             tension: 0.2,
-          },
-          {
-            label: 'Regen (mm)',
-            data: precipitation.slice(0, 15),
-            type: 'bar',
-            backgroundColor: `color-mix(in srgb, ${this.text} 25%, transparent)`,
-            yAxisID: 'y2',
           },
         ],
       },
@@ -277,24 +270,13 @@ export class ActivityDetail implements OnInit {
         scales: {
           x: { grid: { color: this.border }, ticks: { color: this.muted } },
           y: {
-            type: 'linear',
-            position: 'left',
-            title: { display: true, text: 'Temperatur (°C)', color: this.muted },
             grid: { color: this.border },
             ticks: { color: this.muted },
             beginAtZero: true,
           },
-          y2: {
-            position: 'right',
-            title: { display: true, text: 'Regen (mm)', color: this.muted },
-            grid: { drawOnChartArea: false },
-            ticks: { color: this.muted },
-            offset: true,
-            display: precipitation.some((v: number) => v > 0),
-          },
         },
         plugins: {
-          legend: { display: true, position: 'top', labels: { color: this.muted, boxWidth: 12 } },
+          legend: { labels: { color: this.muted, boxWidth: 12 } },
         },
       },
     });

@@ -60,33 +60,22 @@
 
     <div class="cards-grid">
       <section class="card">
-        <h2 class="card-title">Klima-Check</h2>
-        @if (data.weather_timeline.time?.length) {
-          <div class="chart-wrap">
-            <canvas #climateChart></canvas>
-          </div>
-        } @else {
-          <div class="card-empty">Keine Wetterdaten verfügbar.</div>
-        }
-      </section>
-
-      <section class="card">
         <div class="card-header-row">
-          <h2 class="card-title">Leistungs-Check</h2>
+          <h2 class="card-title">Klima-Check</h2>
           <div class="chart-toggle">
             <button
               type="button"
               class="toggle-btn"
-              [class.active]="chartMode() === 'wind'"
-              (click)="setChartMode('wind')"
+              [class.active]="climateMode() === 'temperature'"
+              (click)="setClimateMode('temperature')"
             >
-              Wind
+              Temperatur
             </button>
             <button
               type="button"
               class="toggle-btn"
-              [class.active]="chartMode() === 'rain'"
-              (click)="setChartMode('rain')"
+              [class.active]="climateMode() === 'rain'"
+              (click)="setClimateMode('rain')"
             >
               Regen
             </button>
@@ -94,22 +83,10 @@
         </div>
         @if (data.weather_timeline.time?.length) {
           <div class="chart-wrap">
-            <canvas #conditionChart></canvas>
+            <canvas #climateChart></canvas>
           </div>
-          <div class="wind-legend">
-            @if (chartMode() === 'wind') {
-              <div class="legend-row">
-                <span class="legend-gradient legend-gradient-critical"></span>
-                <span class="legend-label">Gegenwind</span>
-              </div>
-              <div class="legend-row">
-                <span class="legend-gradient legend-gradient-ok"></span>
-                <span class="legend-label">Rückenwind</span>
-              </div>
-              <p class="legend-hint">
-                Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
-              </p>
-            } @else {
+          @if (climateMode() === 'rain') {
+            <div class="wind-legend">
               <div class="legend-row">
                 <span class="legend-gradient legend-gradient-rain"></span>
                 <span class="legend-label">Niederschlag</span>
@@ -117,7 +94,31 @@
               <p class="legend-hint">
                 Farbintensität = Menge relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
               </p>
-            }
+            </div>
+          }
+        } @else {
+          <div class="card-empty">Keine Wetterdaten verfügbar.</div>
+        }
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Leistungs-Check (Wind)</h2>
+        @if (data.weather_timeline.time?.length) {
+          <div class="chart-wrap">
+            <canvas #windChart></canvas>
+          </div>
+          <div class="wind-legend">
+            <div class="legend-row">
+              <span class="legend-gradient legend-gradient-critical"></span>
+              <span class="legend-label">Gegenwind</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-gradient legend-gradient-ok"></span>
+              <span class="legend-label">Rückenwind</span>
+            </div>
+            <p class="legend-hint">
+              Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
+            </p>
           </div>
         } @else {
           <div class="card-empty">Keine Wetterdaten verfügbar.</div>
