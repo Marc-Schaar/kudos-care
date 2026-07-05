@@ -1,4 +1,13 @@
-import { Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  ElementRef,
+  inject,
+  Injector,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ActivityService } from '../../services/activity-service/activity-service';
 import {
@@ -13,6 +22,7 @@ import {
   CategoryScale,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js';
 import { ActivityDetailModel } from '../../models/activity-detail-model';
 import { WeatherTimeline } from '../../models/weather-timeline';
@@ -31,6 +41,7 @@ Chart.register(
   Title,
   Tooltip,
   Legend,
+  Filler,
 );
 
 type WindStatus = 'ok' | 'warn' | 'critical';
@@ -43,6 +54,7 @@ type WindStatus = 'ok' | 'warn' | 'critical';
 })
 export class ActivityDetail implements OnInit {
   private route = inject(ActivatedRoute);
+  private injector = inject(Injector);
   public activityService = inject(ActivityService);
 
   @ViewChild('climateChart') climateChartRef!: ElementRef;
@@ -72,9 +84,6 @@ export class ActivityDetail implements OnInit {
   private readonly ok = getComputedStyle(document.documentElement)
     .getPropertyValue('--ok')
     .trim();
-  private readonly warn = getComputedStyle(document.documentElement)
-    .getPropertyValue('--warn')
-    .trim();
 
   ngOnInit(): void {
     Chart.defaults.font.family = "'DM Mono', monospace";
@@ -94,7 +103,9 @@ export class ActivityDetail implements OnInit {
     this.activityService.getActivityDetail(id).subscribe({
       next: (data: ActivityDetailModel) => {
         this.loading.set(false);
-        this.renderCharts(data.weather_timeline);
+        afterNextRender(() => this.renderCharts(data.weather_timeline), {
+          injector: this.injector,
+        });
       },
       error: () => {
         this.loading.set(false);
@@ -110,11 +121,23 @@ export class ActivityDetail implements OnInit {
   }
 
   private renderWindChart(weatherData: Partial<WeatherTimeline>) {
+    const headwindValues = weatherData.headwind ?? [];
+    const maxAbsHeadwind = headwindValues.reduce(
+      (max: number, v) => (v == null ? max : Math.max(max, Math.abs(v))),
+      0,
+    );
+
     console.log(
       '[wind-debug] headwind values:',
-      weatherData.headwind,
-      'statuses:',
-      (weatherData.headwind ?? []).map((v) => this.windStatus(v)),
+      headwindValues,
+      'maxAbsHeadwind:',
+      maxAbsHeadwind,
+      'relative %:',
+      headwindValues.map((v) =>
+        v == null || maxAbsHeadwind === 0
+          ? null
+          : Math.round((Math.abs(v) / maxAbsHeadwind) * 100),
+      ),
     );
 
     this.windChart?.destroy();
@@ -133,13 +156,12 @@ export class ActivityDetail implements OnInit {
           },
           {
             label: 'Gegenwind (km/h)',
-            data: weatherData.headwind ?? [],
+            data: headwindValues,
             borderColor: this.critical,
             borderWidth: 2.5,
             segment: {
-              borderColor: (ctx) => this.windSegmentColor(ctx.p1.parsed.y),
-              backgroundColor: (ctx) =>
-                `color-mix(in srgb, ${this.windSegmentColor(ctx.p1.parsed.y)} 18%, transparent)`,
+              borderColor: (ctx) => this.windSegmentColor(ctx.p1.parsed.y, maxAbsHeadwind),
+              backgroundColor: (ctx) => this.windSegmentFill(ctx.p1.parsed.y, maxAbsHeadwind),
             },
             fill: { target: 'origin' },
             pointRadius: 0,
@@ -222,14 +244,26 @@ export class ActivityDetail implements OnInit {
     return 'critical';
   }
 
-  private windSegmentColor(val: number | undefined | null): string {
-    const status = this.windStatus(val);
-    const map: Record<WindStatus, string> = {
-      ok: this.ok,
-      warn: this.warn,
-      critical: this.critical,
-    };
-    return map[status];
+  /** Farbintensität relativ zum stärksten Wert dieser Fahrt statt fixer Schwellenwerte. */
+  private windIntensity(val: number | undefined | null, maxAbs: number): number {
+    if (val == null || maxAbs <= 0) return 0;
+    return Math.min(1, Math.abs(val) / maxAbs);
+  }
+
+  private windSegmentColor(val: number | undefined | null, maxAbs: number): string {
+    if (val == null) return this.muted;
+    const base = val >= 0 ? this.critical : this.ok;
+    const intensity = this.windIntensity(val, maxAbs);
+    const mixPercent = Math.round(20 + intensity * 80);
+    return `color-mix(in srgb, ${base} ${mixPercent}%, ${this.muted})`;
+  }
+
+  private windSegmentFill(val: number | undefined | null, maxAbs: number): string {
+    if (val == null) return 'transparent';
+    const base = val >= 0 ? this.critical : this.ok;
+    const intensity = this.windIntensity(val, maxAbs);
+    const alphaPercent = Math.round(6 + intensity * 24);
+    return `color-mix(in srgb, ${base} ${alphaPercent}%, transparent)`;
   }
 
   public formatDuration(seconds: number | null): string {
