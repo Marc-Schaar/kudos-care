@@ -70,6 +70,6 @@ export class StravaCallback {
   }
 
   retry() {
-    this.router.navigate(['/connect']);
+    this.router.navigate(['/login']);
   }
 }

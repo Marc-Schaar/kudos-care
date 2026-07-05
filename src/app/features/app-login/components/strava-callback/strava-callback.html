@@ -1,13 +1,25 @@
-<div style="text-align: center; margin-top: 5rem">
-  @if (status() === 'loading') {
-    <h3>🔄 Kudos werden synchronisiert...</h3>
-    <p>Verbindung mit Strava wird hergestellt.</p>
-  } @else if (status() === 'error') {
-    <h3 style="color: #e53e3e">❌ Fehler bei der Verbindung</h3>
-    <p>{{ errorMessage }}</p>
-    <button (click)="retry()">Zurück zum Login</button>
-  } @else {
-    <h3 style="color: #38a169">✅ Kudo Care erfolgreich verknüpft!</h3>
-    <p>Leite weiter zum Dashboard...</p>
-  }
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="header-eyebrow">KudosCare</div>
+
+    @switch (status()) {
+      @case ('loading') {
+        <div class="loading-bar"></div>
+        <h1 class="auth-title">Wird <span class="title-accent">verbunden</span></h1>
+        <p class="auth-sub">Verbindung mit Strava wird hergestellt …</p>
+      }
+      @case ('error') {
+        <div class="alert-banner critical">
+          <span class="alert-icon">⚠</span>
+          <span>{{ errorMessage }}</span>
+        </div>
+        <button (click)="retry()" class="retry-btn" type="button">Zurück zum Login</button>
+      }
+      @case ('success') {
+        <div class="status-icon status-ok">✓</div>
+        <h1 class="auth-title">Erfolgreich <span class="title-accent">verbunden</span></h1>
+        <p class="auth-sub">Du wirst weitergeleitet zum Dashboard …</p>
+      }
+    }
+  </div>
 </div>
