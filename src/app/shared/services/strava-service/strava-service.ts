@@ -5,26 +5,13 @@ import { environment } from './../../../../environments/environment';
 import { of, tap } from 'rxjs';
 import { NotificationService } from '../notification-service/notification-service';
 
-export interface BikeResponse {
-  bikes: Bike[];
-}
-
-export interface Bike {
+export interface Activity {
   id: number;
   name: string;
-  strava_bike_id: string;
-  bike_type: string;
-  bike_type_display: string;
-  retired: boolean;
-  total_distance_km: number | null;
-  warn_status: string;
-}
-
-export interface Activity {
-  id: string;
-  name: string;
-  distance: number;
-  type: string;
+  distance: number | null;
+  start_date: string | null;
+  elapsed_time: number | null;
+  bike: number | null;
 }
 
 @Injectable({
@@ -37,7 +24,6 @@ export class StravaService {
   private readonly notificationService: NotificationService = inject(NotificationService);
 
   public user = signal<{ athlete_id: number; firstname: string } | null>(null);
-  public bikes = signal<Bike[]>([]);
   public activities = signal<Activity[]>([]);
 
   public syncDataBase() {
@@ -66,7 +52,6 @@ export class StravaService {
     this.http.post(`${this.baseUrl}/strava/logout/`, {}).subscribe({
       next: () => {
         this.user.set(null);
-        this.bikes.set([]);
         this.activities.set([]);
         this.router.navigate(['/login']);
       },

@@ -1,18 +1,132 @@
-<H1>Dashboard</H1>
-<button (click)="logout()">logout</button>
-<button (click)="goToMaintenance()">Wartung</button>
-<ul>
-  <h2>Fahrräder:</h2>
-  @for (bike of bikes(); track $index) {
-    <li (click)="goToBike(+bike.id)">- {{ bike.name }}</li>
-  }
-</ul>
+<div class="page">
+  <header class="page-header">
+    <div class="header-eyebrow">KudosCare · Übersicht</div>
+    <div class="header-row">
+      <h1 class="page-title">
+        Hallo, <span class="title-accent">{{ user()?.firstname ?? 'Athlet' }}</span>
+      </h1>
+      <button class="logout-btn" (click)="logout()" type="button">Abmelden</button>
+    </div>
+  </header>
 
-<ul>
-  <h2>Aktivitäten:</h2>
-  @for (activity of activities(); track $index) {
-    <li (click)="goToActivity(+activity.id)">
-      - {{ activity.name }} {{ activity.distance }} {{ activity.type }}
-    </li>
+  <!-- Summary Bar -->
+  <div class="summary-bar">
+    <div class="sum-item">
+      <span class="sum-label">Räder</span>
+      <span class="sum-val">{{ activeBikes().length }}</span>
+    </div>
+    <div class="sum-div"></div>
+    <div class="sum-item">
+      <span class="sum-label">Gesamt-KM</span>
+      <span class="sum-val">{{ totalDistanceKm() | number: '1.0-0' }} km</span>
+    </div>
+    <div class="sum-div"></div>
+    <div class="sum-item">
+      <span class="sum-label">Handlungsbedarf</span>
+      <div class="sum-pills">
+        @if (criticalCount() > 0) {
+          <span class="status-pill critical">
+            <span class="dot dot-crit"></span>
+            {{ criticalCount() }} überfällig
+          </span>
+        }
+        @if (warnCount() > 0) {
+          <span class="status-pill warn">
+            <span class="dot dot-warn"></span>
+            {{ warnCount() }} bald fällig
+          </span>
+        }
+        @if (criticalCount() === 0 && warnCount() === 0) {
+          <span class="status-pill ok">Alles in Ordnung</span>
+        }
+      </div>
+    </div>
+    <div class="sum-spacer"></div>
+    <button class="sync-btn" (click)="syncNow()" [disabled]="syncing()" type="button">
+      @if (syncing()) {
+        Synchronisiere…
+      } @else {
+        ↻ Jetzt synchronisieren
+      }
+    </button>
+  </div>
+
+  <!-- Bikes -->
+  <div class="section-divider">
+    <span class="divider-label">Meine Räder</span>
+    <div class="divider-line"></div>
+    <a class="section-link" routerLink="/maintenance">Alle Räder →</a>
+  </div>
+
+  @if (loading()) {
+    <div class="bikes-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  } @else {
+    <div class="bikes-grid">
+      @for (bike of activeBikes(); track bike.id) {
+        <a
+          class="bike-card"
+          [class]="cardClass(bike)"
+          [routerLink]="['/maintenance/bikes', bike.id]"
+        >
+          <div class="card-top">
+            <span class="type-badge">{{ bike.bike_type_display }}</span>
+            <span class="status-pill" [class]="bike.warn_status | warnClass">
+              {{ bike.warn_status | warnLabel }}
+            </span>
+          </div>
+          <h2 class="bike-name">{{ bike.name }}</h2>
+          @if (bike.total_distance_km != null) {
+            <div class="bike-km">
+              <strong>{{ bike.total_distance_km | number: '1.0-0' }}</strong> km gefahren
+            </div>
+          }
+        </a>
+      } @empty {
+        <div class="empty-state-inline">
+          <p class="empty-title">Noch keine Räder</p>
+          <p class="empty-sub">Synchronisiere dein Strava-Profil, um deine Räder zu laden.</p>
+        </div>
+      }
+    </div>
   }
-</ul>
+
+  <!-- Activities -->
+  <div class="section-divider" style="margin-top: 2.5rem">
+    <span class="divider-label">Letzte Aktivitäten</span>
+    <div class="divider-line"></div>
+  </div>
+
+  @if (loading()) {
+    <div class="activity-list">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  } @else {
+    <div class="activity-list">
+      @for (activity of recentActivities(); track activity.id) {
+        <a class="activity-row" [routerLink]="['/activity', activity.id]">
+          <div class="activity-main">
+            <span class="activity-name">{{ activity.name }}</span>
+            @if (activity.start_date) {
+              <span class="activity-date">{{ activity.start_date | date: 'dd.MM.yyyy' }}</span>
+            }
+          </div>
+          <div class="activity-metrics">
+            <span>{{ (activity.distance ?? 0) / 1000 | number: '1.0-1' }} km</span>
+            <span>{{ formatDuration(activity.elapsed_time) }}</span>
+          </div>
+        </a>
+      } @empty {
+        <div class="empty-state-inline">
+          <p class="empty-title">Noch keine Aktivitäten</p>
+          <p class="empty-sub">Klicke auf "Jetzt synchronisieren", um deine Fahrten zu laden.</p>
+        </div>
+      }
+    </div>
+  }
+</div>
