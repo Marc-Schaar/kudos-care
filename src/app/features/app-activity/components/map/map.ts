@@ -20,6 +20,7 @@ import { FeatureCollection } from 'geojson';
 export class Map implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainer!: ElementRef;
   routeGeoJson = input<any>();
+  mode = input<'wind' | 'rain'>('wind');
 
   private map!: maplibregl.Map;
   private pendingData: any = null;
@@ -33,6 +34,13 @@ export class Map implements AfterViewInit, OnDestroy {
         this.applyRouteData(data);
       } else {
         this.pendingData = data;
+      }
+    });
+
+    effect(() => {
+      const mode = this.mode();
+      if (this.map?.getLayer('route-line')) {
+        this.map.setPaintProperty('route-line', 'line-color', this.lineColorExpression(mode));
       }
     });
   }
@@ -75,18 +83,7 @@ export class Map implements AfterViewInit, OnDestroy {
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
           'line-width': 4,
-          // Grün = Rückenwind, Grau = neutral, Rot = Gegenwind
-          'line-color': [
-            'interpolate',
-            ['linear'],
-            ['get', 'wind_force'],
-            -10,
-            '#22c55e', // starker Rückenwind
-            0,
-            '#94a3b8', // kein Wind
-            10,
-            '#ef4444', // starker Gegenwind
-          ],
+          'line-color': this.lineColorExpression(this.mode()),
         },
       });
     }
@@ -94,9 +91,34 @@ export class Map implements AfterViewInit, OnDestroy {
     this.fitBoundsToRoute(data);
   }
 
+  /** Grün = Rückenwind, Grau = neutral, Rot = Gegenwind. */
+  private windLineColorExpression(): maplibregl.ExpressionSpecification {
+    return [
+      'interpolate',
+      ['linear'],
+      ['get', 'wind_force'],
+      -10,
+      '#22c55e',
+      0,
+      '#94a3b8',
+      10,
+      '#ef4444',
+    ];
+  }
+
+  /** Grau = kein Regen, Blau = starker Regen. */
+  private rainLineColorExpression(): maplibregl.ExpressionSpecification {
+    return ['interpolate', ['linear'], ['get', 'rain_intensity'], 0, '#94a3b8', 2, '#38bdf8'];
+  }
+
+  private lineColorExpression(mode: 'wind' | 'rain'): maplibregl.ExpressionSpecification {
+    return mode === 'rain' ? this.rainLineColorExpression() : this.windLineColorExpression();
+  }
+
   /**
-   * Teilt die Route in Einzelsegmente auf und interpoliert den Gegenwindwert
-   * aus dem stündlichen Array auf die Position des Segments entlang der Route.
+   * Teilt die Route in Einzelsegmente auf und interpoliert Gegenwind- und
+   * Niederschlagswert aus den stündlichen Arrays auf die Position des
+   * Segments entlang der Route.
    *
    * Beispiel: 49 Segmente, 3 Stundenwerte → Segment 0–16 bekommt Wert 0,
    * Segment 17–32 bekommt interpolierten Wert zwischen 0 und 1, usw.
@@ -106,20 +128,21 @@ export class Map implements AfterViewInit, OnDestroy {
 
     for (const feature of data.features) {
       const coords: [number, number][] = feature.geometry.coordinates;
-      const headwindValues: number[] = feature.properties?.weather_data?.headwind ?? [];
+      const weatherData = feature.properties?.weather_data ?? {};
+      const headwindValues: number[] = weatherData.headwind ?? [];
+      const precipitationValues: number[] = weatherData.precipitation ?? [];
       const totalSegments = coords.length - 1;
-      const totalHours = headwindValues.length;
 
       for (let i = 0; i < totalSegments; i++) {
         // Position entlang der Route als Anteil [0, 1]
         const progress = totalSegments > 1 ? i / (totalSegments - 1) : 0;
 
-        // Auf den stündlichen Index mappen und interpolieren
-        const windForce = this.interpolateWindForce(headwindValues, totalHours, progress);
-
         features.push({
           type: 'Feature',
-          properties: { wind_force: windForce },
+          properties: {
+            wind_force: this.interpolateValue(headwindValues, progress),
+            rain_intensity: this.interpolateValue(precipitationValues, progress),
+          },
           geometry: {
             type: 'LineString',
             coordinates: [coords[i], coords[i + 1]],
@@ -135,13 +158,13 @@ export class Map implements AfterViewInit, OnDestroy {
    * Interpoliert linear zwischen zwei Stundenwerten.
    * progress: 0.0 = Startpunkt, 1.0 = Endpunkt der Route
    */
-  private interpolateWindForce(values: number[], totalHours: number, progress: number): number {
+  private interpolateValue(values: number[], progress: number): number {
     if (!values.length) return 0;
-    if (totalHours === 1) return values[0];
+    if (values.length === 1) return values[0];
 
-    const scaled = progress * (totalHours - 1);
+    const scaled = progress * (values.length - 1);
     const lowerIdx = Math.floor(scaled);
-    const upperIdx = Math.min(lowerIdx + 1, totalHours - 1);
+    const upperIdx = Math.min(lowerIdx + 1, values.length - 1);
     const t = scaled - lowerIdx;
 
     return values[lowerIdx] * (1 - t) + values[upperIdx] * t;
