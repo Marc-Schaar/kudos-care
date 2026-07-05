@@ -110,6 +110,13 @@ export class ActivityDetail implements OnInit {
   }
 
   private renderWindChart(weatherData: Partial<WeatherTimeline>) {
+    console.log(
+      '[wind-debug] headwind values:',
+      weatherData.headwind,
+      'statuses:',
+      (weatherData.headwind ?? []).map((v) => this.windStatus(v)),
+    );
+
     this.windChart?.destroy();
     this.windChart = new Chart(this.windChartRef.nativeElement, {
       type: 'line',
