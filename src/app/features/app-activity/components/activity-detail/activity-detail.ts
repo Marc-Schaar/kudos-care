@@ -69,6 +69,12 @@ export class ActivityDetail implements OnInit {
   private readonly critical = getComputedStyle(document.documentElement)
     .getPropertyValue('--critical')
     .trim();
+  private readonly ok = getComputedStyle(document.documentElement)
+    .getPropertyValue('--ok')
+    .trim();
+  private readonly warn = getComputedStyle(document.documentElement)
+    .getPropertyValue('--warn')
+    .trim();
 
   ngOnInit(): void {
     Chart.defaults.font.family = "'DM Mono', monospace";
@@ -122,8 +128,13 @@ export class ActivityDetail implements OnInit {
             label: 'Gegenwind (km/h)',
             data: weatherData.headwind ?? [],
             borderColor: this.critical,
-            backgroundColor: this.critical,
-            borderDash: [4, 3],
+            borderWidth: 2.5,
+            segment: {
+              borderColor: (ctx) => this.windSegmentColor(ctx.p1.parsed.y),
+              backgroundColor: (ctx) =>
+                `color-mix(in srgb, ${this.windSegmentColor(ctx.p1.parsed.y)} 18%, transparent)`,
+            },
+            fill: { target: 'origin' },
             pointRadius: 0,
             tension: 0.2,
           },
@@ -202,6 +213,16 @@ export class ActivityDetail implements OnInit {
     if (val == null || val < 0) return 'ok';
     if (val < 5) return 'warn';
     return 'critical';
+  }
+
+  private windSegmentColor(val: number | undefined | null): string {
+    const status = this.windStatus(val);
+    const map: Record<WindStatus, string> = {
+      ok: this.ok,
+      warn: this.warn,
+      critical: this.critical,
+    };
+    return map[status];
   }
 
   public formatDuration(seconds: number | null): string {
