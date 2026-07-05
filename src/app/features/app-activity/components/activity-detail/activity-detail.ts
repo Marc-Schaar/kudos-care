@@ -45,26 +45,31 @@ Chart.register(
 );
 
 type WindStatus = 'ok' | 'warn' | 'critical';
+type ChartMode = 'wind' | 'rain';
 
 @Component({
   selector: 'app-activity-detail',
   imports: [Map, AbsPipe, DatePipe, DecimalPipe, RouterLink],
+  providers: [DatePipe],
   templateUrl: './activity-detail.html',
   styleUrl: './activity-detail.css',
 })
 export class ActivityDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private injector = inject(Injector);
+  private datePipe = inject(DatePipe);
   public activityService = inject(ActivityService);
 
   @ViewChild('climateChart') climateChartRef!: ElementRef;
-  @ViewChild('windChart') windChartRef!: ElementRef;
+  @ViewChild('conditionChart') conditionChartRef!: ElementRef;
 
   public loading = signal(false);
   public error = signal<string | null>(null);
+  public chartMode = signal<ChartMode>('wind');
 
   private climateChart: Chart | undefined;
-  private windChart: Chart | undefined;
+  private conditionChart: Chart | undefined;
+  private currentWeatherData: Partial<WeatherTimeline> | null = null;
 
   private readonly muted = getComputedStyle(document.documentElement)
     .getPropertyValue('--muted')
@@ -84,6 +89,8 @@ export class ActivityDetail implements OnInit {
   private readonly ok = getComputedStyle(document.documentElement)
     .getPropertyValue('--ok')
     .trim();
+  /** Kein eigener CSS-Variablen-Slot fürs Design-System vorgesehen, daher fest hinterlegt. */
+  private readonly rain = '#38bdf8';
 
   ngOnInit(): void {
     Chart.defaults.font.family = "'DM Mono', monospace";
@@ -116,8 +123,29 @@ export class ActivityDetail implements OnInit {
 
   private renderCharts(weatherData: Partial<WeatherTimeline>) {
     if (!weatherData.time?.length) return;
+    this.currentWeatherData = weatherData;
     this.renderClimateChart(weatherData);
-    this.renderWindChart(weatherData);
+    this.renderConditionChart(weatherData);
+  }
+
+  private timeLabels(times: string[] | undefined): string[] {
+    return (times ?? []).map((t) => this.datePipe.transform(t, 'HH:mm') ?? t);
+  }
+
+  public setChartMode(mode: ChartMode) {
+    if (this.chartMode() === mode) return;
+    this.chartMode.set(mode);
+    if (this.currentWeatherData) {
+      this.renderConditionChart(this.currentWeatherData);
+    }
+  }
+
+  private renderConditionChart(weatherData: Partial<WeatherTimeline>) {
+    if (this.chartMode() === 'rain') {
+      this.renderRainChart(weatherData);
+    } else {
+      this.renderWindChart(weatherData);
+    }
   }
 
   private renderWindChart(weatherData: Partial<WeatherTimeline>) {
@@ -127,24 +155,11 @@ export class ActivityDetail implements OnInit {
       0,
     );
 
-    console.log(
-      '[wind-debug] headwind values:',
-      headwindValues,
-      'maxAbsHeadwind:',
-      maxAbsHeadwind,
-      'relative %:',
-      headwindValues.map((v) =>
-        v == null || maxAbsHeadwind === 0
-          ? null
-          : Math.round((Math.abs(v) / maxAbsHeadwind) * 100),
-      ),
-    );
-
-    this.windChart?.destroy();
-    this.windChart = new Chart(this.windChartRef.nativeElement, {
+    this.conditionChart?.destroy();
+    this.conditionChart = new Chart(this.conditionChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: weatherData.time,
+        labels: this.timeLabels(weatherData.time),
         datasets: [
           {
             label: 'Wind (m/s)',
@@ -183,6 +198,48 @@ export class ActivityDetail implements OnInit {
     });
   }
 
+  private renderRainChart(weatherData: Partial<WeatherTimeline>) {
+    const precipitationValues = weatherData.precipitation ?? [];
+    const maxPrecipitation = precipitationValues.reduce(
+      (max: number, v) => (v == null ? max : Math.max(max, Math.abs(v))),
+      0,
+    );
+
+    this.conditionChart?.destroy();
+    this.conditionChart = new Chart(this.conditionChartRef.nativeElement, {
+      type: 'line',
+      data: {
+        labels: this.timeLabels(weatherData.time),
+        datasets: [
+          {
+            label: 'Niederschlag (mm)',
+            data: precipitationValues,
+            borderColor: this.rain,
+            borderWidth: 2.5,
+            segment: {
+              borderColor: (ctx) => this.rainSegmentColor(ctx.p1.parsed.y, maxPrecipitation),
+              backgroundColor: (ctx) => this.rainSegmentFill(ctx.p1.parsed.y, maxPrecipitation),
+            },
+            fill: { target: 'origin' },
+            pointRadius: 0,
+            tension: 0.2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { grid: { color: this.border }, ticks: { color: this.muted } },
+          y: { grid: { color: this.border }, ticks: { color: this.muted }, beginAtZero: true },
+        },
+        plugins: {
+          legend: { labels: { color: this.muted, boxWidth: 12 } },
+        },
+      },
+    });
+  }
+
   private renderClimateChart(weatherData: Partial<WeatherTimeline>) {
     this.climateChart?.destroy();
     const precipitation = weatherData.precipitation ?? [];
@@ -190,7 +247,7 @@ export class ActivityDetail implements OnInit {
     this.climateChart = new Chart(this.climateChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels: weatherData.time!.slice(0, 15),
+        labels: this.timeLabels(weatherData.time?.slice(0, 15)),
         datasets: [
           {
             label: 'Temperatur (°C)',
@@ -245,7 +302,7 @@ export class ActivityDetail implements OnInit {
   }
 
   /** Farbintensität relativ zum stärksten Wert dieser Fahrt statt fixer Schwellenwerte. */
-  private windIntensity(val: number | undefined | null, maxAbs: number): number {
+  private relativeIntensity(val: number | undefined | null, maxAbs: number): number {
     if (val == null || maxAbs <= 0) return 0;
     return Math.min(1, Math.abs(val) / maxAbs);
   }
@@ -253,7 +310,7 @@ export class ActivityDetail implements OnInit {
   private windSegmentColor(val: number | undefined | null, maxAbs: number): string {
     if (val == null) return this.muted;
     const base = val >= 0 ? this.critical : this.ok;
-    const intensity = this.windIntensity(val, maxAbs);
+    const intensity = this.relativeIntensity(val, maxAbs);
     const mixPercent = Math.round(20 + intensity * 80);
     return `color-mix(in srgb, ${base} ${mixPercent}%, ${this.muted})`;
   }
@@ -261,9 +318,23 @@ export class ActivityDetail implements OnInit {
   private windSegmentFill(val: number | undefined | null, maxAbs: number): string {
     if (val == null) return 'transparent';
     const base = val >= 0 ? this.critical : this.ok;
-    const intensity = this.windIntensity(val, maxAbs);
+    const intensity = this.relativeIntensity(val, maxAbs);
     const alphaPercent = Math.round(6 + intensity * 24);
     return `color-mix(in srgb, ${base} ${alphaPercent}%, transparent)`;
+  }
+
+  private rainSegmentColor(val: number | undefined | null, maxAbs: number): string {
+    if (val == null) return this.muted;
+    const intensity = this.relativeIntensity(val, maxAbs);
+    const mixPercent = Math.round(20 + intensity * 80);
+    return `color-mix(in srgb, ${this.rain} ${mixPercent}%, ${this.muted})`;
+  }
+
+  private rainSegmentFill(val: number | undefined | null, maxAbs: number): string {
+    if (val == null) return 'transparent';
+    const intensity = this.relativeIntensity(val, maxAbs);
+    const alphaPercent = Math.round(6 + intensity * 24);
+    return `color-mix(in srgb, ${this.rain} ${alphaPercent}%, transparent)`;
   }
 
   public formatDuration(seconds: number | null): string {

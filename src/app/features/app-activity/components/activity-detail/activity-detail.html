@@ -71,22 +71,33 @@
       </section>
 
       <section class="card">
-        <h2 class="card-title">Leistungs-Check (Wind)</h2>
+        <div class="card-header-row">
+          <h2 class="card-title">Leistungs-Check</h2>
+          <div class="chart-toggle">
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="chartMode() === 'wind'"
+              (click)="setChartMode('wind')"
+            >
+              Wind
+            </button>
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="chartMode() === 'rain'"
+              (click)="setChartMode('rain')"
+            >
+              Regen
+            </button>
+          </div>
+        </div>
         @if (data.weather_timeline.time?.length) {
           <div class="chart-wrap">
-            <canvas #windChart></canvas>
+            <canvas #conditionChart></canvas>
           </div>
-        } @else {
-          <div class="card-empty">Keine Wetterdaten verfügbar.</div>
-        }
-      </section>
-
-      <section class="card card-full">
-        <h2 class="card-title">Streckenverlauf</h2>
-        @if (data.geo_json_full.features.length) {
-          <div class="map-wrap">
-            <app-map [routeGeoJson]="data.geo_json_full"></app-map>
-            <div class="wind-legend">
+          <div class="wind-legend">
+            @if (chartMode() === 'wind') {
               <div class="legend-row">
                 <span class="legend-gradient legend-gradient-critical"></span>
                 <span class="legend-label">Gegenwind</span>
@@ -98,7 +109,39 @@
               <p class="legend-hint">
                 Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
               </p>
+            } @else {
+              <div class="legend-row">
+                <span class="legend-gradient legend-gradient-rain"></span>
+                <span class="legend-label">Niederschlag</span>
+              </div>
+              <p class="legend-hint">
+                Farbintensität = Menge relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
+              </p>
+            }
+          </div>
+        } @else {
+          <div class="card-empty">Keine Wetterdaten verfügbar.</div>
+        }
+      </section>
+
+      <section class="card card-full">
+        <h2 class="card-title">Streckenverlauf</h2>
+        @if (data.geo_json_full.features.length) {
+          <div class="map-wrap">
+            <app-map [routeGeoJson]="data.geo_json_full"></app-map>
+          </div>
+          <div class="wind-legend">
+            <div class="legend-row">
+              <span class="legend-gradient legend-gradient-critical"></span>
+              <span class="legend-label">Gegenwind</span>
             </div>
+            <div class="legend-row">
+              <span class="legend-gradient legend-gradient-ok"></span>
+              <span class="legend-label">Rückenwind</span>
+            </div>
+            <p class="legend-hint">
+              Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
+            </p>
           </div>
         } @else {
           <div class="card-empty">Keine Streckendaten verfügbar.</div>
