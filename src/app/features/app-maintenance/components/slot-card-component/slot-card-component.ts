@@ -14,6 +14,7 @@ export class SlotCardComponent {
   slot = input.required<ComponentSlotList>();
   bikeDistanceKm = input<number | null>(null);
   addComponent = output<number>();
+  checkComponent = output<number>();
 
   wearPct = computed(() => {
     const s = this.slot();

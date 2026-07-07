@@ -36,7 +36,25 @@ export interface ComponentTemplate {
   warn_hours: number | null;
   warn_days: number | null;
   is_system: boolean;
+  supports_condition_estimate: boolean;
   notes: string;
+}
+
+// ── ComponentCheck ("Prüfen/Freigeben") ────────────────────────────────────────
+
+export interface ComponentCheckSummary {
+  checked_at: string;
+  condition_pct: number | null;
+  snooze_km: number | null;
+  snooze_days: number | null;
+  note: string;
+}
+
+export interface ComponentCheckPayload {
+  condition_pct?: number | null;
+  snooze_km?: number | null;
+  snooze_days?: number | null;
+  note?: string;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -51,6 +69,8 @@ export interface BikeComponent {
   retired_at: string | null;
   is_mounted: boolean;
   notes: string;
+  custom_warn_km: number | null;
+  custom_warn_days: number | null;
   created_at: string;
   updated_at: string;
   // berechnete Felder vom Backend
@@ -59,6 +79,7 @@ export interface BikeComponent {
   warn_status_km: WarnStatus;
   warn_status_days: WarnStatus;
   warn_status_overall: WarnStatus;
+  last_check: ComponentCheckSummary | null;
 }
 
 export interface CreateComponentPayload {
@@ -68,6 +89,8 @@ export interface CreateComponentPayload {
   installed_at: string | null;
   is_mounted: boolean;
   notes: string;
+  custom_warn_km: number | null;
+  custom_warn_days: number | null;
 }
 
 // ── ComponentSlot ─────────────────────────────────────────────────────────────
@@ -77,12 +100,14 @@ export interface MountedComponentSummary {
   brand: string;
   model_name: string;
   installed_at: string | null;
+  condition_pct: number | null;
 }
 
 export interface ComponentSlotList {
   id: number;
   bike: number;
   template: number;
+  template_detail: ComponentTemplate;
   display_name: string;
   category: ComponentCategory;
   category_display: string;

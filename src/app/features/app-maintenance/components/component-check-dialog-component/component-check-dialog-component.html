@@ -1,0 +1,78 @@
+<div class="overlay" (click)="onOverlayClick($event)">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-header">
+      <div class="dialog-label">KOMPONENTE PRÜFEN / FREIGEBEN</div>
+      <button class="close-btn" (click)="close.emit()">✕</button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+      @if (template()?.supports_condition_estimate) {
+        <div class="field">
+          <label class="label">
+            Geschätzter Zustand (Restlebensdauer)
+            <span class="field-hint">{{ conditionPct }}%</span>
+          </label>
+          <input
+            class="input-range"
+            type="range"
+            [(ngModel)]="conditionPct"
+            name="conditionPct"
+            min="0"
+            max="100"
+            step="5"
+          />
+        </div>
+      }
+
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Erneut erinnern nach (km)</label>
+          <input
+            class="input"
+            type="number"
+            [(ngModel)]="snoozeKm"
+            name="snoozeKm"
+            placeholder="leer = normaler Zyklus"
+            step="1"
+            min="0"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Erneut erinnern nach (Tagen)</label>
+          <input
+            class="input"
+            type="number"
+            [(ngModel)]="snoozeDays"
+            name="snoozeDays"
+            placeholder="leer = normaler Zyklus"
+            step="1"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Notizen</label>
+        <textarea
+          class="input textarea"
+          [(ngModel)]="note"
+          name="note"
+          placeholder="Optional…"
+          rows="2"
+        ></textarea>
+      </div>
+
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="close.emit()">Abbrechen</button>
+        <button type="submit" class="btn-save" [disabled]="saving()">
+          {{ saving() ? 'Speichern…' : 'Freigeben' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

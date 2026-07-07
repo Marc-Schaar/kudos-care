@@ -1,0 +1,14 @@
+.comp-condition {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.slot-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.check-btn {
+  cursor: pointer;
+}

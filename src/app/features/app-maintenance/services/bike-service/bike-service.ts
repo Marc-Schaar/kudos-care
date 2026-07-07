@@ -6,6 +6,7 @@ import {
   BikeComponent,
   BikeDetail,
   BikeList,
+  ComponentCheckPayload,
   ComponentSlotDetail,
   ComponentSlotList,
   ComponentTemplate,
@@ -207,6 +208,13 @@ export class BikeService {
 
   deleteComponent(componentId: number) {
     return this.http.delete(`${this.baseUrl}/maintenance/components/${componentId}/`);
+  }
+
+  checkComponent(componentId: number, payload: ComponentCheckPayload) {
+    return this.http.post<BikeComponent>(
+      `${this.baseUrl}/maintenance/components/${componentId}/check/`,
+      payload,
+    );
   }
 
   mountComponent(slotId: number, componentId: number) {

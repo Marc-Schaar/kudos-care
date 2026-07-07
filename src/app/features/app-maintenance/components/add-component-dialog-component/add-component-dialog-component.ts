@@ -1,6 +1,6 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { BikeService } from '../../services/bike-service/bike-service';
-import { CreateComponentPayload } from '../../models/maintenance.models';
+import { ComponentTemplate, CreateComponentPayload } from '../../models/maintenance.models';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { KmPipe } from '../../pipes/km/km-pipe';
@@ -14,6 +14,7 @@ import { KmPipe } from '../../pipes/km/km-pipe';
 export class AddComponentDialogComponent {
   slotId = input.required<number>();
   bikeDistanceKm = input<number | null>(null);
+  template = input<ComponentTemplate | null>(null);
   close = output<void>();
   saved = output<void>();
 
@@ -23,6 +24,8 @@ export class AddComponentDialogComponent {
   modelName = '';
   installedAt = new Date().toISOString().split('T')[0];
   distanceAtInstall: number | null = null;
+  customWarnKm: number | null = null;
+  customWarnDays: number | null = null;
   notes = '';
   isMounted = true;
 
@@ -33,6 +36,8 @@ export class AddComponentDialogComponent {
     if (this.bikeDistanceKm() != null) {
       this.distanceAtInstall = this.bikeDistanceKm();
     }
+    this.customWarnKm = this.template()?.warn_km ?? null;
+    this.customWarnDays = this.template()?.warn_days ?? null;
   }
 
   onSubmit() {
@@ -46,6 +51,8 @@ export class AddComponentDialogComponent {
       installed_at: this.installedAt || null,
       is_mounted: this.isMounted,
       notes: this.notes.trim(),
+      custom_warn_km: this.customWarnKm,
+      custom_warn_days: this.customWarnDays,
     };
 
     this.bikeService.addComponent(this.slotId(), payload).subscribe({

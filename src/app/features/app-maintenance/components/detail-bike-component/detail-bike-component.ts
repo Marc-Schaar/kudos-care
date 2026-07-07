@@ -1,7 +1,7 @@
 import { Component, computed, inject, numberAttribute, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BikeService } from '../../services/bike-service/bike-service';
-import { SlotGroup } from '../../models/maintenance.models';
+import { ComponentTemplate, SlotGroup } from '../../models/maintenance.models';
 import { groupSlotsByCategory } from '../../shared/utils/utils';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
@@ -9,6 +9,7 @@ import { DecimalPipe } from '@angular/common';
 import { SlotCardComponent } from '../slot-card-component/slot-card-component';
 import { AddComponentDialogComponent } from '../add-component-dialog-component/add-component-dialog-component';
 import { AddSlotDialogComponent } from '../add-slot-dialog-component/add-slot-dialog-component';
+import { ComponentCheckDialogComponent } from '../component-check-dialog-component/component-check-dialog-component';
 
 @Component({
   selector: 'app-detail-bike-component',
@@ -19,6 +20,7 @@ import { AddSlotDialogComponent } from '../add-slot-dialog-component/add-slot-di
     SlotCardComponent,
     AddComponentDialogComponent,
     AddSlotDialogComponent,
+    ComponentCheckDialogComponent,
   ],
   templateUrl: './detail-bike-component.html',
   styleUrl: './detail-bike-component.css',
@@ -31,6 +33,7 @@ export class DetailBikeComponent implements OnInit {
   public loading = signal(false);
   public dialogSlotId = signal<number | null>(null);
   public showAddSlotDialog = signal(false);
+  public checkComponentId = signal<number | null>(null);
 
   public slotGroups = computed<SlotGroup[]>(() => {
     const b = this.bike();
@@ -47,6 +50,18 @@ export class DetailBikeComponent implements OnInit {
   );
 
   public existingTemplateIds = computed(() => this.bike()?.slots.map((s) => s.template) ?? []);
+
+  public dialogSlotTemplate = computed<ComponentTemplate | null>(() => {
+    const slot = this.bike()?.slots.find((s) => s.id === this.dialogSlotId());
+    return slot?.template_detail ?? null;
+  });
+
+  public checkComponentTemplate = computed<ComponentTemplate | null>(() => {
+    const slot = this.bike()?.slots.find(
+      (s) => s.mounted_component?.id === this.checkComponentId(),
+    );
+    return slot?.template_detail ?? null;
+  });
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
@@ -88,5 +103,19 @@ export class DetailBikeComponent implements OnInit {
     this.bikeService.fetchBikeDetails(id).subscribe({
       complete: () => this.dialogSlotId.set(newSlotId),
     });
+  }
+
+  openCheckDialog(componentId: number) {
+    this.checkComponentId.set(componentId);
+  }
+
+  closeCheckDialog() {
+    this.checkComponentId.set(null);
+  }
+
+  onCheckSaved() {
+    this.checkComponentId.set(null);
+    const id = this.bike()?.id;
+    if (id) this.bikeService.fetchBikeDetails(id).subscribe();
   }
 }

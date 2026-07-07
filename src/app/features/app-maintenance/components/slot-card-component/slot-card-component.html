@@ -17,6 +17,9 @@
       @if (comp.installed_at) {
         <span class="comp-date">seit {{ comp.installed_at | date: 'dd.MM.yyyy' }}</span>
       }
+      @if (comp.condition_pct != null) {
+        <span class="comp-condition">Zustand: {{ comp.condition_pct }}%</span>
+      }
     </div>
 
     <!-- Wear-Balken nur wenn wir km-Daten haben -->
@@ -33,7 +36,12 @@
       </div>
     }
 
-    <button class="replace-btn" (click)="addComponent.emit(slot().id)">Tauschen</button>
+    <div class="slot-actions">
+      @if (slot().warn_status === 'warn' || slot().warn_status === 'critical') {
+        <button class="check-btn" (click)="checkComponent.emit(comp.id)">Prüfen / Freigeben</button>
+      }
+      <button class="replace-btn" (click)="addComponent.emit(slot().id)">Tauschen</button>
+    </div>
   } @else {
     <div class="empty-slot">
       <span class="empty-label">Keine Komponente montiert</span>

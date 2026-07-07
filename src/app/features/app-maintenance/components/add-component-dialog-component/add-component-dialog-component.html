@@ -55,6 +55,44 @@
         </div>
       </div>
 
+      <div class="field-row">
+        <div class="field">
+          <label class="label">
+            Lebensdauer (km)
+            @if (template()?.warn_km) {
+              <span class="field-hint">(empfohlen: {{ template()?.warn_km }} km)</span>
+            }
+          </label>
+          <input
+            class="input"
+            type="number"
+            [(ngModel)]="customWarnKm"
+            name="customWarnKm"
+            [placeholder]="template()?.warn_km?.toString() ?? ''"
+            step="1"
+            min="0"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">
+            Lebensdauer (Tage)
+            @if (template()?.warn_days) {
+              <span class="field-hint">(empfohlen: {{ template()?.warn_days }} Tage)</span>
+            }
+          </label>
+          <input
+            class="input"
+            type="number"
+            [(ngModel)]="customWarnDays"
+            name="customWarnDays"
+            [placeholder]="template()?.warn_days?.toString() ?? ''"
+            step="1"
+            min="0"
+          />
+        </div>
+      </div>
+
       <div class="field">
         <label class="label">Notizen</label>
         <textarea
