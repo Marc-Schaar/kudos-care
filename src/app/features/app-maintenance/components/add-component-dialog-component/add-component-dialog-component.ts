@@ -33,8 +33,9 @@ export class AddComponentDialogComponent {
   error = signal<string | null>(null);
 
   ngOnInit() {
-    if (this.bikeDistanceKm() != null) {
-      this.distanceAtInstall = this.bikeDistanceKm();
+    const bikeDistance = this.bikeDistanceKm();
+    if (bikeDistance != null) {
+      this.distanceAtInstall = Math.round(bikeDistance);
     }
     this.customWarnKm = this.template()?.warn_km ?? null;
     this.customWarnDays = this.template()?.warn_days ?? null;
