@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { StravaService } from '../../../../shared/services/strava-service/strava-service';
@@ -21,9 +21,11 @@ export class Dashboard implements OnInit {
   public user = this.stravaService.user;
   public bikes = this.bikeService.bikes;
   public activities = this.stravaService.activities;
+  public syncing = this.stravaService.syncing;
 
   public loading = signal(true);
-  public syncing = signal(false);
+
+  private wasSyncing = false;
 
   public activeBikes = computed(() => this.bikes().filter((b) => !b.retired));
 
@@ -44,6 +46,16 @@ export class Dashboard implements OnInit {
       .slice(0, 8),
   );
 
+  constructor() {
+    effect(() => {
+      const syncing = this.syncing();
+      if (this.wasSyncing && !syncing) {
+        this.bikeService.fetchBikes().subscribe();
+      }
+      this.wasSyncing = syncing;
+    });
+  }
+
   ngOnInit() {
     this.loading.set(true);
     this.bikeService.fetchBikes().subscribe();
@@ -51,18 +63,11 @@ export class Dashboard implements OnInit {
       complete: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
+    this.stravaService.checkOngoingSync().subscribe();
   }
 
   public syncNow() {
-    this.syncing.set(true);
-    this.stravaService.syncDataBase().subscribe({
-      next: () => {
-        this.bikeService.fetchBikes().subscribe();
-        this.stravaService.fetchActivities().subscribe();
-        this.syncing.set(false);
-      },
-      error: () => this.syncing.set(false),
-    });
+    this.stravaService.triggerSync().subscribe();
   }
 
   public cardClass(bike: BikeList): string {

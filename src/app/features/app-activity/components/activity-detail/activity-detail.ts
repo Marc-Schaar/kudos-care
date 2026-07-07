@@ -28,6 +28,7 @@ import { ActivityDetailModel } from '../../models/activity-detail-model';
 import { WeatherTimeline } from '../../models/weather-timeline';
 import { Map } from '../map/map';
 import { AbsPipe } from '../../../../shared/pipes/abs/abs-pipe';
+import { HeadwindLabelPipe } from '../../pipes/headwind-label/headwind-label-pipe';
 import { DatePipe, DecimalPipe } from '@angular/common';
 
 Chart.register(
@@ -50,7 +51,7 @@ type ClimateMode = 'temperature' | 'rain';
 
 @Component({
   selector: 'app-activity-detail',
-  imports: [Map, AbsPipe, DatePipe, DecimalPipe, RouterLink],
+  imports: [Map, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, RouterLink],
   providers: [DatePipe],
   templateUrl: './activity-detail.html',
   styleUrl: './activity-detail.css',

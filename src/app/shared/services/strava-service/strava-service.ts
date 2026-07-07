@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from './../../../../environments/environment';
-import { of, tap } from 'rxjs';
+import { interval, switchMap, takeWhile, tap } from 'rxjs';
 import { NotificationService } from '../notification-service/notification-service';
 
 export interface Activity {
@@ -12,6 +12,14 @@ export interface Activity {
   start_date: string | null;
   elapsed_time: number | null;
   bike: number | null;
+}
+
+export interface SyncStatusResponse {
+  sync_status: 'idle' | 'running' | 'success' | 'error';
+  sync_started_at: string | null;
+  sync_finished_at: string | null;
+  sync_error: string;
+  last_sync_count: number | null;
 }
 
 @Injectable({
@@ -25,13 +33,62 @@ export class StravaService {
 
   public user = signal<{ athlete_id: number; firstname: string } | null>(null);
   public activities = signal<Activity[]>([]);
+  public syncing = signal(false);
 
-  public syncDataBase() {
-    return this.http.post(`${this.baseUrl}/strava/sync/`, {}).pipe(
-      tap((res) => {
-        this.notificationService.show('Datenbank-Synchronisierung erfolgreich', 'success');
+  public triggerSync() {
+    return this.http.post<{ status: string }>(`${this.baseUrl}/strava/sync/`, {}).pipe(
+      tap(() => {
+        this.notificationService.show('Synchronisierung gestartet…', 'info');
+        this.startPolling();
       }),
     );
+  }
+
+  public checkOngoingSync() {
+    return this.fetchSyncStatus().pipe(
+      tap((res) => {
+        if (res.sync_status === 'running') {
+          this.notificationService.show('Synchronisierung läuft im Hintergrund…', 'info');
+          this.startPolling();
+        }
+      }),
+    );
+  }
+
+  private fetchSyncStatus() {
+    return this.http.get<SyncStatusResponse>(`${this.baseUrl}/strava/sync-status/`);
+  }
+
+  private startPolling() {
+    if (this.syncing()) {
+      return;
+    }
+    this.syncing.set(true);
+
+    interval(3000)
+      .pipe(
+        switchMap(() => this.fetchSyncStatus()),
+        takeWhile((res) => res.sync_status === 'running', true),
+      )
+      .subscribe((res) => {
+        if (res.sync_status === 'running') {
+          return;
+        }
+        this.syncing.set(false);
+
+        if (res.sync_status === 'success') {
+          this.notificationService.show(
+            `Synchronisierung abgeschlossen (${res.last_sync_count ?? 0} Aktivitäten)`,
+            'success',
+          );
+          this.fetchActivities().subscribe();
+        } else if (res.sync_status === 'error') {
+          this.notificationService.show(
+            res.sync_error || 'Synchronisierung fehlgeschlagen',
+            'error',
+          );
+        }
+      });
   }
 
   public fetchUser() {

@@ -46,7 +46,7 @@
         }
         @if (data.weather_timeline.avg_headwind != null) {
           <div class="stat">
-            <span class="stat-label">Ø Gegenwind</span>
+            <span class="stat-label">Ø {{ data.weather_timeline.avg_headwind | headwindLabel }}</span>
             <span
               class="warn-badge"
               [class]="'status-' + windStatus(data.weather_timeline.avg_headwind)"
