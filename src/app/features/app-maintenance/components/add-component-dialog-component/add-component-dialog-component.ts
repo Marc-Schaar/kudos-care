@@ -3,10 +3,11 @@ import { BikeService } from '../../services/bike-service/bike-service';
 import { CreateComponentPayload } from '../../models/maintenance.models';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { KmPipe } from '../../pipes/km/km-pipe';
 
 @Component({
   selector: 'app-add-component-dialog-component',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, KmPipe],
   templateUrl: './add-component-dialog-component.html',
   styleUrl: './add-component-dialog-component.css',
 })

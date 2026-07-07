@@ -40,7 +40,7 @@
           <label class="label">
             km-Stand bei Einbau
             @if (bikeDistanceKm()) {
-              <span class="field-hint">(aktuell {{ bikeDistanceKm() | number: '1.0-0' }} km)</span>
+              <span class="field-hint">(aktuell {{ bikeDistanceKm() | km }})</span>
             }
           </label>
           <input
