@@ -13,6 +13,7 @@ import { KmPipe } from '../../pipes/km/km-pipe';
 })
 export class AddComponentDialogComponent {
   slotId = input.required<number>();
+  bikeId = input<number | null>(null);
   bikeDistanceKm = input<number | null>(null);
   template = input<ComponentTemplate | null>(null);
   close = output<void>();
@@ -29,16 +30,57 @@ export class AddComponentDialogComponent {
   notes = '';
   isMounted = true;
 
+  // km-Stand wird anhand der Fahrten mit diesem Bike bis zum Einbaudatum
+  // automatisch berechnet und ist deshalb standardmäßig gesperrt. Der User
+  // kann das Feld manuell freigeben, falls die Berechnung falsch liegt
+  // (z.B. weil Aktivitäten in Strava dem falschen Bike zugeordnet waren).
+  distanceManuallyEdited = signal(false);
+  distanceLoading = signal(false);
+
   saving = signal(false);
   error = signal<string | null>(null);
 
   ngOnInit() {
-    const bikeDistance = this.bikeDistanceKm();
-    if (bikeDistance != null) {
-      this.distanceAtInstall = Math.round(bikeDistance);
-    }
+    this.recalculateDistance();
     this.customWarnKm = this.template()?.warn_km ?? null;
     this.customWarnDays = this.template()?.warn_days ?? null;
+  }
+
+  onInstalledAtChange() {
+    if (!this.distanceManuallyEdited()) {
+      this.recalculateDistance();
+    }
+  }
+
+  enableManualDistance() {
+    this.distanceManuallyEdited.set(true);
+  }
+
+  disableManualDistance() {
+    this.distanceManuallyEdited.set(false);
+    this.recalculateDistance();
+  }
+
+  private recalculateDistance() {
+    const bikeId = this.bikeId();
+    if (!bikeId || !this.installedAt) {
+      const bikeDistance = this.bikeDistanceKm();
+      this.distanceAtInstall = bikeDistance != null ? Math.round(bikeDistance) : null;
+      return;
+    }
+
+    this.distanceLoading.set(true);
+    this.bikeService.fetchDistanceAtDate(bikeId, this.installedAt).subscribe({
+      next: (res) => {
+        this.distanceLoading.set(false);
+        this.distanceAtInstall = Math.round(res.distance_km);
+      },
+      error: () => {
+        this.distanceLoading.set(false);
+        const bikeDistance = this.bikeDistanceKm();
+        this.distanceAtInstall = bikeDistance != null ? Math.round(bikeDistance) : null;
+      },
+    });
   }
 
   onSubmit() {

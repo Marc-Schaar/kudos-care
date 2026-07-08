@@ -33,14 +33,22 @@
       <div class="field-row">
         <div class="field">
           <label class="label">Einbaudatum</label>
-          <input class="input" type="date" [(ngModel)]="installedAt" name="installedAt" />
+          <input
+            class="input"
+            type="date"
+            [(ngModel)]="installedAt"
+            (ngModelChange)="onInstalledAtChange()"
+            name="installedAt"
+          />
         </div>
 
         <div class="field">
           <label class="label">
             km-Stand bei Einbau
-            @if (bikeDistanceKm()) {
-              <span class="field-hint">(aktuell {{ bikeDistanceKm() | km }})</span>
+            @if (distanceLoading()) {
+              <span class="field-hint">(wird berechnet…)</span>
+            } @else if (!distanceManuallyEdited()) {
+              <span class="field-hint">(automatisch anhand der Fahrten mit diesem Bike)</span>
             }
           </label>
           <input
@@ -48,10 +56,20 @@
             type="number"
             [(ngModel)]="distanceAtInstall"
             name="distanceAtInstall"
+            [disabled]="!distanceManuallyEdited()"
             [placeholder]="bikeDistanceKm()?.toFixed(0) ?? '0'"
             step="0.1"
             min="0"
           />
+          <label class="checkbox-label distance-override">
+            <input
+              type="checkbox"
+              [ngModel]="distanceManuallyEdited()"
+              (ngModelChange)="$event ? enableManualDistance() : disableManualDistance()"
+              name="distanceManuallyEdited"
+            />
+            <span>km-Stand manuell korrigieren</span>
+          </label>
         </div>
       </div>
 

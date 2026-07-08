@@ -122,6 +122,14 @@ form {
   color: var(--muted);
   opacity: 0.5;
 }
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.distance-override {
+  margin-top: 0.3rem;
+}
 
 .textarea {
   resize: vertical;

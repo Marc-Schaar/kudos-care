@@ -178,6 +178,13 @@ export class BikeService {
     }
   }
 
+  fetchDistanceAtDate(bikeId: number, isoDate: string) {
+    return this.http.get<{ distance_km: number }>(
+      `${this.baseUrl}/maintenance/bikes/${bikeId}/distance-at/`,
+      { params: { date: isoDate } },
+    );
+  }
+
   updateBike(
     bikeId: number,
     payload: Partial<{ name: string; bike_type: string; retired: boolean }>,

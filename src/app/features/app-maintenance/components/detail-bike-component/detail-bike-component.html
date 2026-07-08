@@ -88,6 +88,7 @@
 @if (dialogSlotId() != null) {
   <app-add-component-dialog-component
     [slotId]="dialogSlotId()!"
+    [bikeId]="bike()?.id ?? null"
     [bikeDistanceKm]="bike()?.total_distance_km ?? null"
     [template]="dialogSlotTemplate()"
     (close)="closeDialog()"
