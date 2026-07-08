@@ -13,6 +13,7 @@ import { DatePipe } from '@angular/common';
 export class SlotCardComponent {
   slot = input.required<ComponentSlotList>();
   bikeDistanceKm = input<number | null>(null);
+  highlighted = input<boolean>(false);
   addComponent = output<number>();
   checkComponent = output<number>();
 

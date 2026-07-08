@@ -1,0 +1,82 @@
+<div class="diagram-wrap">
+  <svg
+    class="bike-svg"
+    viewBox="0 0 400 200"
+    preserveAspectRatio="xMidYMid meet"
+    role="img"
+    aria-label="Komponentenübersicht am Fahrrad"
+  >
+    <line class="ground" x1="15" y1="192" x2="385" y2="192" />
+
+    @for (fender of geometry().fenderPaths ?? []; track $index) {
+      <path class="fender" [attr.d]="fender" />
+    }
+
+    @if (geometry().rackPath) {
+      <path class="rack" [attr.d]="geometry().rackPath" />
+    }
+
+    <circle
+      class="wheel"
+      [class.knobby]="geometry().knobby"
+      [attr.cx]="geometry().rearWheel.x"
+      [attr.cy]="geometry().rearWheel.y"
+      [attr.r]="geometry().wheelRadius"
+    />
+    <circle class="hub" [attr.cx]="geometry().rearWheel.x" [attr.cy]="geometry().rearWheel.y" r="4" />
+
+    <circle
+      class="wheel"
+      [class.knobby]="geometry().knobby"
+      [attr.cx]="geometry().frontWheel.x"
+      [attr.cy]="geometry().frontWheel.y"
+      [attr.r]="geometry().wheelRadius"
+    />
+    <circle class="hub" [attr.cx]="geometry().frontWheel.x" [attr.cy]="geometry().frontWheel.y" r="4" />
+
+    <path class="frame" [attr.d]="geometry().framePath" />
+
+    @for (fork of geometry().forkPaths; track $index) {
+      <path class="fork" [attr.d]="fork" />
+    }
+
+    <path class="bar" [attr.d]="geometry().barPath" />
+    <path class="saddle" [attr.d]="geometry().saddlePath" />
+    <path class="crank" [attr.d]="geometry().crankPath" />
+    <circle class="bb-dot" [attr.cx]="geometry().bb.x" [attr.cy]="geometry().bb.y" r="5" />
+
+    @if (geometry().batteryRect; as battery) {
+      <rect
+        class="battery"
+        [attr.x]="battery.x"
+        [attr.y]="battery.y"
+        [attr.width]="battery.w"
+        [attr.height]="battery.h"
+        [attr.transform]="
+          'rotate(' + battery.rot + ' ' + (battery.x + battery.w / 2) + ' ' + (battery.y + battery.h / 2) + ')'
+        "
+        rx="2"
+      />
+    }
+
+    @for (dot of dots(); track dot.slot.id) {
+      <g
+        class="dot-group"
+        [class]="dot.slot.warn_status | warnClass"
+        (click)="dotClick.emit(dot.slot.id)"
+        (keydown.enter)="dotClick.emit(dot.slot.id)"
+        tabindex="0"
+        role="button"
+        [attr.aria-label]="dot.slot.display_name + ': ' + (dot.slot.warn_status | warnLabel)"
+      >
+        <title>{{ dot.slot.display_name }} — {{ dot.slot.warn_status | warnLabel }}</title>
+        <circle class="dot-halo" [attr.cx]="dot.x" [attr.cy]="dot.y" r="10" />
+        <circle class="dot" [attr.cx]="dot.x" [attr.cy]="dot.y" r="5" />
+      </g>
+    }
+  </svg>
+
+  @if (dots().length === 0) {
+    <div class="empty-hint">Noch keine Komponenten-Slots angelegt.</div>
+  }
+</div>

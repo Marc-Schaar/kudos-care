@@ -1,0 +1,141 @@
+.diagram-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.bike-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.ground {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.wheel {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 3;
+}
+.wheel.knobby {
+  stroke-width: 5;
+  stroke-dasharray: 2 4;
+}
+
+.hub {
+  fill: var(--muted);
+}
+
+.frame,
+.fork,
+.bar,
+.crank {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fork {
+  stroke-width: 3.5;
+}
+
+.saddle {
+  fill: var(--text);
+  stroke: none;
+}
+
+.bb-dot {
+  fill: var(--text);
+}
+
+.battery {
+  fill: var(--accent);
+  opacity: 0.35;
+  stroke: var(--accent);
+  stroke-width: 1;
+}
+
+.rack,
+.fender {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  opacity: 0.55;
+}
+
+.dot-group {
+  cursor: pointer;
+  outline: none;
+}
+
+.dot-halo {
+  fill: transparent;
+  transition: fill 0.15s;
+}
+.dot-group:hover .dot-halo,
+.dot-group:focus-visible .dot-halo {
+  fill: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.dot {
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  transition: r 0.15s;
+}
+.dot-group:hover .dot,
+.dot-group:focus-visible .dot {
+  r: 6.5;
+}
+
+.dot-group.status-ok {
+  color: var(--ok);
+}
+.dot-group.status-ok .dot {
+  fill: var(--ok);
+}
+
+.dot-group.status-warn {
+  color: var(--warn);
+}
+.dot-group.status-warn .dot {
+  fill: var(--warn);
+}
+
+.dot-group.status-critical {
+  color: var(--critical);
+}
+.dot-group.status-critical .dot {
+  fill: var(--critical);
+  animation: dot-pulse 1.5s infinite;
+}
+
+.dot-group.status-unknown {
+  color: var(--muted);
+}
+.dot-group.status-unknown .dot {
+  fill: var(--muted);
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.empty-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 0.75rem 0 0.25rem;
+}

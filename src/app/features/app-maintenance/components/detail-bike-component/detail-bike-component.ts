@@ -10,6 +10,7 @@ import { SlotCardComponent } from '../slot-card-component/slot-card-component';
 import { AddComponentDialogComponent } from '../add-component-dialog-component/add-component-dialog-component';
 import { AddSlotDialogComponent } from '../add-slot-dialog-component/add-slot-dialog-component';
 import { ComponentCheckDialogComponent } from '../component-check-dialog-component/component-check-dialog-component';
+import { BikeDiagramComponent } from '../bike-diagram-component/bike-diagram-component';
 
 @Component({
   selector: 'app-detail-bike-component',
@@ -21,6 +22,7 @@ import { ComponentCheckDialogComponent } from '../component-check-dialog-compone
     AddComponentDialogComponent,
     AddSlotDialogComponent,
     ComponentCheckDialogComponent,
+    BikeDiagramComponent,
   ],
   templateUrl: './detail-bike-component.html',
   styleUrl: './detail-bike-component.css',
@@ -34,6 +36,7 @@ export class DetailBikeComponent implements OnInit {
   public dialogSlotId = signal<number | null>(null);
   public showAddSlotDialog = signal(false);
   public checkComponentId = signal<number | null>(null);
+  public highlightedSlotId = signal<number | null>(null);
 
   public slotGroups = computed<SlotGroup[]>(() => {
     const b = this.bike();
@@ -75,6 +78,20 @@ export class DetailBikeComponent implements OnInit {
 
   openAddDialog(slotId: number) {
     this.dialogSlotId.set(slotId);
+  }
+
+  onDiagramDotClick(slotId: number) {
+    this.highlightedSlotId.set(slotId);
+    // Nächster Tick, damit das Ziel-Element sicher gerendert ist.
+    setTimeout(() => {
+      document.getElementById('slot-' + slotId)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+    setTimeout(() => {
+      if (this.highlightedSlotId() === slotId) this.highlightedSlotId.set(null);
+    }, 1600);
   }
 
   closeDialog() {

@@ -1,4 +1,9 @@
-<div class="slot-card" [class]="slot().warn_status | warnClass">
+<div
+  class="slot-card"
+  [class]="slot().warn_status | warnClass"
+  [class.highlighted]="highlighted()"
+  [attr.id]="'slot-' + slot().id"
+>
   <div class="slot-header">
     <span class="slot-name">{{ slot().display_name }}</span>
     <span class="slot-status" [class]="slot().warn_status | warnClass">
