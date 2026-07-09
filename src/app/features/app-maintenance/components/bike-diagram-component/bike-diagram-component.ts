@@ -8,14 +8,6 @@ interface Point {
   y: number;
 }
 
-interface BatteryRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  rot: number;
-}
-
 interface DiagramGeometry {
   rearWheel: Point;
   frontWheel: Point;
@@ -26,15 +18,6 @@ interface DiagramGeometry {
   headBottom: Point;
   stemEnd: Point;
   batteryCenter: Point;
-  framePath: string;
-  forkPaths: string[];
-  barPath: string;
-  saddlePath: string;
-  crankPath: string;
-  batteryRect: BatteryRect | null;
-  rackPath: string | null;
-  fenderPaths: string[] | null;
-  knobby: boolean;
 }
 
 export interface DiagramDot {
@@ -43,15 +26,28 @@ export interface DiagramDot {
   y: number;
 }
 
-// Stil-Merkmale je Bike-Typ — bestimmen welche Rahmen-/Anbauteile die
-// SVG-Silhouette bekommt (Rennlenker vs. Flat-/Swept-Bar, Federgabel,
-// grobstollige Reifen, Gepäckträger/Schutzbleche, Akku-Block).
+// Stil-Merkmale je Bike-Typ — bestimmen Lenkerform/Gabel und damit die
+// Landmark-Punkte, auf denen die Slot-Dots über der Bike-Illustration
+// positioniert werden. Muss in sync mit den Proportionen der SVGs unter
+// public/bike-illustrations/ bleiben.
 const DROP_BAR_TYPES: BikeType[] = ['road', 'gravel', 'cx', 'ebike_road'];
 const SUSPENSION_TYPES: BikeType[] = ['mtb', 'ebike_mtb'];
-const KNOBBY_TYPES: BikeType[] = ['mtb', 'gravel', 'cx', 'ebike_mtb'];
 const SWEPT_BAR_TYPES: BikeType[] = ['city', 'ebike_city', 'other'];
-const RACK_TYPES: BikeType[] = ['city', 'ebike_city'];
-const BATTERY_TYPES: BikeType[] = ['ebike_road', 'ebike_mtb', 'ebike_city'];
+
+// Austauschbare Vektor-Illustration je Bike-Typ. Datei ersetzen, um das
+// Bild für einen Typ zu ändern — die Slot-Dots richten sich automatisch
+// nach den Landmark-Punkten in buildGeometry() aus.
+const BIKE_IMAGES: Record<BikeType, string> = {
+  road: 'bike-illustrations/road.svg',
+  gravel: 'bike-illustrations/gravel.svg',
+  cx: 'bike-illustrations/cx.svg',
+  ebike_road: 'bike-illustrations/ebike_road.svg',
+  mtb: 'bike-illustrations/mtb.svg',
+  ebike_mtb: 'bike-illustrations/ebike_mtb.svg',
+  city: 'bike-illustrations/city.svg',
+  ebike_city: 'bike-illustrations/ebike_city.svg',
+  other: 'bike-illustrations/other.svg',
+};
 
 @Component({
   selector: 'app-bike-diagram-component',
@@ -64,111 +60,58 @@ export class BikeDiagramComponent {
   slots = input<ComponentSlotList[]>([]);
   dotClick = output<number>();
 
+  imageSrc = computed<string>(() => BIKE_IMAGES[this.bikeType()]);
   geometry = computed<DiagramGeometry>(() => this.buildGeometry(this.bikeType()));
   dots = computed<DiagramDot[]>(() => this.buildDots(this.slots(), this.geometry()));
 
   private buildGeometry(type: BikeType): DiagramGeometry {
     const dropBar = DROP_BAR_TYPES.includes(type);
     const suspension = SUSPENSION_TYPES.includes(type);
-    const knobby = KNOBBY_TYPES.includes(type);
     const sweptBar = SWEPT_BAR_TYPES.includes(type);
-    const rack = RACK_TYPES.includes(type);
-    const battery = BATTERY_TYPES.includes(type);
 
-    const rearWheel: Point = { x: 95, y: 150 };
-    const frontWheel: Point = { x: 305, y: 150 };
-    const bb: Point = { x: 168, y: 150 };
-    const seatTop: Point = { x: 148, y: dropBar ? 58 : 50 };
-    const headTop: Point = dropBar ? { x: 268, y: 78 } : { x: 272, y: sweptBar ? 66 : 60 };
-    const headBottom: Point = { x: headTop.x + 10, y: headTop.y + (suspension ? 46 : 32) };
-    const stemEnd: Point = sweptBar
-      ? { x: headTop.x + 4, y: headTop.y - 24 }
-      : { x: headTop.x + 18, y: headTop.y - 12 };
+    const rearWheel: Point = { x: 94, y: 134 };
+    const frontWheel: Point = { x: 312, y: 134 };
+    const bb: Point = { x: 178, y: 141 };
 
-    const framePath = [
-      `M ${bb.x} ${bb.y}`,
-      `L ${seatTop.x} ${seatTop.y}`,
-      `L ${headTop.x} ${headTop.y}`,
-      `M ${bb.x} ${bb.y}`,
-      `L ${headBottom.x} ${headBottom.y}`,
-      `M ${seatTop.x} ${seatTop.y}`,
-      `L ${rearWheel.x} ${rearWheel.y}`,
-      `M ${bb.x} ${bb.y}`,
-      `L ${rearWheel.x} ${rearWheel.y}`,
-    ].join(' ');
+    let seatTop: Point;
+    let headTop: Point;
+    let headBottom: Point;
+    if (dropBar) {
+      seatTop = { x: 154, y: 46 };
+      headTop = { x: 278, y: 42 };
+      headBottom = { x: 287, y: 66 };
+    } else if (suspension) {
+      seatTop = { x: 154, y: 40 };
+      headTop = { x: 269, y: 38 };
+      headBottom = { x: 281, y: 65 };
+    } else {
+      seatTop = { x: 154, y: 44 };
+      headTop = { x: 278, y: 32 };
+      headBottom = { x: 290, y: 68 };
+    }
 
-    const forkPaths = suspension
-      ? [
-          `M ${headBottom.x - 4} ${headBottom.y} L ${frontWheel.x - 6} ${frontWheel.y}`,
-          `M ${headBottom.x + 4} ${headBottom.y} L ${frontWheel.x + 6} ${frontWheel.y}`,
-        ]
-      : [`M ${headBottom.x} ${headBottom.y} L ${frontWheel.x} ${frontWheel.y}`];
-
-    const barPath = dropBar
-      ? `M ${stemEnd.x} ${stemEnd.y} q 18 -4 20 10 q 2 14 -14 16 q -10 1 -8 -9`
+    const stemEnd: Point = dropBar
+      ? { x: headTop.x + 16, y: headTop.y - 12 }
       : sweptBar
-        ? `M ${stemEnd.x - 22} ${stemEnd.y + 6} Q ${stemEnd.x} ${stemEnd.y - 10} ${stemEnd.x + 20} ${stemEnd.y - 2}`
-        : `M ${stemEnd.x - 22} ${stemEnd.y} L ${stemEnd.x + 22} ${stemEnd.y}`;
-
-    const saddlePath = `M ${seatTop.x - 16} ${seatTop.y - 4} Q ${seatTop.x - 2} ${seatTop.y - 10} ${seatTop.x + 16} ${seatTop.y - 5} L ${seatTop.x + 14} ${seatTop.y} L ${seatTop.x - 16} ${seatTop.y} Z`;
-
-    const crankPath = `M ${bb.x - 14} ${bb.y + 10} L ${bb.x + 14} ${bb.y - 10}`;
+        ? { x: headTop.x + 5, y: headTop.y - 22 }
+        : { x: headTop.x + 18, y: headTop.y - 14 };
 
     const batteryCenter: Point = {
       x: (bb.x + headBottom.x) / 2,
-      y: (bb.y + headBottom.y) / 2 - 4,
+      y: (bb.y + headBottom.y) / 2 - 3,
     };
-
-    const batteryRect = battery
-      ? {
-          x: batteryCenter.x - 26,
-          y: batteryCenter.y - 8,
-          w: 52,
-          h: 16,
-          rot: this.angleDeg(bb, headBottom),
-        }
-      : null;
-
-    const rackPath = rack
-      ? `M ${seatTop.x - 2} ${seatTop.y} L ${rearWheel.x - 28} ${rearWheel.y - 44} L ${rearWheel.x + 24} ${rearWheel.y - 44} M ${rearWheel.x - 28} ${rearWheel.y - 44} L ${rearWheel.x - 20} ${rearWheel.y - 26}`
-      : null;
-
-    const fenderPaths = rack
-      ? [this.fenderArc(frontWheel, 46), this.fenderArc(rearWheel, 46)]
-      : null;
 
     return {
       rearWheel,
       frontWheel,
-      wheelRadius: 40,
+      wheelRadius: 58,
       bb,
       seatTop,
       headTop,
       headBottom,
       stemEnd,
       batteryCenter,
-      framePath,
-      forkPaths,
-      barPath,
-      saddlePath,
-      crankPath,
-      batteryRect,
-      rackPath,
-      fenderPaths,
-      knobby,
     };
-  }
-
-  private angleDeg(a: Point, b: Point): number {
-    return (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
-  }
-
-  private fenderArc(center: Point, radius: number): string {
-    const startX = center.x - radius * 0.9;
-    const startY = center.y - radius * 0.3;
-    const endX = center.x + radius * 0.9;
-    const endY = center.y - radius * 0.3;
-    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
   }
 
   private buildDots(slots: ComponentSlotList[], geo: DiagramGeometry): DiagramDot[] {

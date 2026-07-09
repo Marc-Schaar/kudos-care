@@ -11,62 +11,8 @@
   overflow: visible;
 }
 
-.ground {
-  stroke: var(--border);
-  stroke-width: 1;
-}
-
-.wheel {
-  fill: none;
-  stroke: var(--muted);
-  stroke-width: 3;
-}
-.wheel.knobby {
-  stroke-width: 5;
-  stroke-dasharray: 2 4;
-}
-
-.hub {
-  fill: var(--muted);
-}
-
-.frame,
-.fork,
-.bar,
-.crank {
-  fill: none;
-  stroke: var(--text);
-  stroke-width: 4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.fork {
-  stroke-width: 3.5;
-}
-
-.saddle {
-  fill: var(--text);
-  stroke: none;
-}
-
-.bb-dot {
-  fill: var(--text);
-}
-
-.battery {
-  fill: var(--accent);
-  opacity: 0.35;
-  stroke: var(--accent);
-  stroke-width: 1;
-}
-
-.rack,
-.fender {
-  fill: none;
-  stroke: var(--muted);
-  stroke-width: 2;
-  opacity: 0.55;
+.bike-image {
+  pointer-events: none;
 }
 
 .dot-group {

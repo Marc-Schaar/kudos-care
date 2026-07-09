@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <style>
+    :root { --frame: #eef0f3; --accent: #c8f060; --dark: #3c4048; }
+    @media (prefers-color-scheme: light) {
+      :root { --frame: #23262e; --accent: #5a8f00; --dark: #2b2e35; }
+    }
+  </style>
+
+  <ellipse cx="207" cy="194" rx="175" ry="5" fill="var(--dark)" opacity="0.18" />
+
+  <!-- Hinterrad -->
+<path fill-rule="evenodd" fill="var(--dark)" d="M 36,134 a 58,58 0 1,0 116,0 a 58,58 0 1,0 -116,0 Z M 44,134 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0 Z" />
+  <circle cx="94" cy="134" r="47" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.9" />
+  <line x1="99.0" y1="134.0" x2="141.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="98.7" y1="135.7" x2="138.2" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="97.8" y1="137.2" x2="130.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="96.5" y1="138.3" x2="117.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="94.9" y1="138.9" x2="102.2" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="93.1" y1="138.9" x2="85.8" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="91.5" y1="138.3" x2="70.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="90.2" y1="137.2" x2="58.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="89.3" y1="135.7" x2="49.8" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="89.0" y1="134.0" x2="47.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="89.3" y1="132.3" x2="49.8" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="90.2" y1="130.8" x2="58.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="91.5" y1="129.7" x2="70.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="93.1" y1="129.1" x2="85.8" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="94.9" y1="129.1" x2="102.2" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="96.5" y1="129.7" x2="117.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="97.8" y1="130.8" x2="130.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="98.7" y1="132.3" x2="138.2" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <circle cx="94" cy="134" r="13" fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.8" />
+  <circle cx="94" cy="134" r="5" fill="var(--accent)" />
+  <!-- Vorderrad -->
+<path fill-rule="evenodd" fill="var(--dark)" d="M 254,134 a 58,58 0 1,0 116,0 a 58,58 0 1,0 -116,0 Z M 262,134 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0 Z" />
+  <circle cx="312" cy="134" r="47" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.9" />
+  <line x1="317.0" y1="134.0" x2="359.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="316.7" y1="135.7" x2="356.2" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="315.8" y1="137.2" x2="348.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="314.5" y1="138.3" x2="335.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="312.9" y1="138.9" x2="320.2" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="311.1" y1="138.9" x2="303.8" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="309.5" y1="138.3" x2="288.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="308.2" y1="137.2" x2="276.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="307.3" y1="135.7" x2="267.8" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="307.0" y1="134.0" x2="265.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="307.3" y1="132.3" x2="267.8" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="308.2" y1="130.8" x2="276.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="309.5" y1="129.7" x2="288.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="311.1" y1="129.1" x2="303.8" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="312.9" y1="129.1" x2="320.2" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="314.5" y1="129.7" x2="335.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="315.8" y1="130.8" x2="348.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="316.7" y1="132.3" x2="356.2" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <circle cx="312" cy="134" r="13" fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.8" />
+  <circle cx="312" cy="134" r="5" fill="var(--accent)" />
+
+  <!-- Rahmen -->
+  <path fill="var(--frame)" d="M 185.28,139.2 L 159.34,42.68 Q 153.08,40.26 148.66,45.32 L 170.72,142.8 Q 179.26,146.1 185.28,139.2 Z" />
+  <path fill="var(--frame)" d="M 154.48,48.98 L 278.39,35.98 Q 280.79,31.73 277.61,28.02 L 153.52,39.02 Q 150.52,44.34 154.48,48.98 Z" />
+  <path fill="var(--frame)" d="M 182.1,147.28 L 292.73,72.19 Q 292.93,66.09 287.27,63.81 L 173.9,134.72 Q 173.6,143.87 182.1,147.28 Z" />
+  <path fill="var(--frame)" d="M 151.09,42.06 L 91.5,132.34 Q 92.84,135.75 96.5,135.66 L 156.91,45.94 Q 155.36,41.96 151.09,42.06 Z" />
+  <path fill="var(--frame)" d="M 178.37,136.52 L 94.29,130.51 Q 91.56,133.8 93.71,137.49 L 177.63,145.48 Q 181.14,141.26 178.37,136.52 Z" />
+  <!-- Gabel -->
+  <path fill="var(--frame)" d="M 284.78,69.74 L 308.68,135.11 Q 312.77,136.32 315.32,132.89 L 295.22,66.26 Q 288.78,64.35 284.78,69.74 Z" />
+  <path fill="var(--dark)" d="M 156.91,43.27 L 152.91,27.27 Q 149.49,25.96 147.09,28.73 L 151.09,44.73 Q 154.51,46.04 156.91,43.27 Z" />
+  <path fill="var(--dark)" d="M 138.0,21.0 Q 154.0,17.0 172.0,20.0 Q 180.0,22.0 180.0,25.0 Q 179.0,29.0 170.0,30.0 Q 152.0,32.0 138.0,29.0 Q 135.0,25.0 138.0,21.0 Z" />
+  <path fill="var(--dark)" d="M 281.41,32.78 L 285.93,10.66 Q 283.47,7.95 280.07,9.34 L 274.59,31.22 Q 277.46,34.39 281.41,32.78 Z" />
+  <path fill="none" stroke="var(--dark)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" d="M 261.0,16.0 Q 283,0 303.0,8.0" />
+  <circle cx="178" cy="141" r="17" fill="none" stroke="var(--accent)" stroke-width="4.5" />
+  <circle cx="178" cy="141" r="6" fill="var(--dark)" />
+  <path fill="var(--dark)" d="M 179.66,143.5 L 209.11,122.66 Q 209.16,120.22 206.89,119.34 L 176.34,138.5 Q 176.25,142.16 179.66,143.5 Z" />
+  <rect x="205.0" y="116.0" width="8" height="4" rx="1.5" fill="var(--dark)" transform="rotate(-34 208.0 121.0)" />
+
+  <circle cx="100" cy="128" r="10" fill="none" stroke="var(--dark)" stroke-width="4" opacity="0.85" />
+  <path fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.7" d="M 166,127 L 91,121" />
+  <path fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.7" d="M 163,145 L 89,137" />
+
+  <rect x="309.0" y="79.0" width="10" height="14" rx="2" fill="var(--dark)" transform="rotate(71.56505117707799 314.0 86.0)" opacity="0.9" />
+  <rect x="91.0" y="79.0" width="10" height="14" rx="2" fill="var(--dark)" transform="rotate(123.6900675259798 96.0 86.0)" opacity="0.9" />
+</svg>

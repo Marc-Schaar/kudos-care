@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <style>
+    :root { --frame: #eef0f3; --accent: #c8f060; --dark: #3c4048; }
+    @media (prefers-color-scheme: light) {
+      :root { --frame: #23262e; --accent: #5a8f00; --dark: #2b2e35; }
+    }
+  </style>
+
+  <ellipse cx="207" cy="194" rx="175" ry="5" fill="var(--dark)" opacity="0.18" />
+
+  <!-- Hinterrad -->
+<path fill-rule="evenodd" fill="var(--dark)" d="M 36,134 a 58,58 0 1,0 116,0 a 58,58 0 1,0 -116,0 Z M 44,134 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0 Z" />
+  <circle cx="94" cy="134" r="47" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.9" />
+  <line x1="99.0" y1="134.0" x2="141.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="98.7" y1="135.7" x2="138.2" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="97.8" y1="137.2" x2="130.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="96.5" y1="138.3" x2="117.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="94.9" y1="138.9" x2="102.2" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="93.1" y1="138.9" x2="85.8" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="91.5" y1="138.3" x2="70.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="90.2" y1="137.2" x2="58.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="89.3" y1="135.7" x2="49.8" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="89.0" y1="134.0" x2="47.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="89.3" y1="132.3" x2="49.8" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="90.2" y1="130.8" x2="58.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="91.5" y1="129.7" x2="70.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="93.1" y1="129.1" x2="85.8" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="94.9" y1="129.1" x2="102.2" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="96.5" y1="129.7" x2="117.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="97.8" y1="130.8" x2="130.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="98.7" y1="132.3" x2="138.2" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <rect x="148.8" y="131.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(45.0 151.0 134.0)" />
+  <rect x="144.5" y="153.6" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(67.5 146.7 155.8)" />
+  <rect x="132.1" y="172.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(90.0 134.3 174.3)" />
+  <rect x="113.6" y="184.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(112.5 115.8 186.7)" />
+  <rect x="91.8" y="188.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(135.0 94.0 191.0)" />
+  <rect x="70.0" y="184.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(157.5 72.2 186.7)" />
+  <rect x="51.5" y="172.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(180.0 53.7 174.3)" />
+  <rect x="39.1" y="153.6" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(202.5 41.3 155.8)" />
+  <rect x="34.8" y="131.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(225.0 37.0 134.0)" />
+  <rect x="39.1" y="110.0" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(247.5 41.3 112.2)" />
+  <rect x="51.5" y="91.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(270.0 53.7 93.7)" />
+  <rect x="70.0" y="79.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(292.5 72.2 81.3)" />
+  <rect x="91.8" y="74.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(315.0 94.0 77.0)" />
+  <rect x="113.6" y="79.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(337.5 115.8 81.3)" />
+  <rect x="132.1" y="91.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(360.0 134.3 93.7)" />
+  <rect x="144.5" y="110.0" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(382.5 146.7 112.2)" />
+  <circle cx="94" cy="134" r="13" fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.8" />
+  <circle cx="94" cy="134" r="5" fill="var(--accent)" />
+  <!-- Vorderrad -->
+<path fill-rule="evenodd" fill="var(--dark)" d="M 254,134 a 58,58 0 1,0 116,0 a 58,58 0 1,0 -116,0 Z M 262,134 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0 Z" />
+  <circle cx="312" cy="134" r="47" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.9" />
+  <line x1="317.0" y1="134.0" x2="359.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="316.7" y1="135.7" x2="356.2" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="315.8" y1="137.2" x2="348.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="314.5" y1="138.3" x2="335.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="312.9" y1="138.9" x2="320.2" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="311.1" y1="138.9" x2="303.8" y2="180.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="309.5" y1="138.3" x2="288.5" y2="174.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="308.2" y1="137.2" x2="276.0" y2="164.2" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="307.3" y1="135.7" x2="267.8" y2="150.1" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="307.0" y1="134.0" x2="265.0" y2="134.0" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="307.3" y1="132.3" x2="267.8" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="308.2" y1="130.8" x2="276.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="309.5" y1="129.7" x2="288.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="311.1" y1="129.1" x2="303.8" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="312.9" y1="129.1" x2="320.2" y2="87.7" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="314.5" y1="129.7" x2="335.5" y2="93.3" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="315.8" y1="130.8" x2="348.0" y2="103.8" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <line x1="316.7" y1="132.3" x2="356.2" y2="117.9" stroke="var(--dark)" stroke-width="1.1" opacity="0.55" />
+  <rect x="366.8" y="131.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(45.0 369.0 134.0)" />
+  <rect x="362.5" y="153.6" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(67.5 364.7 155.8)" />
+  <rect x="350.1" y="172.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(90.0 352.3 174.3)" />
+  <rect x="331.6" y="184.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(112.5 333.8 186.7)" />
+  <rect x="309.8" y="188.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(135.0 312.0 191.0)" />
+  <rect x="288.0" y="184.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(157.5 290.2 186.7)" />
+  <rect x="269.5" y="172.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(180.0 271.7 174.3)" />
+  <rect x="257.1" y="153.6" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(202.5 259.3 155.8)" />
+  <rect x="252.8" y="131.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(225.0 255.0 134.0)" />
+  <rect x="257.1" y="110.0" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(247.5 259.3 112.2)" />
+  <rect x="269.5" y="91.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(270.0 271.7 93.7)" />
+  <rect x="288.0" y="79.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(292.5 290.2 81.3)" />
+  <rect x="309.8" y="74.8" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(315.0 312.0 77.0)" />
+  <rect x="331.6" y="79.1" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(337.5 333.8 81.3)" />
+  <rect x="350.1" y="91.5" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(360.0 352.3 93.7)" />
+  <rect x="362.5" y="110.0" width="4.4" height="4.4" fill="var(--dark)" transform="rotate(382.5 364.7 112.2)" />
+  <circle cx="312" cy="134" r="13" fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.8" />
+  <circle cx="312" cy="134" r="5" fill="var(--accent)" />
+
+  <!-- Rahmen -->
+  <path fill="var(--frame)" d="M 185.3,139.27 L 159.35,38.73 Q 153.11,36.25 148.65,41.27 L 170.7,142.73 Q 179.21,146.11 185.3,139.27 Z" />
+  <path fill="var(--frame)" d="M 154.09,45 L 269.07,42 Q 271.8,37.95 268.93,34 L 153.91,35 Q 150.5,40.06 154.09,45 Z" />
+  <path fill="var(--frame)" d="M 183.64,148.64 L 284.86,70.23 Q 284.66,62.3 277.14,59.77 L 172.36,133.36 Q 172.65,144.95 183.64,148.64 Z" />
+  <path fill="var(--frame)" d="M 151.05,38.12 L 91.47,132.39 Q 92.87,135.77 96.53,135.61 L 156.95,41.88 Q 155.32,37.93 151.05,38.12 Z" />
+  <path fill="var(--frame)" d="M 178.37,136.52 L 94.29,130.51 Q 91.56,133.8 93.71,137.49 L 177.63,145.48 Q 181.14,141.26 178.37,136.52 Z" />
+  <rect x="199.5" y="92.0" width="60" height="16" rx="3" fill="var(--accent)" opacity="0.92" transform="rotate(-36.4 229.5 100.0)" />
+  <!-- Gabel -->
+  <path fill="var(--frame)" d="M 272.31,66.55 L 302.23,135.16 Q 305.81,135.94 307.77,132.84 L 279.69,63.45 Q 274.92,62.42 272.31,66.55 Z" />
+  <path fill="var(--frame)" d="M 282.39,66.73 L 316.29,135.29 Q 319.91,135.89 321.71,132.71 L 289.61,63.27 Q 284.79,62.47 282.39,66.73 Z" />
+  <rect x="278.0" y="63.0" width="6" height="14" rx="2" fill="var(--accent)" />
+  <path fill="var(--dark)" d="M 156.91,39.27 L 152.91,23.27 Q 149.49,21.96 147.09,24.73 L 151.09,40.73 Q 154.51,42.04 156.91,39.27 Z" />
+  <path fill="var(--dark)" d="M 138.0,17.0 Q 154.0,13.0 172.0,16.0 Q 180.0,18.0 180.0,21.0 Q 179.0,25.0 170.0,26.0 Q 152.0,28.0 138.0,25.0 Q 135.0,21.0 138.0,17.0 Z" />
+  <path fill="var(--dark)" d="M 271.15,40.76 L 288.84,26.37 Q 288.66,22.71 285.16,21.63 L 266.85,35.24 Q 267.07,39.5 271.15,40.76 Z" />
+  <path fill="none" stroke="var(--dark)" stroke-width="7" stroke-linecap="round" d="M 263.0,24 L 311.0,24" />
+  <circle cx="178" cy="141" r="17" fill="none" stroke="var(--accent)" stroke-width="4.5" />
+  <circle cx="178" cy="141" r="6" fill="var(--dark)" />
+  <path fill="var(--dark)" d="M 179.66,143.5 L 209.11,122.66 Q 209.16,120.22 206.89,119.34 L 176.34,138.5 Q 176.25,142.16 179.66,143.5 Z" />
+  <rect x="205.0" y="116.0" width="8" height="4" rx="1.5" fill="var(--dark)" transform="rotate(-34 208.0 121.0)" />
+
+  <circle cx="100" cy="128" r="10" fill="none" stroke="var(--dark)" stroke-width="4" opacity="0.85" />
+  <path fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.7" d="M 166,127 L 91,121" />
+  <path fill="none" stroke="var(--dark)" stroke-width="2" opacity="0.7" d="M 163,145 L 89,137" />
+
+  <rect x="309.0" y="79.0" width="10" height="14" rx="2" fill="var(--dark)" transform="rotate(65.80679101271123 314.0 86.0)" opacity="0.9" />
+  <rect x="91.0" y="79.0" width="10" height="14" rx="2" fill="var(--dark)" transform="rotate(122.55000349219341 96.0 86.0)" opacity="0.9" />
+</svg>
