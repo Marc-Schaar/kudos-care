@@ -41,6 +41,23 @@
   color: var(--accent);
 }
 
+/* ── Loading ───────────────────────────────────────────────────── */
+.loading-bar {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: loading 1.2s infinite;
+  margin-bottom: 1rem;
+}
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .auth-sub {
   font-family: 'DM Mono', monospace;
   font-size: 0.78rem;
