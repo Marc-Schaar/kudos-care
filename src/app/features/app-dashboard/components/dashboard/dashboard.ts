@@ -22,6 +22,7 @@ export class Dashboard implements OnInit {
   public bikes = this.bikeService.bikes;
   public activities = this.stravaService.activities;
   public syncing = this.stravaService.syncing;
+  public syncProgress = this.stravaService.syncProgress;
 
   public loading = signal(true);
 

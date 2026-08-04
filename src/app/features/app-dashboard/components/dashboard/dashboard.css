@@ -156,6 +156,38 @@
   border-color: var(--critical);
 }
 
+/* ── Sync Progress ───────────────────────────────────────────── */
+.sync-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: -1rem;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.sync-progress-bar {
+  flex: 1;
+  max-width: 220px;
+  height: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+
+.sync-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.sync-progress-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 /* ── Status Pills ─────────────────────────────────────────────── */
 .status-pill {
   font-family: 'DM Mono', monospace;

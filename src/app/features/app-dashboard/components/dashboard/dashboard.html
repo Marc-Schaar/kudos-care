@@ -54,6 +54,26 @@
     }
   </div>
 
+  @if (syncing() && syncProgress()) {
+    <div class="sync-progress">
+      @if (syncProgress()!.total) {
+        <div class="sync-progress-bar">
+          <div
+            class="sync-progress-fill"
+            [style.width.%]="(syncProgress()!.current / syncProgress()!.total!) * 100"
+          ></div>
+        </div>
+        <span class="sync-progress-label">
+          {{ syncProgress()!.current }} / {{ syncProgress()!.total }} neue Aktivitäten
+        </span>
+      } @else {
+        <span class="sync-progress-label">
+          {{ syncProgress()!.current }} neue Aktivitäten synchronisiert…
+        </span>
+      }
+    </div>
+  }
+
   <!-- Bikes -->
   <div class="section-divider">
     <span class="divider-label">Meine Räder</span>

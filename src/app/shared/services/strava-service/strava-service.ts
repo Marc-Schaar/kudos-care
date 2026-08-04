@@ -20,6 +20,13 @@ export interface SyncStatusResponse {
   sync_finished_at: string | null;
   sync_error: string;
   last_sync_count: number | null;
+  sync_progress_current: number | null;
+  sync_progress_total: number | null;
+}
+
+export interface SyncProgress {
+  current: number;
+  total: number | null;
 }
 
 @Injectable({
@@ -34,6 +41,7 @@ export class StravaService {
   public user = signal<{ athlete_id: number; firstname: string } | null>(null);
   public activities = signal<Activity[]>([]);
   public syncing = signal(false);
+  public syncProgress = signal<SyncProgress | null>(null);
 
   public triggerSync() {
     return this.http.post<{ status: string }>(`${this.baseUrl}/strava/sync/`, {}).pipe(
@@ -78,9 +86,15 @@ export class StravaService {
       )
       .subscribe((res) => {
         if (res.sync_status === 'running') {
+          this.syncProgress.set(
+            res.sync_progress_current != null
+              ? { current: res.sync_progress_current, total: res.sync_progress_total }
+              : null,
+          );
           return;
         }
         this.syncing.set(false);
+        this.syncProgress.set(null);
 
         if (res.sync_status === 'success') {
           this.notificationService.show(
