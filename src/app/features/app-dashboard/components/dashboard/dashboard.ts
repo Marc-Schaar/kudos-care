@@ -70,6 +70,10 @@ export class Dashboard implements OnInit {
     this.stravaService.triggerSync().subscribe();
   }
 
+  public cancelSync() {
+    this.stravaService.cancelSync().subscribe();
+  }
+
   public cardClass(bike: BikeList): string {
     const map: Record<WarnStatus, string> = {
       critical: 'card-critical',

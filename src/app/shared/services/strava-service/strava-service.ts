@@ -15,7 +15,7 @@ export interface Activity {
 }
 
 export interface SyncStatusResponse {
-  sync_status: 'idle' | 'running' | 'success' | 'error';
+  sync_status: 'idle' | 'running' | 'success' | 'error' | 'cancelled';
   sync_started_at: string | null;
   sync_finished_at: string | null;
   sync_error: string;
@@ -42,6 +42,12 @@ export class StravaService {
         this.startPolling();
       }),
     );
+  }
+
+  public cancelSync() {
+    return this.http
+      .post<{ status: string }>(`${this.baseUrl}/strava/sync/cancel/`, {})
+      .pipe(tap(() => this.syncing.set(false)));
   }
 
   public checkOngoingSync() {
@@ -87,6 +93,8 @@ export class StravaService {
             res.sync_error || 'Synchronisierung fehlgeschlagen',
             'error',
           );
+        } else if (res.sync_status === 'cancelled') {
+          this.notificationService.show('Synchronisierung abgebrochen', 'info');
         }
       });
   }

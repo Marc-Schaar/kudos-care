@@ -49,6 +49,9 @@
         ↻ Jetzt synchronisieren
       }
     </button>
+    @if (syncing()) {
+      <button class="sync-cancel-btn" (click)="cancelSync()" type="button">Abbrechen</button>
+    }
   </div>
 
   <!-- Bikes -->
