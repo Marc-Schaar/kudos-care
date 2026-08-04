@@ -18,6 +18,9 @@
   --ok: #4ade80;
   --warn: #f59e0b;
   --critical: #f43f5e;
+
+  /* Wetter */
+  --rain: #38bdf8;
 }
 
 /* Optional: Light-Mode Support */

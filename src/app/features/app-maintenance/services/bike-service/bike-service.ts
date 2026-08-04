@@ -11,6 +11,7 @@ import {
   ComponentSlotList,
   ComponentTemplate,
   CreateComponentPayload,
+  WeatherWearExplanation,
 } from '../../models/maintenance.models';
 
 @Injectable({
@@ -221,6 +222,13 @@ export class BikeService {
     return this.http.post<BikeComponent>(
       `${this.baseUrl}/maintenance/components/${componentId}/check/`,
       payload,
+    );
+  }
+
+  fetchWeatherExplanation(componentId: number, refresh = false) {
+    const params = refresh ? '?refresh=true' : '';
+    return this.http.get<WeatherWearExplanation>(
+      `${this.baseUrl}/maintenance/components/${componentId}/weather-explanation/${params}`,
     );
   }
 

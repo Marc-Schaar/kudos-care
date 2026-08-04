@@ -78,6 +78,10 @@ export interface BikeComponent {
   wear_days: number | null;
   warn_status_km: WarnStatus;
   warn_status_days: WarnStatus;
+  weather_wear_km: number | null;
+  weather_wear_computed_at: string | null;
+  weather_wear_ride_count: number | null;
+  warn_status_weather_km: WarnStatus;
   warn_status_overall: WarnStatus;
   last_check: ComponentCheckSummary | null;
 }
@@ -101,6 +105,17 @@ export interface MountedComponentSummary {
   model_name: string;
   installed_at: string | null;
   condition_pct: number | null;
+  weather_wear_km: number | null;
+  weather_wear_ride_count: number | null;
+  warn_status_weather_km: WarnStatus;
+}
+
+// ── Wetter-Verschleiß-Erklärung (KI-generiert, on-demand) ──────────────────────
+
+export interface WeatherWearExplanation {
+  explanation: string;
+  generated_at: string; // ISO datetime
+  cached: boolean;
 }
 
 export interface ComponentSlotList {

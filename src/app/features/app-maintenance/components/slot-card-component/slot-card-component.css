@@ -210,3 +210,58 @@
   font-size: 0.72rem;
   color: var(--muted);
 }
+
+.weather-wear-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--rain);
+  background: color-mix(in srgb, var(--rain) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rain) 25%, transparent);
+  padding: 0.3rem 0.5rem;
+}
+
+.weather-icon {
+  flex-shrink: 0;
+}
+
+.weather-text {
+  flex: 1;
+}
+
+.explain-toggle-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--rain);
+  text-decoration: underline;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.weather-explanation-block {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.7rem;
+  line-height: 1.5;
+}
+
+.explanation-text {
+  color: var(--text);
+  margin: 0;
+}
+
+.field-hint {
+  font-style: italic;
+}
+
+.error-msg {
+  color: var(--critical);
+}

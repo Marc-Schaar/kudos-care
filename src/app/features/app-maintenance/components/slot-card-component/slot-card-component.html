@@ -27,6 +27,33 @@
       }
     </div>
 
+    @if (comp.warn_status_weather_km === 'warn' || comp.warn_status_weather_km === 'critical') {
+      <div class="weather-wear-indicator" [class]="comp.warn_status_weather_km | warnClass">
+        <span class="weather-icon">☔</span>
+        <span class="weather-text">
+          Wetterbedingt erhöhter Verschleiß
+          @if (comp.weather_wear_km != null) {
+            ({{ comp.weather_wear_km | number: '1.0-0' }} km wetterbereinigt)
+          }
+        </span>
+        <button class="explain-toggle-btn" (click)="toggleExplanation(comp.id)">
+          {{ showExplanation() ? 'Erklärung ausblenden' : 'Warum?' }}
+        </button>
+      </div>
+
+      @if (showExplanation()) {
+        <div class="weather-explanation-block">
+          @if (explanationLoading()) {
+            <span class="field-hint">(wird generiert…)</span>
+          } @else if (explanationError()) {
+            <span class="error-msg">{{ explanationError() }}</span>
+          } @else if (explanation()) {
+            <p class="explanation-text">{{ explanation() }}</p>
+          }
+        </div>
+      }
+    }
+
     <!-- Wear-Balken nur wenn wir km-Daten haben -->
     @if (wearPct() > 0) {
       <div class="wear-bar-wrap">
