@@ -18,6 +18,7 @@ function suggestedSnooze(value: number | null): number | null {
 export class ComponentCheckDialogComponent {
   componentId = input.required<number>();
   template = input<ComponentTemplate | null>(null);
+  currentConditionPct = input<number | null>(null);
   close = output<void>();
   saved = output<void>();
 
@@ -32,6 +33,7 @@ export class ComponentCheckDialogComponent {
   error = signal<string | null>(null);
 
   ngOnInit() {
+    this.conditionPct = this.currentConditionPct() ?? 50;
     this.snoozeKm = suggestedSnooze(this.template()?.warn_km ?? null);
     this.snoozeDays = suggestedSnooze(this.template()?.warn_days ?? null);
   }

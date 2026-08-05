@@ -66,6 +66,13 @@ export class DetailBikeComponent implements OnInit {
     return slot?.template_detail ?? null;
   });
 
+  public checkComponentCurrentConditionPct = computed<number | null>(() => {
+    const slot = this.bike()?.slots.find(
+      (s) => s.mounted_component?.id === this.checkComponentId(),
+    );
+    return slot?.mounted_component?.condition_pct ?? null;
+  });
+
   ngOnInit() {
     this.route.params.subscribe((params) => {
       const id = +params['id'];

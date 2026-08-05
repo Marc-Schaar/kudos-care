@@ -120,6 +120,7 @@
   <app-component-check-dialog-component
     [componentId]="checkComponentId()!"
     [template]="checkComponentTemplate()"
+    [currentConditionPct]="checkComponentCurrentConditionPct()"
     (close)="closeCheckDialog()"
     (saved)="onCheckSaved()"
   />
