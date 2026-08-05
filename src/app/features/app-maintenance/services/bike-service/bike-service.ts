@@ -6,6 +6,7 @@ import {
   BikeComponent,
   BikeDetail,
   BikeList,
+  CheckInstructions,
   ComponentCheckPayload,
   ComponentSlotDetail,
   ComponentSlotList,
@@ -229,6 +230,13 @@ export class BikeService {
     const params = refresh ? '?refresh=true' : '';
     return this.http.get<WeatherWearExplanation>(
       `${this.baseUrl}/maintenance/components/${componentId}/weather-explanation/${params}`,
+    );
+  }
+
+  fetchCheckInstructions(componentId: number, refresh = false) {
+    const params = refresh ? '?refresh=true' : '';
+    return this.http.get<CheckInstructions>(
+      `${this.baseUrl}/maintenance/components/${componentId}/check-instructions/${params}`,
     );
   }
 

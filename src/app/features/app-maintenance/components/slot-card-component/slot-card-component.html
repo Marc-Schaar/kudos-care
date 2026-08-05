@@ -68,6 +68,26 @@
       </div>
     }
 
+    @if (slot().warn_status === 'warn' || slot().warn_status === 'critical') {
+      <div class="check-instructions-row">
+        <button class="instructions-toggle-btn" (click)="toggleInstructions(comp.id)">
+          {{ showInstructions() ? 'Anleitung ausblenden' : 'Wie prüfen?' }}
+        </button>
+      </div>
+
+      @if (showInstructions()) {
+        <div class="check-instructions-block">
+          @if (instructionsLoading()) {
+            <span class="field-hint">(wird generiert…)</span>
+          } @else if (instructionsError()) {
+            <span class="error-msg">{{ instructionsError() }}</span>
+          } @else if (instructions()) {
+            <p class="instructions-text">{{ instructions() }}</p>
+          }
+        </div>
+      }
+    }
+
     <div class="slot-actions">
       @if (slot().warn_status === 'warn' || slot().warn_status === 'critical') {
         <button class="check-btn" (click)="checkComponent.emit(comp.id)">Prüfen / Freigeben</button>

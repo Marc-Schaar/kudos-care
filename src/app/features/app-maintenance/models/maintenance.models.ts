@@ -9,6 +9,7 @@ export type BikeType =
   | 'ebike_city'
   | 'city'
   | 'cx'
+  | 'triathlon'
   | 'other';
 
 export type ComponentCategory =
@@ -118,6 +119,14 @@ export interface WeatherWearExplanation {
   cached: boolean;
 }
 
+// ── Prüfanleitung (KI-generiert, on-demand) ────────────────────────────────────
+
+export interface CheckInstructions {
+  instructions: string;
+  generated_at: string; // ISO datetime
+  cached: boolean;
+}
+
 export interface ComponentSlotList {
   id: number;
   bike: number;
@@ -185,5 +194,6 @@ export const BIKE_TYPE_LABELS: Record<BikeType, string> = {
   ebike_city: 'E-Stadtrad',
   city: 'Stadtrad',
   cx: 'Cyclocross',
+  triathlon: 'Triathlon/Zeitfahrrad',
   other: 'Sonstiges',
 };

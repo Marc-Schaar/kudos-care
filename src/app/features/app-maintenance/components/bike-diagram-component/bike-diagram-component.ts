@@ -30,7 +30,7 @@ export interface DiagramDot {
 // Landmark-Punkte, auf denen die Slot-Dots über der Bike-Illustration
 // positioniert werden. Muss in sync mit den Proportionen der SVGs unter
 // public/bike-illustrations/ bleiben.
-const DROP_BAR_TYPES: BikeType[] = ['road', 'gravel', 'cx', 'ebike_road'];
+const DROP_BAR_TYPES: BikeType[] = ['road', 'gravel', 'cx', 'ebike_road', 'triathlon'];
 const SUSPENSION_TYPES: BikeType[] = ['mtb', 'ebike_mtb'];
 const SWEPT_BAR_TYPES: BikeType[] = ['city', 'ebike_city', 'other'];
 
@@ -46,6 +46,7 @@ const BIKE_IMAGES: Record<BikeType, string> = {
   ebike_mtb: 'bike-illustrations/ebike_mtb.svg',
   city: 'bike-illustrations/city.svg',
   ebike_city: 'bike-illustrations/ebike_city.svg',
+  triathlon: 'bike-illustrations/triathlon.svg',
   other: 'bike-illustrations/other.svg',
 };
 

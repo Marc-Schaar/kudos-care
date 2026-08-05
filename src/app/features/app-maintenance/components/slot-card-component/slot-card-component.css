@@ -265,3 +265,35 @@
 .error-msg {
   color: var(--critical);
 }
+
+.check-instructions-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.instructions-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  text-decoration: underline;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.check-instructions-block {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.7rem;
+  line-height: 1.5;
+}
+
+.instructions-text {
+  color: var(--text);
+  margin: 0;
+  white-space: pre-line;
+}

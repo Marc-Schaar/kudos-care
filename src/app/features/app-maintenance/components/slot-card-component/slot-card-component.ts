@@ -55,4 +55,30 @@ export class SlotCardComponent {
       });
     }
   }
+
+  showInstructions = signal(false);
+  instructionsLoading = signal(false);
+  instructions = signal<string | null>(null);
+  instructionsError = signal<string | null>(null);
+
+  toggleInstructions(componentId: number) {
+    const next = !this.showInstructions();
+    this.showInstructions.set(next);
+    if (next && this.instructions() == null && !this.instructionsLoading()) {
+      this.instructionsLoading.set(true);
+      this.instructionsError.set(null);
+      this.bikeService.fetchCheckInstructions(componentId).subscribe({
+        next: (res) => {
+          this.instructionsLoading.set(false);
+          this.instructions.set(res.instructions);
+        },
+        error: (err) => {
+          this.instructionsLoading.set(false);
+          this.instructionsError.set(
+            err?.error?.error ?? 'Anleitung konnte nicht geladen werden.',
+          );
+        },
+      });
+    }
+  }
 }
