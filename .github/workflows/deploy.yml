@@ -29,9 +29,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "SSH Verbindung erfolgreich!"
-            mkdir -p /var/www/kudos_care_frontend
-            chown -R $USER:$USER /var/www/kudos_care_frontend
-            rm -rf /var/www/kudos_care_frontend/*
+            mkdir -p /var/www/kudoscare.marc-schaar.com
+            chown -R $USER:$USER /var/www/kudoscare.marc-schaar.com
+            rm -rf /var/www/kudoscare.marc-schaar.com/*
             # Hinweis: Du musst die Dateien jetzt noch vom Runner auf den Server übertragen
             # Am besten nutzt du dafür den 'appleboy/scp-action' Schritt
 
@@ -42,7 +42,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: 'dist/kudos-care/browser/*'
-          target: '/var/www/kudos_care_frontend'
+          target: '/var/www/kudoscare.marc-schaar.com'
           strip_components: 3
 
       - name: Restart Nginx
