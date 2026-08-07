@@ -1,7 +1,11 @@
 import { Component, computed, inject, numberAttribute, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BikeService } from '../../services/bike-service/bike-service';
-import { ComponentTemplate, SlotGroup } from '../../models/maintenance.models';
+import {
+  BikeComponent as BikeComponentModel,
+  ComponentTemplate,
+  SlotGroup,
+} from '../../models/maintenance.models';
 import { groupSlotsByCategory } from '../../shared/utils/utils';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
@@ -11,6 +15,8 @@ import { AddComponentDialogComponent } from '../add-component-dialog-component/a
 import { AddSlotDialogComponent } from '../add-slot-dialog-component/add-slot-dialog-component';
 import { ComponentCheckDialogComponent } from '../component-check-dialog-component/component-check-dialog-component';
 import { BikeDiagramComponent } from '../bike-diagram-component/bike-diagram-component';
+import { EditBikeDialogComponent } from '../edit-bike-dialog-component/edit-bike-dialog-component';
+import { ComponentSwapDialogComponent } from '../component-swap-dialog-component/component-swap-dialog-component';
 
 @Component({
   selector: 'app-detail-bike-component',
@@ -23,6 +29,8 @@ import { BikeDiagramComponent } from '../bike-diagram-component/bike-diagram-com
     AddSlotDialogComponent,
     ComponentCheckDialogComponent,
     BikeDiagramComponent,
+    EditBikeDialogComponent,
+    ComponentSwapDialogComponent,
   ],
   templateUrl: './detail-bike-component.html',
   styleUrl: './detail-bike-component.css',
@@ -37,6 +45,9 @@ export class DetailBikeComponent implements OnInit {
   public showAddSlotDialog = signal(false);
   public checkComponentId = signal<number | null>(null);
   public highlightedSlotId = signal<number | null>(null);
+  public showEditBikeDialog = signal(false);
+  public editingComponent = signal<BikeComponentModel | null>(null);
+  public swapSlotId = signal<number | null>(null);
 
   public slotGroups = computed<SlotGroup[]>(() => {
     const b = this.bike();
@@ -84,7 +95,17 @@ export class DetailBikeComponent implements OnInit {
   }
 
   openAddDialog(slotId: number) {
+    this.editingComponent.set(null);
     this.dialogSlotId.set(slotId);
+  }
+
+  openEditComponentDialog(componentId: number) {
+    this.bikeService.fetchComponent(componentId).subscribe({
+      next: (comp) => {
+        this.editingComponent.set(comp);
+        this.dialogSlotId.set(comp.slot);
+      },
+    });
   }
 
   onDiagramDotClick(slotId: number) {
@@ -103,13 +124,34 @@ export class DetailBikeComponent implements OnInit {
 
   closeDialog() {
     this.dialogSlotId.set(null);
+    this.editingComponent.set(null);
   }
 
   onComponentSaved() {
     this.dialogSlotId.set(null);
+    this.editingComponent.set(null);
     // Bike neu laden damit Warn-Status aktuell ist
     const id = this.bike()?.id;
     if (id) this.bikeService.fetchBikeDetails(id).subscribe();
+  }
+
+  openSwapDialog(slotId: number) {
+    this.swapSlotId.set(slotId);
+  }
+
+  closeSwapDialog() {
+    this.swapSlotId.set(null);
+  }
+
+  onSwapMounted() {
+    this.swapSlotId.set(null);
+    const id = this.bike()?.id;
+    if (id) this.bikeService.fetchBikeDetails(id).subscribe();
+  }
+
+  onCreateNewFromSwap(slotId: number) {
+    this.swapSlotId.set(null);
+    this.openAddDialog(slotId);
   }
 
   openAddSlotDialog() {
@@ -127,6 +169,18 @@ export class DetailBikeComponent implements OnInit {
     this.bikeService.fetchBikeDetails(id).subscribe({
       complete: () => this.dialogSlotId.set(newSlotId),
     });
+  }
+
+  openEditBikeDialog() {
+    this.showEditBikeDialog.set(true);
+  }
+
+  closeEditBikeDialog() {
+    this.showEditBikeDialog.set(false);
+  }
+
+  onBikeSaved() {
+    this.showEditBikeDialog.set(false);
   }
 
   openCheckDialog(componentId: number) {

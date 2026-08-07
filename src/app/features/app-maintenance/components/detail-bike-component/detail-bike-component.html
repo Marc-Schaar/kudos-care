@@ -22,7 +22,10 @@
         />
 
         <div class="bike-header-left">
-          <span class="type-label">{{ bike.bike_type_display }}</span>
+          <div class="type-row">
+            <span class="type-label">{{ bike.bike_type_display }}</span>
+            <button class="edit-bike-btn" (click)="openEditBikeDialog()">Bearbeiten</button>
+          </div>
           <h1 class="bike-title">{{ bike.name }}</h1>
           <div class="bike-stats">
             @if (bike.total_distance_km != null) {
@@ -78,7 +81,8 @@
                 [slot]="slot"
                 [bikeDistanceKm]="bike.total_distance_km"
                 [highlighted]="highlightedSlotId() === slot.id"
-                (addComponent)="openAddDialog($event)"
+                (editComponent)="openEditComponentDialog($event)"
+                (swapComponent)="openSwapDialog($event)"
                 (checkComponent)="openCheckDialog($event)"
               />
             }
@@ -101,8 +105,18 @@
     [bikeId]="bike()?.id ?? null"
     [bikeDistanceKm]="bike()?.total_distance_km ?? null"
     [template]="dialogSlotTemplate()"
+    [editComponent]="editingComponent()"
     (close)="closeDialog()"
     (saved)="onComponentSaved()"
+  />
+}
+
+@if (swapSlotId() != null) {
+  <app-component-swap-dialog-component
+    [slotId]="swapSlotId()!"
+    (close)="closeSwapDialog()"
+    (mounted)="onSwapMounted()"
+    (createNew)="onCreateNewFromSwap($event)"
   />
 }
 
@@ -123,5 +137,13 @@
     [currentConditionPct]="checkComponentCurrentConditionPct()"
     (close)="closeCheckDialog()"
     (saved)="onCheckSaved()"
+  />
+}
+
+@if (showEditBikeDialog() && bike(); as bike) {
+  <app-edit-bike-dialog-component
+    [bike]="bike"
+    (close)="closeEditBikeDialog()"
+    (saved)="onBikeSaved()"
   />
 }

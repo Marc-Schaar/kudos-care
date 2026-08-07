@@ -208,6 +208,10 @@ export class BikeService {
     );
   }
 
+  fetchComponent(componentId: number) {
+    return this.http.get<BikeComponent>(`${this.baseUrl}/maintenance/components/${componentId}/`);
+  }
+
   updateComponent(componentId: number, payload: Partial<BikeComponent>) {
     return this.http.patch<BikeComponent>(
       `${this.baseUrl}/maintenance/components/${componentId}/`,

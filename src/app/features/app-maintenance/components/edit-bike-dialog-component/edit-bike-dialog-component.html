@@ -1,0 +1,42 @@
+<div class="overlay" (click)="onOverlayClick($event)">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-header">
+      <div class="dialog-label">BIKE BEARBEITEN</div>
+      <button class="close-btn" (click)="close.emit()">✕</button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label class="label">Name</label>
+        <input
+          class="input"
+          type="text"
+          [(ngModel)]="name"
+          name="name"
+          placeholder="z.B. Trek Emonda"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="field">
+        <label class="label">Typ</label>
+        <select class="input" [(ngModel)]="bikeType" name="bikeType">
+          @for (key of bikeTypeKeys; track key) {
+            <option [value]="key">{{ bikeTypeLabels[key] }}</option>
+          }
+        </select>
+      </div>
+
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="close.emit()">Abbrechen</button>
+        <button type="submit" class="btn-save" [disabled]="saving()">
+          {{ saving() ? 'Speichern…' : 'Speichern' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

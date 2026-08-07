@@ -167,6 +167,7 @@
 }
 
 .check-btn,
+.edit-btn,
 .replace-btn,
 .add-btn {
   font-family: 'DM Mono', monospace;
@@ -183,6 +184,7 @@
     color 0.15s,
     background 0.15s;
 }
+.edit-btn:hover,
 .replace-btn:hover,
 .add-btn:hover {
   border-color: var(--accent);

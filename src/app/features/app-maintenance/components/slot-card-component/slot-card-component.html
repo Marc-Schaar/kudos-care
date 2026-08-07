@@ -92,12 +92,13 @@
       @if (slot().warn_status === 'warn' || slot().warn_status === 'critical') {
         <button class="check-btn" (click)="checkComponent.emit(comp.id)">Prüfen / Freigeben</button>
       }
-      <button class="replace-btn" (click)="addComponent.emit(slot().id)">Tauschen</button>
+      <button class="edit-btn" (click)="editComponent.emit(comp.id)">Bearbeiten</button>
+      <button class="replace-btn" (click)="swapComponent.emit(slot().id)">Tauschen</button>
     </div>
   } @else {
     <div class="empty-slot">
       <span class="empty-label">Keine Komponente montiert</span>
-      <button class="add-btn" (click)="addComponent.emit(slot().id)">+ Hinzufügen</button>
+      <button class="add-btn" (click)="swapComponent.emit(slot().id)">+ Hinzufügen</button>
     </div>
   }
 </div>

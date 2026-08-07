@@ -1,7 +1,7 @@
 <div class="overlay" (click)="onOverlayClick($event)">
   <div class="dialog" role="dialog" aria-modal="true">
     <div class="dialog-header">
-      <div class="dialog-label">NEUE KOMPONENTE</div>
+      <div class="dialog-label">{{ isEditMode() ? 'KOMPONENTE BEARBEITEN' : 'NEUE KOMPONENTE' }}</div>
       <button class="close-btn" (click)="close.emit()">✕</button>
     </div>
 
@@ -122,12 +122,14 @@
         ></textarea>
       </div>
 
-      <div class="field-checkbox">
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="isMounted" name="isMounted" />
-          <span>Direkt montieren (ersetzt aktuelle Komponente)</span>
-        </label>
-      </div>
+      @if (!isEditMode()) {
+        <div class="field-checkbox">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="isMounted" name="isMounted" />
+            <span>Direkt montieren (ersetzt aktuelle Komponente)</span>
+          </label>
+        </div>
+      }
 
       @if (error()) {
         <div class="error-msg">{{ error() }}</div>

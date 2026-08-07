@@ -1,0 +1,57 @@
+<div class="overlay" (click)="onOverlayClick($event)">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-header">
+      <div class="dialog-label">KOMPONENTE TAUSCHEN</div>
+      <button class="close-btn" (click)="close.emit()">✕</button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-hint">Wird geladen…</div>
+    } @else {
+      @if (unmountedComponents().length > 0) {
+        <div class="field">
+          <label class="label">Zuvor ausgebaute Komponenten</label>
+          <div class="component-list">
+            @for (comp of unmountedComponents(); track comp.id) {
+              <div class="component-option">
+                <div class="component-info">
+                  <span class="comp-name">
+                    {{ comp.brand || '—' }}
+                    @if (comp.model_name) {
+                      <span class="comp-model">{{ comp.model_name }}</span>
+                    }
+                  </span>
+                  @if (comp.retired_at) {
+                    <span class="comp-date"
+                      >ausgebaut am {{ comp.retired_at | date: 'dd.MM.yyyy' }}</span
+                    >
+                  }
+                </div>
+                <button
+                  class="remount-btn"
+                  [disabled]="mounting() != null"
+                  (click)="remount(comp.id)"
+                >
+                  {{ mounting() === comp.id ? 'Montiere…' : 'Wieder montieren' }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="empty-hint">Keine zuvor ausgebauten Komponenten für diesen Slot vorhanden.</div>
+      }
+
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="close.emit()">Abbrechen</button>
+        <button type="button" class="btn-save" (click)="createNew.emit(slotId())">
+          + Neue Komponente anlegen
+        </button>
+      </div>
+    }
+  </div>
+</div>

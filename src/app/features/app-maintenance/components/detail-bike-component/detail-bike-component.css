@@ -71,12 +71,35 @@
   gap: 0.75rem;
 }
 
+.type-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .type-label {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.edit-bike-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+.edit-bike-btn:hover {
+  color: var(--accent);
 }
 
 .bike-title {
