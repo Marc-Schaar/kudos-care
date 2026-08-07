@@ -7,7 +7,9 @@
   </nav>
 
   @if (loading()) {
-    <div class="loading-bar"></div>
+    <div class="loading-bar-wrap">
+      <app-skeleton variant="bar" />
+    </div>
   }
 
   @if (bike(); as bike) {

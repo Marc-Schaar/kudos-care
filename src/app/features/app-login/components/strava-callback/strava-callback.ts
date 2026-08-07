@@ -3,10 +3,11 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from './../../../../../environments/environment';
 import { StravaService } from '../../../../shared/services/strava-service/strava-service';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-strava-callback',
-  imports: [],
+  imports: [Skeleton],
   templateUrl: './strava-callback.html',
   styleUrl: './strava-callback.css',
 })

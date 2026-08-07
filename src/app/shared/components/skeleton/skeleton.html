@@ -1,0 +1,10 @@
+@for (item of items(); track $index) {
+  <div
+    class="skeleton"
+    [class.skeleton--row]="variant() === 'row'"
+    [class.skeleton--bar]="variant() === 'bar'"
+    [style.height]="height()"
+    [style.width]="width()"
+    aria-hidden="true"
+  ></div>
+}

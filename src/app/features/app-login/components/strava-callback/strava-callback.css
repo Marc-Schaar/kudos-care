@@ -48,22 +48,6 @@
   color: var(--muted);
 }
 
-/* ── Loading ───────────────────────────────────────────────────── */
-.loading-bar {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  background-size: 200% 100%;
-  animation: loading 1.2s infinite;
-}
-@keyframes loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
 /* ── Status Icon ───────────────────────────────────────────────── */
 .status-icon {
   width: 3rem;

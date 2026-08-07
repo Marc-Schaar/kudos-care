@@ -6,10 +6,11 @@ import { BikeService } from '../../../app-maintenance/services/bike-service/bike
 import { WarnClassPipe } from '../../../app-maintenance/pipes/warn-class/warn-class-pipe';
 import { WarnLabelPipe } from '../../../app-maintenance/pipes/warn-label/warn-label-pipe';
 import { BikeList, WarnStatus } from '../../../app-maintenance/models/maintenance.models';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe, DecimalPipe, WarnClassPipe, WarnLabelPipe],
+  imports: [RouterLink, DatePipe, DecimalPipe, WarnClassPipe, WarnLabelPipe, Skeleton],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

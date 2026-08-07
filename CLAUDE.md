@@ -53,6 +53,7 @@ features/
 
 shared/
   components/notification-component — Toast-UI (liest NotificationService-Signal)
+  components/skeleton                — Loading-Skeleton (variant: block/row/bar, count, height/width)
   pipes/abs
   services/notification-service, strava-service
 ```

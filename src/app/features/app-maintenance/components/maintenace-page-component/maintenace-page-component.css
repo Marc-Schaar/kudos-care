@@ -287,38 +287,8 @@
   color: var(--muted);
 }
 
-/* ── Skeleton ────────────────────────────────────────────────── */
-.skeleton-bar {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  background-size: 200%;
-  animation: shimmer-bar 1.2s infinite;
+.skeleton-bar-wrap {
   margin-bottom: 2rem;
-}
-@keyframes shimmer-bar {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.skeleton-card {
-  height: 200px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 2px solid var(--border);
-  animation: shimmer-card 1.4s infinite;
-}
-@keyframes shimmer-card {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
 }
 
 /* ── Empty State ─────────────────────────────────────────────── */

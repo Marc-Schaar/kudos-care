@@ -38,11 +38,11 @@
 
   <!-- Loading Skeleton -->
   @if (loading()) {
-    <div class="skeleton-bar"></div>
+    <div class="skeleton-bar-wrap">
+      <app-skeleton variant="bar" />
+    </div>
     <div class="bikes-grid">
-      @for (i of [1, 2, 3]; track i) {
-        <div class="skeleton-card"></div>
-      }
+      <app-skeleton [count]="3" height="200px" />
     </div>
   }
 

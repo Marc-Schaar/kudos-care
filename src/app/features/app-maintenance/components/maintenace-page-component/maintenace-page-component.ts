@@ -5,10 +5,11 @@ import { BikeList, WarnStatus } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-maintenace-page-component',
-  imports: [WarnClassPipe, WarnLabelPipe, DecimalPipe, RouterLink],
+  imports: [WarnClassPipe, WarnLabelPipe, DecimalPipe, RouterLink, Skeleton],
   templateUrl: './maintenace-page-component.html',
   styleUrl: './maintenace-page-component.css',
 })

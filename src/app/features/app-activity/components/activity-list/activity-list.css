@@ -114,23 +114,6 @@
   white-space: nowrap;
 }
 
-.skeleton-row {
-  height: 56px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  animation: shimmer 1.4s infinite;
-}
-
-@keyframes shimmer {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
 .empty-state {
   text-align: center;
   padding: 5rem 2rem;

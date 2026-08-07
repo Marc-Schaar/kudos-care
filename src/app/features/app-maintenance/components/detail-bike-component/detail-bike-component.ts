@@ -17,6 +17,7 @@ import { ComponentCheckDialogComponent } from '../component-check-dialog-compone
 import { BikeDiagramComponent } from '../bike-diagram-component/bike-diagram-component';
 import { EditBikeDialogComponent } from '../edit-bike-dialog-component/edit-bike-dialog-component';
 import { ComponentSwapDialogComponent } from '../component-swap-dialog-component/component-swap-dialog-component';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-detail-bike-component',
@@ -31,6 +32,7 @@ import { ComponentSwapDialogComponent } from '../component-swap-dialog-component
     BikeDiagramComponent,
     EditBikeDialogComponent,
     ComponentSwapDialogComponent,
+    Skeleton,
   ],
   templateUrl: './detail-bike-component.html',
   styleUrl: './detail-bike-component.css',

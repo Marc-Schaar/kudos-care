@@ -83,9 +83,7 @@
 
   @if (loading()) {
     <div class="bikes-grid">
-      @for (i of [1, 2, 3]; track i) {
-        <div class="skeleton-card"></div>
-      }
+      <app-skeleton [count]="3" height="130px" />
     </div>
   } @else {
     <div class="bikes-grid">
@@ -126,9 +124,7 @@
 
   @if (loading()) {
     <div class="activity-list">
-      @for (i of [1, 2, 3, 4]; track i) {
-        <div class="skeleton-row"></div>
-      }
+      <app-skeleton variant="row" [count]="4" height="56px" />
     </div>
   } @else {
     <div class="activity-list">
