@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
   apiUrl: '/api',
-  redirectUrl: 'https://kudos-care.marc-schaar.com',
+  redirectUrl: 'https://kudoscare.marc-schaar.com',
   clientID: 249812,
 };
