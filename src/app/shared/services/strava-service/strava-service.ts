@@ -38,7 +38,9 @@ export class StravaService {
   private readonly router = inject(Router);
   private readonly notificationService: NotificationService = inject(NotificationService);
 
-  public user = signal<{ athlete_id: number; firstname: string } | null>(null);
+  private readonly displayNameStorageKey = 'kudos_care_display_name';
+
+  public user = signal<{ athlete_id: number; firstname: string | null } | null>(null);
   public activities = signal<Activity[]>([]);
   public syncing = signal(false);
   public syncProgress = signal<SyncProgress | null>(null);
@@ -113,10 +115,26 @@ export class StravaService {
       });
   }
 
+  /**
+   * Der echte Name wird bewusst nicht vom Backend geliefert (landet nicht in der DB),
+   * sondern beim Login einmalig clientseitig gecacht — siehe setLoggedInUser().
+   */
   public fetchUser() {
-    return this.http
-      .get<{ athlete_id: number; firstname: string }>(`${this.baseUrl}/strava/me/`)
-      .pipe(tap((userData) => this.user.set(userData)));
+    return this.http.get<{ athlete_id: number }>(`${this.baseUrl}/strava/me/`).pipe(
+      tap((userData) =>
+        this.user.set({
+          athlete_id: userData.athlete_id,
+          firstname: localStorage.getItem(this.displayNameStorageKey),
+        }),
+      ),
+    );
+  }
+
+  public setLoggedInUser(athleteId: number, firstname: string) {
+    if (firstname) {
+      localStorage.setItem(this.displayNameStorageKey, firstname);
+    }
+    this.user.set({ athlete_id: athleteId, firstname: firstname || null });
   }
 
   public fetchActivities() {
@@ -130,6 +148,7 @@ export class StravaService {
   public logout() {
     this.http.post(`${this.baseUrl}/strava/logout/`, {}).subscribe({
       next: () => {
+        localStorage.removeItem(this.displayNameStorageKey);
         this.user.set(null);
         this.activities.set([]);
         this.router.navigate(['/login']);

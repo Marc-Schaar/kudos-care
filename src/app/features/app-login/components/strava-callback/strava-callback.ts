@@ -49,10 +49,7 @@ export class StravaCallback {
       next: (res) => {
         this.status.set('success');
         if (res?.athlete) {
-          this.stravaService.user.set({
-            athlete_id: res.athlete.id,
-            firstname: res.athlete.firstname,
-          });
+          this.stravaService.setLoggedInUser(res.athlete.id, res.athlete.firstname);
         }
         setTimeout(() => this.router.navigate(['/dashboard']), 2000);
       },
