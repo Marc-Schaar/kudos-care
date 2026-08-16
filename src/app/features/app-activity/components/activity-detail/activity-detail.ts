@@ -25,6 +25,7 @@ import {
   Filler,
 } from 'chart.js';
 import { ActivityDetailModel } from '../../models/activity-detail-model';
+import { RideSummary } from '../../models/ride-summary';
 import { WeatherTimeline } from '../../models/weather-timeline';
 import { Map } from '../map/map';
 import { AbsPipe } from '../../../../shared/pipes/abs/abs-pipe';
@@ -70,6 +71,11 @@ export class ActivityDetail implements OnInit {
   public climateMode = signal<ClimateMode>('temperature');
   public mapMode = signal<MapMode>('wind');
 
+  private activityId: number | null = null;
+  public rideSummary = signal<RideSummary | null>(null);
+  public rideSummaryLoading = signal(false);
+  public rideSummaryError = signal<string | null>(null);
+
   private climateChart: Chart | undefined;
   private windChart: Chart | undefined;
   private currentWeatherData: Partial<WeatherTimeline> | null = null;
@@ -103,7 +109,28 @@ export class ActivityDetail implements OnInit {
 
     this.route.params.subscribe((params) => {
       const id = +params['id'];
+      this.activityId = id;
+      this.rideSummary.set(null);
+      this.rideSummaryError.set(null);
       this.getActivityDetail(id);
+    });
+  }
+
+  public loadRideSummary(refresh = false) {
+    if (this.activityId == null || this.rideSummaryLoading()) return;
+    this.rideSummaryLoading.set(true);
+    this.rideSummaryError.set(null);
+    this.activityService.getRideSummary(this.activityId, refresh).subscribe({
+      next: (res) => {
+        this.rideSummaryLoading.set(false);
+        this.rideSummary.set(res);
+      },
+      error: (err) => {
+        this.rideSummaryLoading.set(false);
+        this.rideSummaryError.set(
+          err?.error?.error ?? 'KI-Auswertung konnte nicht geladen werden.',
+        );
+      },
     });
   }
 

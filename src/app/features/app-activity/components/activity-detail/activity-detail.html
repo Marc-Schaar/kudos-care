@@ -58,6 +58,41 @@
       </div>
     </header>
 
+    <section class="card card-full ai-summary-card">
+      <div class="card-header-row">
+        <h2 class="card-title">KI-Auswertung</h2>
+        @if (rideSummary(); as sum) {
+          <button
+            type="button"
+            class="toggle-btn"
+            [disabled]="rideSummaryLoading()"
+            (click)="loadRideSummary(true)"
+          >
+            Neu generieren
+          </button>
+        }
+      </div>
+
+      @if (rideSummary(); as sum) {
+        <p class="ai-summary-text">{{ sum.summary }}</p>
+        <p class="field-hint">
+          {{ sum.cached ? 'Aus Cache' : 'Neu generiert' }} ·
+          {{ sum.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
+        </p>
+      } @else if (rideSummaryLoading()) {
+        <p class="field-hint">Wird generiert…</p>
+      } @else if (rideSummaryError()) {
+        <p class="error-msg">{{ rideSummaryError() }}</p>
+        <button type="button" class="toggle-btn" (click)="loadRideSummary()">
+          Erneut versuchen
+        </button>
+      } @else {
+        <button type="button" class="toggle-btn" (click)="loadRideSummary()">
+          KI-Auswertung anzeigen
+        </button>
+      }
+    </section>
+
     <div class="cards-grid">
       <section class="card">
         <div class="card-header-row">

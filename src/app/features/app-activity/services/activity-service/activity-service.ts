@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { tap } from 'rxjs';
 import { ActivityDetailModel } from '../../models/activity-detail-model';
+import { RideSummary } from '../../models/ride-summary';
 import { environment } from './../../../../../environments/environment';
 
 @Injectable({
@@ -17,5 +18,10 @@ export class ActivityService {
     return this.http
       .get<ActivityDetailModel>(`${this.baseUrl}/activities/${id}/`)
       .pipe(tap((data) => this.activityData.set(data)));
+  }
+
+  public getRideSummary(id: number, refresh = false) {
+    const params = refresh ? '?refresh=true' : '';
+    return this.http.get<RideSummary>(`${this.baseUrl}/activities/${id}/summary/${params}`);
   }
 }

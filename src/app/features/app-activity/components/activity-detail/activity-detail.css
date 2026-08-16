@@ -284,6 +284,35 @@
   text-align: center;
 }
 
+/* ── KI-Auswertung ─────────────────────────────────────────────── */
+.ai-summary-card {
+  margin-bottom: 1rem;
+}
+
+.ai-summary-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 0 0.6rem;
+}
+
+.field-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.error-msg {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--critical);
+  margin: 0 0 0.6rem;
+}
+
 /* ── Empty State ───────────────────────────────────────────────── */
 .empty-state {
   text-align: center;
