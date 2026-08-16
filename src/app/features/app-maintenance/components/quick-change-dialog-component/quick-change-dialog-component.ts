@@ -2,6 +2,8 @@ import { Component, inject, input, OnInit, output, signal } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BikeService } from '../../services/bike-service/bike-service';
+import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QuickChangeItem, QuickChangeRequestItem } from '../../models/maintenance.models';
 
 interface QuickChangeRow {
@@ -15,7 +17,7 @@ interface QuickChangeRow {
 
 @Component({
   selector: 'app-quick-change-dialog-component',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Skeleton],
   templateUrl: './quick-change-dialog-component.html',
   styleUrl: './quick-change-dialog-component.css',
 })
@@ -25,6 +27,7 @@ export class QuickChangeDialogComponent implements OnInit {
   saved = output<void>();
 
   private bikeService = inject(BikeService);
+  private notificationService = inject(NotificationService);
 
   loading = signal(true);
   saving = signal(false);
@@ -55,8 +58,20 @@ export class QuickChangeDialogComponent implements OnInit {
     });
   }
 
+  selectedCount(): number {
+    return this.rows.filter((row) => row.include).length;
+  }
+
+  selectAll() {
+    this.rows.forEach((row) => (row.include = true));
+  }
+
+  selectNone() {
+    this.rows.forEach((row) => (row.include = false));
+  }
+
   onSubmit() {
-    if (this.rows.every((row) => !row.include)) {
+    if (this.selectedCount() === 0) {
       this.error.set('Bitte mindestens eine Komponente auswählen.');
       return;
     }
@@ -71,11 +86,17 @@ export class QuickChangeDialogComponent implements OnInit {
       model_name: row.modelName.trim(),
     }));
 
+    const changedCount = this.selectedCount();
+
     this.bikeService
       .submitQuickChange(this.slotId(), { installed_at: this.installedAt || undefined, items })
       .subscribe({
         next: () => {
           this.saving.set(false);
+          this.notificationService.show(
+            `Baugruppe "${this.groupName()}" gewechselt — ${changedCount} Komponente${changedCount === 1 ? '' : 'n'} aktualisiert.`,
+            'success',
+          );
           this.saved.emit();
         },
         error: (err) => {

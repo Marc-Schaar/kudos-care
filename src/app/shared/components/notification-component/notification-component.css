@@ -2,7 +2,7 @@
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 1000;
+  z-index: 2000;
   font-family: 'DM Mono', monospace;
   font-size: 0.75rem;
   letter-spacing: 0.02em;

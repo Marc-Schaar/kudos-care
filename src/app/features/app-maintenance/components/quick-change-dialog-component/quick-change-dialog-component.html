@@ -11,7 +11,9 @@
     </div>
 
     @if (loading()) {
-      <div class="loading-hint">Baugruppe wird geladen…</div>
+      <div class="row-list">
+        <app-skeleton variant="row" [count]="4" height="3.6rem" />
+      </div>
     } @else {
       <form (ngSubmit)="onSubmit()">
         <div class="field">
@@ -20,48 +22,58 @@
         </div>
 
         <div class="field">
-          <label class="label">Komponenten der Baugruppe</label>
+          <div class="row-list-header">
+            <label class="label">Komponenten der Baugruppe</label>
+            <div class="row-list-toolbar">
+              <span class="selected-count">{{ selectedCount() }} / {{ rows.length }} ausgewählt</span>
+              <button type="button" class="toolbar-btn" (click)="selectAll()">Alle</button>
+              <button type="button" class="toolbar-btn" (click)="selectNone()">Keine</button>
+            </div>
+          </div>
+
           <div class="row-list">
             @for (row of rows; track row.slotId) {
-              <label class="row-option">
+              <label class="row-option" [class.selected]="row.include">
                 <input
                   type="checkbox"
                   [(ngModel)]="row.include"
                   [name]="'include-' + row.slotId"
                 />
                 <div class="row-body">
-                  <span class="row-name">{{ row.displayName }}</span>
-                  @if (row.current) {
-                    <span class="row-current">
-                      aktuell: {{ row.current.brand || '—' }}
-                      @if (row.current.model_name) {
-                        {{ row.current.model_name }}
-                      }
-                    </span>
-                  } @else {
-                    <span class="row-current">nicht montiert</span>
-                  }
+                  <div class="row-heading">
+                    <span class="row-name">{{ row.displayName }}</span>
+                    @if (row.current) {
+                      <span class="row-current">
+                        aktuell: {{ row.current.brand || '—' }}
+                        @if (row.current.model_name) {
+                          {{ row.current.model_name }}
+                        }
+                      </span>
+                    } @else {
+                      <span class="row-current">nicht montiert</span>
+                    }
+                  </div>
 
-                  @if (row.include) {
-                    <div class="row-fields" (click)="$event.stopPropagation()">
-                      <input
-                        class="input"
-                        type="text"
-                        [(ngModel)]="row.brand"
-                        [name]="'brand-' + row.slotId"
-                        placeholder="Hersteller"
-                        autocomplete="off"
-                      />
-                      <input
-                        class="input"
-                        type="text"
-                        [(ngModel)]="row.modelName"
-                        [name]="'model-' + row.slotId"
-                        placeholder="Modell"
-                        autocomplete="off"
-                      />
-                    </div>
-                  }
+                  <div class="row-fields" (click)="$event.stopPropagation()">
+                    <input
+                      class="input"
+                      type="text"
+                      [(ngModel)]="row.brand"
+                      [name]="'brand-' + row.slotId"
+                      placeholder="Hersteller"
+                      autocomplete="off"
+                      [disabled]="!row.include"
+                    />
+                    <input
+                      class="input"
+                      type="text"
+                      [(ngModel)]="row.modelName"
+                      [name]="'model-' + row.slotId"
+                      placeholder="Modell"
+                      autocomplete="off"
+                      [disabled]="!row.include"
+                    />
+                  </div>
                 </div>
               </label>
             }
@@ -74,8 +86,8 @@
 
         <div class="dialog-actions">
           <button type="button" class="btn-cancel" (click)="close.emit()">Abbrechen</button>
-          <button type="submit" class="btn-save" [disabled]="saving()">
-            {{ saving() ? 'Wird gewechselt…' : 'Baugruppe wechseln' }}
+          <button type="submit" class="btn-save" [disabled]="saving() || selectedCount() === 0">
+            {{ saving() ? 'Wird gewechselt…' : 'Baugruppe wechseln (' + selectedCount() + ')' }}
           </button>
         </div>
       </form>
