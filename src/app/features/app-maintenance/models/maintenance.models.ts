@@ -39,6 +39,8 @@ export interface ComponentTemplate {
   is_system: boolean;
   supports_condition_estimate: boolean;
   notes: string;
+  group: number | null;
+  group_name: string | null;
 }
 
 // ── ComponentCheck ("Prüfen/Freigeben") ────────────────────────────────────────
@@ -143,6 +145,37 @@ export interface ComponentSlotDetail extends ComponentSlotList {
   custom_name: string;
   template_detail: ComponentTemplate;
   components: BikeComponent[];
+}
+
+// ── Quick-Change (Baugruppen-Tausch) ───────────────────────────────────────────
+
+export interface ComponentGroupRef {
+  id: number;
+  name: string;
+}
+
+export interface QuickChangeItem {
+  slot_id: number;
+  display_name: string;
+  preselected: boolean;
+  mounted_component: { brand: string; model_name: string; installed_at: string | null } | null;
+}
+
+export interface QuickChangeGroupResponse {
+  group: ComponentGroupRef;
+  items: QuickChangeItem[];
+}
+
+export interface QuickChangeRequestItem {
+  slot_id: number;
+  include: boolean;
+  brand?: string;
+  model_name?: string;
+}
+
+export interface QuickChangeRequest {
+  installed_at?: string;
+  items: QuickChangeRequestItem[];
 }
 
 // ── Bike ──────────────────────────────────────────────────────────────────────

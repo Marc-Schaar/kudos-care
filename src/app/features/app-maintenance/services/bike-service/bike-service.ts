@@ -12,6 +12,8 @@ import {
   ComponentSlotList,
   ComponentTemplate,
   CreateComponentPayload,
+  QuickChangeGroupResponse,
+  QuickChangeRequest,
   WeatherWearExplanation,
 } from '../../models/maintenance.models';
 
@@ -254,6 +256,21 @@ export class BikeService {
     return this.http.post<BikeComponent>(
       `${this.baseUrl}/maintenance/slots/${slotId}/unmount/`,
       {},
+    );
+  }
+
+  // ── Quick-Change (Baugruppen-Tausch) ──────────────────────────────────────────
+
+  fetchQuickChangeGroup(slotId: number) {
+    return this.http.get<QuickChangeGroupResponse>(
+      `${this.baseUrl}/maintenance/slots/${slotId}/quick-change/`,
+    );
+  }
+
+  submitQuickChange(slotId: number, payload: QuickChangeRequest) {
+    return this.http.post<ComponentSlotDetail[]>(
+      `${this.baseUrl}/maintenance/slots/${slotId}/quick-change/`,
+      payload,
     );
   }
 

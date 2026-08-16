@@ -94,11 +94,19 @@
       }
       <button class="edit-btn" (click)="editComponent.emit(comp.id)">Bearbeiten</button>
       <button class="replace-btn" (click)="swapComponent.emit(slot().id)">Tauschen</button>
+      @if (hasGroup()) {
+        <button class="group-btn" (click)="quickChange.emit(slot().id)">Baugruppe tauschen</button>
+      }
     </div>
   } @else {
     <div class="empty-slot">
       <span class="empty-label">Keine Komponente montiert</span>
-      <button class="add-btn" (click)="swapComponent.emit(slot().id)">+ Hinzufügen</button>
+      <div class="empty-actions">
+        <button class="add-btn" (click)="swapComponent.emit(slot().id)">+ Hinzufügen</button>
+        @if (hasGroup()) {
+          <button class="group-btn" (click)="quickChange.emit(slot().id)">Baugruppe tauschen</button>
+        }
+      </div>
     </div>
   }
 </div>

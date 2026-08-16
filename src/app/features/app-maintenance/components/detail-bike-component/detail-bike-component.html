@@ -86,6 +86,7 @@
                 (editComponent)="openEditComponentDialog($event)"
                 (swapComponent)="openSwapDialog($event)"
                 (checkComponent)="openCheckDialog($event)"
+                (quickChange)="openQuickChangeDialog($event)"
               />
             }
           </div>
@@ -147,5 +148,13 @@
     [bike]="bike"
     (close)="closeEditBikeDialog()"
     (saved)="onBikeSaved()"
+  />
+}
+
+@if (quickChangeSlotId() != null) {
+  <app-quick-change-dialog-component
+    [slotId]="quickChangeSlotId()!"
+    (close)="closeQuickChangeDialog()"
+    (saved)="onQuickChangeSaved()"
   />
 }

@@ -17,6 +17,7 @@ import { ComponentCheckDialogComponent } from '../component-check-dialog-compone
 import { BikeDiagramComponent } from '../bike-diagram-component/bike-diagram-component';
 import { EditBikeDialogComponent } from '../edit-bike-dialog-component/edit-bike-dialog-component';
 import { ComponentSwapDialogComponent } from '../component-swap-dialog-component/component-swap-dialog-component';
+import { QuickChangeDialogComponent } from '../quick-change-dialog-component/quick-change-dialog-component';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
@@ -32,6 +33,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
     BikeDiagramComponent,
     EditBikeDialogComponent,
     ComponentSwapDialogComponent,
+    QuickChangeDialogComponent,
     Skeleton,
   ],
   templateUrl: './detail-bike-component.html',
@@ -50,6 +52,7 @@ export class DetailBikeComponent implements OnInit {
   public showEditBikeDialog = signal(false);
   public editingComponent = signal<BikeComponentModel | null>(null);
   public swapSlotId = signal<number | null>(null);
+  public quickChangeSlotId = signal<number | null>(null);
 
   public slotGroups = computed<SlotGroup[]>(() => {
     const b = this.bike();
@@ -154,6 +157,20 @@ export class DetailBikeComponent implements OnInit {
   onCreateNewFromSwap(slotId: number) {
     this.swapSlotId.set(null);
     this.openAddDialog(slotId);
+  }
+
+  openQuickChangeDialog(slotId: number) {
+    this.quickChangeSlotId.set(slotId);
+  }
+
+  closeQuickChangeDialog() {
+    this.quickChangeSlotId.set(null);
+  }
+
+  onQuickChangeSaved() {
+    this.quickChangeSlotId.set(null);
+    const id = this.bike()?.id;
+    if (id) this.bikeService.fetchBikeDetails(id).subscribe();
   }
 
   openAddSlotDialog() {

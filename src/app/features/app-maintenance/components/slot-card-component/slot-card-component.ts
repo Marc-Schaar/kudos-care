@@ -20,6 +20,9 @@ export class SlotCardComponent {
   editComponent = output<number>();
   swapComponent = output<number>();
   checkComponent = output<number>();
+  quickChange = output<number>();
+
+  hasGroup = computed(() => this.slot().template_detail.group_name != null);
 
   wearPct = computed(() => {
     const s = this.slot();

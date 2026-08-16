@@ -169,7 +169,8 @@
 .check-btn,
 .edit-btn,
 .replace-btn,
-.add-btn {
+.add-btn,
+.group-btn {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
   letter-spacing: 0.06em;
@@ -186,7 +187,8 @@
 }
 .edit-btn:hover,
 .replace-btn:hover,
-.add-btn:hover {
+.add-btn:hover,
+.group-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -204,6 +206,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.empty-actions {
+  display: flex;
   gap: 0.5rem;
 }
 

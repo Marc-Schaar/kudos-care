@@ -1,0 +1,84 @@
+<div class="overlay" (click)="onOverlayClick($event)">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-header">
+      <div class="dialog-label">
+        BAUGRUPPE TAUSCHEN
+        @if (groupName()) {
+          <span class="dialog-label-sub">— {{ groupName() }}</span>
+        }
+      </div>
+      <button class="close-btn" (click)="close.emit()">✕</button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-hint">Baugruppe wird geladen…</div>
+    } @else {
+      <form (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label class="label">Einbaudatum (gemeinsam)</label>
+          <input class="input" type="date" [(ngModel)]="installedAt" name="installedAt" />
+        </div>
+
+        <div class="field">
+          <label class="label">Komponenten der Baugruppe</label>
+          <div class="row-list">
+            @for (row of rows; track row.slotId) {
+              <label class="row-option">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="row.include"
+                  [name]="'include-' + row.slotId"
+                />
+                <div class="row-body">
+                  <span class="row-name">{{ row.displayName }}</span>
+                  @if (row.current) {
+                    <span class="row-current">
+                      aktuell: {{ row.current.brand || '—' }}
+                      @if (row.current.model_name) {
+                        {{ row.current.model_name }}
+                      }
+                    </span>
+                  } @else {
+                    <span class="row-current">nicht montiert</span>
+                  }
+
+                  @if (row.include) {
+                    <div class="row-fields" (click)="$event.stopPropagation()">
+                      <input
+                        class="input"
+                        type="text"
+                        [(ngModel)]="row.brand"
+                        [name]="'brand-' + row.slotId"
+                        placeholder="Hersteller"
+                        autocomplete="off"
+                      />
+                      <input
+                        class="input"
+                        type="text"
+                        [(ngModel)]="row.modelName"
+                        [name]="'model-' + row.slotId"
+                        placeholder="Modell"
+                        autocomplete="off"
+                      />
+                    </div>
+                  }
+                </div>
+              </label>
+            }
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="error-msg">{{ error() }}</div>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="close.emit()">Abbrechen</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Wird gewechselt…' : 'Baugruppe wechseln' }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>
