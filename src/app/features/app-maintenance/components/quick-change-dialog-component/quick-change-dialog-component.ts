@@ -45,8 +45,12 @@ export class QuickChangeDialogComponent implements OnInit {
           slotId: item.slot_id,
           displayName: item.display_name,
           include: item.preselected,
-          brand: '',
-          modelName: '',
+          // Mit aktuellen Werten vorbefüllen: sonst überschreibt jede weiterhin
+          // inkludierte Zeile, die der User nicht bewusst neu befüllt, die
+          // bestehende Komponente mit leerem Hersteller/Modell (siehe Bugreport:
+          // "beim Zurückwechseln geht es nicht mehr sauber").
+          brand: item.mounted_component?.brand ?? '',
+          modelName: item.mounted_component?.model_name ?? '',
           current: item.mounted_component,
         }));
         this.loading.set(false);
