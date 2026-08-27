@@ -1,0 +1,156 @@
+<div
+  class="lp"
+  [style.--p]="pageProgress()"
+  [style.--stage]="stageProgress()"
+  [style.--crank]="crankDeg()"
+  [style.--tiltx]="tiltX()"
+  [style.--tiltz]="tiltZ()"
+>
+  <div class="lp-backdrop" aria-hidden="true"></div>
+
+  <header class="lp-nav">
+    <span class="lp-logo">KUDOS<span>CARE</span></span>
+    <a class="abtn abtn--sm" routerLink="/login">App öffnen</a>
+  </header>
+
+  <section class="lp-hero">
+    <p class="lp-eyebrow" data-reveal>Wartungs-Tracking · Strava-Integration</p>
+    <h1 class="lp-title" data-reveal>
+      <span class="glow">Jede Fahrt</span><br />
+      <span class="glow">zählt mit.</span>
+    </h1>
+    <p class="lp-lead" data-reveal>
+      Kudos Care verfolgt den Verschleiß deiner Bike-Komponenten — Kilometer, Betriebsstunden
+      und Tage seit Montage, wettergewichtet nach Regen, Hitze, Kälte und Gegenwind. Direkt
+      aus Strava. Automatisch.
+    </p>
+    <div class="lp-cta" data-reveal>
+      <a class="abtn" routerLink="/login">Mit Strava verbinden</a>
+      <button class="abtn abtn--ghost" type="button" (click)="scrollToId('how')">
+        So funktioniert's
+      </button>
+    </div>
+
+    <div class="lp-scrollhint" aria-hidden="true"><span></span>scroll</div>
+  </section>
+
+  <!-- 3D-Kurbel + Kette, an den Scroll gekoppelt -->
+  <section class="lp-stage" id="how">
+    <div class="lp-stage-inner">
+      <div class="lp-crank" aria-hidden="true">
+        <!-- Rennrad in Seitenansicht. Alle Rotationen (Kettenblatt, Ritzel, beide
+             Laufräder) laufen per translate→rotate→translate um ihren jeweiligen
+             Mittelpunkt und sind über --crank an den Scroll gekoppelt; die Kette
+             wandert über stroke-dashoffset. Ritzel sitzt an der Hinterachse (150,252),
+             Kettenblatt am Tretlager (262,264) — großer Abstand = Kettenstrebe. -->
+        <svg viewBox="0 0 560 360" role="img" aria-label="Drehendes Rennrad-Antriebsstrang">
+          <ellipse class="lp-ground" cx="300" cy="348" rx="238" ry="12" />
+
+          <g class="wheel wheel--rear">
+            <circle class="tire" cx="150" cy="252" r="92" />
+            <circle class="rim" cx="150" cy="252" r="78" />
+            <line class="wheel-spoke" x1="150" y1="252" x2="225" y2="272" />
+            <line class="wheel-spoke" x1="150" y1="252" x2="170" y2="326" />
+            <line class="wheel-spoke" x1="150" y1="252" x2="96" y2="306" />
+            <line class="wheel-spoke" x1="150" y1="252" x2="75" y2="232" />
+            <line class="wheel-spoke" x1="150" y1="252" x2="130" y2="178" />
+            <line class="wheel-spoke" x1="150" y1="252" x2="204" y2="198" />
+            <circle class="hub" cx="150" cy="252" r="6" />
+          </g>
+
+          <g class="wheel wheel--front">
+            <circle class="tire" cx="470" cy="252" r="92" />
+            <circle class="rim" cx="470" cy="252" r="78" />
+            <line class="wheel-spoke" x1="470" y1="252" x2="545" y2="272" />
+            <line class="wheel-spoke" x1="470" y1="252" x2="490" y2="326" />
+            <line class="wheel-spoke" x1="470" y1="252" x2="416" y2="306" />
+            <line class="wheel-spoke" x1="470" y1="252" x2="395" y2="232" />
+            <line class="wheel-spoke" x1="470" y1="252" x2="450" y2="178" />
+            <line class="wheel-spoke" x1="470" y1="252" x2="524" y2="198" />
+            <circle class="hub" cx="470" cy="252" r="6" />
+          </g>
+
+          <!-- Rahmen -->
+          <line class="tube" x1="262" y1="264" x2="300" y2="150" />
+          <line class="tube" x1="262" y1="264" x2="430" y2="142" />
+          <line class="tube" x1="300" y1="150" x2="430" y2="140" />
+          <line class="tube" x1="430" y1="140" x2="452" y2="178" />
+          <line class="tube" x1="452" y1="178" x2="470" y2="252" />
+          <line class="tube" x1="300" y1="152" x2="150" y2="252" />
+          <line class="tube" x1="262" y1="264" x2="150" y2="252" />
+          <line class="tube" x1="300" y1="150" x2="293" y2="132" />
+          <path class="saddle" d="M 266,132 L 302,127 q 9,0 3,8 l -30,3 q -9,1 -9,-9 Z" />
+          <line class="tube" x1="430" y1="140" x2="452" y2="123" />
+          <path class="bar" d="M 452,123 q 17,-3 18,14 q 1,17 -13,23" />
+
+          <!-- Antrieb -->
+          <path
+            class="chain"
+            d="M 262,228 A 36 36 0 1 1 262,300 L 150,269 A 17 17 0 1 1 150,235 Z"
+          />
+          <circle class="cog" cx="150" cy="252" r="17" />
+          <circle class="cog-hub" cx="150" cy="252" r="5" />
+
+          <g class="ring">
+            <circle class="ring-teeth" cx="262" cy="264" r="36" />
+            <circle class="ring-body" cx="262" cy="264" r="27" />
+            <rect class="spoke" x="258" y="234" width="8" height="60" rx="4" />
+            <rect class="spoke" x="232" y="260" width="60" height="8" rx="4" />
+            <rect class="arm" x="258" y="259" width="74" height="11" rx="5.5" />
+            <circle class="pedal" cx="328" cy="264" r="9" />
+            <circle class="bb" cx="262" cy="264" r="7" />
+          </g>
+        </svg>
+      </div>
+
+      <div class="lp-stage-copy">
+        <p class="lp-kicker" data-reveal>Der Antrieb</p>
+        <h2 class="glow" data-reveal>Physik statt Bauchgefühl</h2>
+        <p data-reveal>
+          Polyline-Track, Höhenprofil und historische Open-Meteo-Wetterdaten pro Ride ergeben
+          einen Verschleiß-Multiplikator. Kette, Reifen und Bremsbeläge altern im Regen
+          messbar schneller — Kudos Care rechnet das mit, nicht du.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lp-features">
+    <article class="lp-card" data-reveal>
+      <div class="lp-card-no">01</div>
+      <h3>Verbinden</h3>
+      <p>
+        Login per Strava-OAuth. Bikes und Aktivitäten synchronisieren sich automatisch — kein
+        manuelles Nachtragen von Kilometern.
+      </p>
+    </article>
+    <article class="lp-card" data-reveal>
+      <div class="lp-card-no">02</div>
+      <h3>Tracken</h3>
+      <p>
+        Jede Komponente sitzt in einem Slot. km, Betriebsstunden und Tage seit Montage laufen
+        live mit — wettergewichtet pro Fahrt.
+      </p>
+    </article>
+    <article class="lp-card" data-reveal>
+      <div class="lp-card-no">03</div>
+      <h3>Wissen</h3>
+      <p>
+        Status ok / warn / kritisch. E-Mail, sobald ein Teil fällig wird — auch vorausschauend
+        auf deine nächste voraussichtliche Fahrt.
+      </p>
+    </article>
+  </section>
+
+  <section class="lp-stats">
+    <div class="lp-stat" data-reveal><b>4</b><span>Wetter-Achsen pro Ride</span></div>
+    <div class="lp-stat" data-reveal><b>km·h·d</b><span>Verschleiß-Achsen</span></div>
+    <div class="lp-stat" data-reveal><b>0</b><span>manuelle Einträge</span></div>
+  </section>
+
+  <section class="lp-final">
+    <h2 class="glow" data-reveal>Bereit, deinem Bike zuzuhören?</h2>
+    <a class="abtn abtn--lg" routerLink="/login" data-reveal>Jetzt mit Strava verbinden</a>
+    <p class="lp-foot">Kudos Care · Wartungs-Tracking für Rad &amp; Motorrad</p>
+  </section>
+</div>

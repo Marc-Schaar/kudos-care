@@ -127,3 +127,22 @@
 .switch-account-hint a:hover {
   color: var(--text);
 }
+
+.landing-hint {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.landing-hint a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing-hint a:hover {
+  opacity: 0.8;
+}

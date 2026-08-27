@@ -7,6 +7,13 @@ import { authGuard } from '../features/app-login/guard/auth-guard';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
+  {
+    path: 'landingpage',
+    loadComponent: () =>
+      import('../features/app-landing/components/landingpage/landingpage').then(
+        (m) => m.Landingpage,
+      ),
+  },
   { path: 'strava-callback', component: StravaCallback },
   { path: 'dashboard', canActivate: [authGuard], component: Dashboard },
   {

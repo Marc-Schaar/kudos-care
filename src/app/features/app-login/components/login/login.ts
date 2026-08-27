@@ -1,11 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { StravaService } from '../../../../shared/services/strava-service/strava-service';
 
 @Component({
   selector: 'app-login',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

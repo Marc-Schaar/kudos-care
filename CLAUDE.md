@@ -27,7 +27,9 @@ Strava-OAuth, Sync von Aktivitäten/Bikes, Verschleiß-Tracking von Bike-Kompone
 ## Commands
 
 - Dev Server: `npm start` (→ `ng serve`, Port 4200)
-- Build: `npm run build` (Production-Config, Budgets 500kB/1MB initial)
+- Build: `npm run build` (Production-Config, Budgets 500kB/1MB initial,
+  `anyComponentStyle` 10kB warn / 16kB error — hochgesetzt wegen der animationslastigen
+  `app-landing`-Stylesheet)
 - Watch-Build: `npm run watch`
 - Tests: `npm test` (Vitest via `ng test`)
 
@@ -43,7 +45,11 @@ core/                          — Shell, Bootstrapping, Routing, Interceptors
     error-interceptor/         — globaler HTTP-Error-Handler → NotificationService-Toast
 
 features/
-  app-login/                   — Login, Strava-OAuth-Callback, authGuard
+  app-landing/                  — Öffentliche Marketing-Landing-Page (`/landingpage`, lazy,
+    kein authGuard). Scroll-gekoppelte CSS-Animation (drehende Kurbel + Kette, 3D-Tilt)
+    über ein Signal + rAF-Scroll-Listener, Einblendungen via IntersectionObserver.
+  app-login/                   — Login, Strava-OAuth-Callback, authGuard.
+    login.html verlinkt auf `/landingpage`.
   app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)
   app-activity/                 — Strava Activity List/Detail, Map, Wetter-Overlay
     pipes/headwind-label, services/activity-service
@@ -70,6 +76,7 @@ Konsistenz zu neueren Features halten.
 
 - `''` → redirect `login`
 - `login`, `strava-callback` → eager, ungeschützt
+- `landingpage` → lazy (`loadComponent`), ungeschützt (öffentliche Landing-Page)
 - `dashboard` → eager, `authGuard`
 - `activities`, `activity/:id` → lazy (`loadComponent`), `authGuard`
 - `maintenance` → `loadChildren` → `MAINTENANCE_ROUTES` (`''` = Bike-Liste,
