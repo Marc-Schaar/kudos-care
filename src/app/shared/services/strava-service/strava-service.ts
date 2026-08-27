@@ -137,6 +137,18 @@ export class StravaService {
     this.user.set({ athlete_id: athleteId, firstname: firstname || null });
   }
 
+  /**
+   * Nur fuer lokale Entwicklung (siehe environment.devLoginEnabled) — ruft den
+   * Dev-Mock-Login des Backends auf (existiert dort nur bei DEBUG=True) statt des
+   * echten Strava-OAuth-Roundtrips.
+   */
+  public devLogin() {
+    return this.http.post<{ athlete: { id: number; firstname: string } }>(
+      `${this.baseUrl}/dev/login/`,
+      {},
+    ).pipe(tap((res) => this.setLoggedInUser(res.athlete.id, res.athlete.firstname)));
+  }
+
   public fetchActivities() {
     return this.http.get<Activity[]>(`${this.baseUrl}/activities/`).pipe(
       tap((res) => {

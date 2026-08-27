@@ -18,6 +18,10 @@
         <span class="strava-brand">STRAVA</span>
       </button>
 
+      @if (devLoginEnabled) {
+        <button (click)="devLogin()" class="dev-login-btn" type="button">Dev-Login (Mock)</button>
+      }
+
       <p class="switch-account-hint">
         Nicht du oder möchtest ein anderes Strava-Konto verbinden?
         <a href="https://www.strava.com/logout" target="_blank" rel="noopener"

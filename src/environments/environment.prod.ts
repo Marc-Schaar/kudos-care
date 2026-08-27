@@ -3,4 +3,5 @@ export const environment = {
   apiUrl: '/api',
   redirectUrl: 'https://kudoscare.marc-schaar.com',
   clientID: 249812,
+  devLoginEnabled: false,
 };

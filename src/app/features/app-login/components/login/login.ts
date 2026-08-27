@@ -16,6 +16,7 @@ export class Login implements OnInit {
   private readonly router = inject(Router);
 
   checking = signal(true);
+  devLoginEnabled = environment.devLoginEnabled;
 
   ngOnInit() {
     this.stravaService.fetchUser().subscribe({
@@ -33,5 +34,12 @@ export class Login implements OnInit {
       `&scope=profile:read_all,activity:read_all`;
 
     window.location.href = stravaAuthUrl;
+  }
+
+  devLogin() {
+    this.stravaService.devLogin().subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: (err) => console.error('Dev-Login fehlgeschlagen', err),
+    });
   }
 }

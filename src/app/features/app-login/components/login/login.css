@@ -90,6 +90,26 @@
   letter-spacing: -0.5px;
 }
 
+.dev-login-btn {
+  display: block;
+  margin: 0.75rem auto 0;
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  padding: 0.5rem 1rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.dev-login-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 .switch-account-hint {
   margin-top: 1.75rem;
   font-family: 'DM Mono', monospace;
