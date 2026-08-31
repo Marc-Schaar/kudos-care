@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   Component,
+  computed,
   ElementRef,
   inject,
   Injector,
@@ -26,10 +27,12 @@ import {
 } from 'chart.js';
 import { ActivityDetailModel } from '../../models/activity-detail-model';
 import { RideSummary } from '../../models/ride-summary';
+import { WearImpactResponse } from '../../models/wear-impact';
 import { WeatherTimeline } from '../../models/weather-timeline';
 import { Map } from '../map/map';
 import { AbsPipe } from '../../../../shared/pipes/abs/abs-pipe';
 import { HeadwindLabelPipe } from '../../pipes/headwind-label/headwind-label-pipe';
+import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
 import { DatePipe, DecimalPipe } from '@angular/common';
 
 Chart.register(
@@ -52,7 +55,7 @@ type ClimateMode = 'temperature' | 'rain';
 
 @Component({
   selector: 'app-activity-detail',
-  imports: [Map, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, RouterLink],
+  imports: [Map, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, RouterLink, UserMenu],
   providers: [DatePipe],
   templateUrl: './activity-detail.html',
   styleUrl: './activity-detail.css',
@@ -71,10 +74,37 @@ export class ActivityDetail implements OnInit {
   public climateMode = signal<ClimateMode>('temperature');
   public mapMode = signal<MapMode>('wind');
 
+  /**
+   * Bezugsgrößen der relativen Farbskala. Bewusst aus den Karten-Abschnitten und
+   * nicht aus den Stundenwerten abgeleitet: die Karte zeigt die feinere Auflösung,
+   * und Chart, Karte und Legende müssen dieselbe Skala benutzen.
+   */
+  public windSegments = computed(() => this.activityService.activityData()?.wind_segments ?? null);
+
+  public windSource = computed(() => this.windSegments()?.wind_source ?? 'coarse');
+
+  public maxAbsHeadwind = computed(() =>
+    (this.windSegments()?.features ?? []).reduce(
+      (max, f) => Math.max(max, Math.abs(f.properties.headwind ?? 0)),
+      0,
+    ),
+  );
+
+  public maxPrecipitation = computed(() =>
+    (this.windSegments()?.features ?? []).reduce(
+      (max, f) => Math.max(max, f.properties.precipitation ?? 0),
+      0,
+    ),
+  );
+
   private activityId: number | null = null;
   public rideSummary = signal<RideSummary | null>(null);
   public rideSummaryLoading = signal(false);
   public rideSummaryError = signal<string | null>(null);
+
+  public wearImpact = signal<WearImpactResponse | null>(null);
+  public wearImpactLoading = signal(false);
+  public wearImpactError = signal<string | null>(null);
 
   private climateChart: Chart | undefined;
   private windChart: Chart | undefined;
@@ -98,8 +128,8 @@ export class ActivityDetail implements OnInit {
   private readonly ok = getComputedStyle(document.documentElement)
     .getPropertyValue('--ok')
     .trim();
-  /** Kein eigener CSS-Variablen-Slot fürs Design-System vorgesehen, daher fest hinterlegt. */
-  private readonly rain = '#38bdf8';
+  private readonly rain =
+    getComputedStyle(document.documentElement).getPropertyValue('--rain').trim() || '#38bdf8';
 
   ngOnInit(): void {
     Chart.defaults.font.family = "'DM Mono', monospace";
@@ -112,6 +142,8 @@ export class ActivityDetail implements OnInit {
       this.activityId = id;
       this.rideSummary.set(null);
       this.rideSummaryError.set(null);
+      this.wearImpact.set(null);
+      this.wearImpactError.set(null);
       this.getActivityDetail(id);
     });
   }
@@ -132,6 +164,31 @@ export class ActivityDetail implements OnInit {
         );
       },
     });
+  }
+
+  public loadWearImpact(refresh = false) {
+    if (this.activityId == null || this.wearImpactLoading()) return;
+    this.wearImpactLoading.set(true);
+    this.wearImpactError.set(null);
+    this.activityService.getWearImpact(this.activityId, refresh).subscribe({
+      next: (res) => {
+        this.wearImpactLoading.set(false);
+        this.wearImpact.set(res);
+      },
+      error: (err) => {
+        this.wearImpactLoading.set(false);
+        this.wearImpactError.set(
+          err?.error?.error ?? 'Verschleiß-Auswertung konnte nicht geladen werden.',
+        );
+      },
+    });
+  }
+
+  /** Ampel für den wetterbedingten Aufschlag einer Kategorie. */
+  public impactClass(extraPct: number): 'ok' | 'warn' | 'critical' {
+    if (extraPct >= 30) return 'critical';
+    if (extraPct >= 10) return 'warn';
+    return 'ok';
   }
 
   getActivityDetail(id: number) {
@@ -184,9 +241,12 @@ export class ActivityDetail implements OnInit {
 
   private renderWindChart(weatherData: Partial<WeatherTimeline>) {
     const headwindValues = weatherData.headwind ?? [];
+    // Gemeinsame Skala mit der Karte: sonst bedeutet dieselbe Farbintensität in
+    // Chart und Karte unterschiedliche Windstärken. Die Stundenwerte gehen mit ein,
+    // damit die Skala auch beim groben Fallback ohne Abschnitte gültig bleibt.
     const maxAbsHeadwind = headwindValues.reduce(
       (max: number, v) => (v == null ? max : Math.max(max, Math.abs(v))),
-      0,
+      this.maxAbsHeadwind(),
     );
 
     this.windChart?.destroy();
@@ -234,9 +294,10 @@ export class ActivityDetail implements OnInit {
 
   private renderRainChart(weatherData: Partial<WeatherTimeline>) {
     const precipitationValues = weatherData.precipitation ?? [];
+    // Gemeinsame Skala mit der Karte, siehe renderWindChart().
     const maxPrecipitation = precipitationValues.reduce(
       (max: number, v) => (v == null ? max : Math.max(max, Math.abs(v))),
-      0,
+      this.maxPrecipitation(),
     );
 
     this.climateChart?.destroy();

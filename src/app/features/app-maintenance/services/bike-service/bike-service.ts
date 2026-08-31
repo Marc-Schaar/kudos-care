@@ -18,6 +18,8 @@ import {
   CreateComponentPayload,
   CreateIntervalPayload,
   IntervalLogPayload,
+  KudoModelCandidate,
+  KudoSetupSuggestion,
   MaintenanceInterval,
   WeatherWearExplanation,
 } from '../../models/maintenance.models';
@@ -274,6 +276,22 @@ export class BikeService {
   }
 
   // ── Baugruppen-Katalog + Bike-Baugruppen ───────────────────────────────────
+
+  /** Kudo, Schritt 1: Hersteller (+ Baujahr) → Modellauswahl. */
+  fetchKudoModels(manufacturer: string, year: number | null, bikeType: string) {
+    return this.http.post<{ models: KudoModelCandidate[] }>(
+      `${this.baseUrl}/maintenance/assistant/models/`,
+      { manufacturer, year, bike_type: bikeType },
+    );
+  }
+
+  /** Kudo, Schritt 2: gewähltes Modell → Vorbelegung für den Setup-Stepper. */
+  fetchKudoSetup(bikeId: number, manufacturer: string, model: string, year: number | null) {
+    return this.http.post<KudoSetupSuggestion>(
+      `${this.baseUrl}/maintenance/bikes/${bikeId}/assistant/setup/`,
+      { manufacturer, model, year },
+    );
+  }
 
   fetchGroups(bikeType?: string) {
     const params = bikeType ? `?bike_type=${bikeType}` : '';

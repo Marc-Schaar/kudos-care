@@ -155,3 +155,40 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── Kudo-Vorbelegung ─────────────────────────────────────────────────────── */
+.kudo-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-left: 2px solid var(--accent);
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+
+.kudo-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* Je unsicherer Kudo ist, desto zurückhaltender das Badge — "low" soll nicht
+   so aussehen, als wäre der Wert belegt. */
+.kudo-badge.kudo-medium {
+  opacity: 0.75;
+}
+.kudo-badge.kudo-low {
+  border-color: var(--warn);
+  color: var(--warn);
+}

@@ -1,0 +1,116 @@
+<div class="kudo">
+  <div class="kudo-head">
+    <span class="kudo-mark">⬡</span>
+    <div>
+      <h2 class="kudo-title">Kudo hilft dir beim Anlegen</h2>
+      <p class="kudo-sub">
+        Sag mir Hersteller und Baujahr — ich schlage dir die passenden Komponenten vor.
+        Du kannst danach alles korrigieren.
+      </p>
+    </div>
+  </div>
+
+  @if (phase() === 'ask') {
+    <form class="kudo-form" (ngSubmit)="askModels()">
+      <div class="kudo-fields">
+        <div class="field">
+          <label class="label" for="kudo-manufacturer">Hersteller</label>
+          <input
+            id="kudo-manufacturer"
+            class="input"
+            type="text"
+            [(ngModel)]="manufacturer"
+            name="manufacturer"
+            placeholder="z.B. Canyon"
+            autocomplete="off"
+          />
+        </div>
+        <div class="field narrow">
+          <label class="label" for="kudo-year">Baujahr</label>
+          <input
+            id="kudo-year"
+            class="input"
+            type="number"
+            [(ngModel)]="year"
+            name="year"
+            placeholder="2022"
+          />
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+
+      <div class="kudo-actions">
+        <button type="button" class="btn-cancel" (click)="skipped.emit()">Selbst einrichten</button>
+        <button type="submit" class="btn-save" [disabled]="loading()">
+          {{ loading() ? 'Kudo denkt nach…' : "Los geht's" }}
+        </button>
+      </div>
+    </form>
+  } @else if (phase() === 'models') {
+    <div class="kudo-models">
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+
+      @if (models().length) {
+        <p class="label">Welches Modell ist es?</p>
+        <div class="model-list">
+          @for (candidate of models(); track candidate.model) {
+            <button
+              type="button"
+              class="model-option"
+              [disabled]="loading()"
+              (click)="chooseModel(candidate.model)"
+            >
+              <span class="model-name">{{ candidate.model }}</span>
+              <span class="model-meta">
+                @if (candidate.year_range) {
+                  {{ candidate.year_range }}
+                }
+                @if (candidate.note) {
+                  · {{ candidate.note }}
+                }
+              </span>
+            </button>
+          }
+        </div>
+      }
+
+      <div class="field">
+        <label class="label" for="kudo-custom">Nicht dabei? Modell selbst eintippen</label>
+        <div class="kudo-custom-row">
+          <input
+            id="kudo-custom"
+            class="input"
+            type="text"
+            [(ngModel)]="customModel"
+            name="customModel"
+            placeholder="Modellname"
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            class="btn-save"
+            [disabled]="loading()"
+            (click)="chooseCustomModel()"
+          >
+            Übernehmen
+          </button>
+        </div>
+      </div>
+
+      <div class="kudo-actions">
+        <button type="button" class="btn-cancel" (click)="back()">Zurück</button>
+        <button type="button" class="btn-cancel" (click)="skipped.emit()">Selbst einrichten</button>
+      </div>
+    </div>
+  } @else {
+    <div class="kudo-building">
+      <div class="kudo-pulse"></div>
+      <p class="kudo-sub">Kudo stellt dein Bike zusammen…</p>
+    </div>
+  }
+</div>

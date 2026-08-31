@@ -9,8 +9,20 @@ import {
 } from '@angular/core';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { FeatureCollection } from 'geojson';
+import { WindSegmentCollection, WindSegmentProperties } from '../../models/wind-segments';
 
+/**
+ * Streckenkarte mit abschnittsweiser Einfärbung nach Gegenwind bzw. Niederschlag.
+ *
+ * Die Abschnitte kommen fertig berechnet vom Backend (`wind_segments`). Früher
+ * schnitt diese Komponente den vereinfachten Track selbst in Segmente und
+ * interpolierte die Stundenwerte über den Segment-Index — das war grundsätzlich
+ * falsch, weil der RDP-vereinfachte Track in Kurven viele und auf Geraden wenige
+ * Punkte enthält, Index-Fortschritt also nicht Zeit-Fortschritt entspricht.
+ *
+ * Die Farbskala ist relativ zum stärksten Wert dieser Fahrt — identisch zu den
+ * Charts daneben, und damit endlich passend zur Legende.
+ */
 @Component({
   selector: 'app-map',
   imports: [],
@@ -19,30 +31,57 @@ import { FeatureCollection } from 'geojson';
 })
 export class Map implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainer!: ElementRef;
-  routeGeoJson = input<any>();
+
+  segments = input<WindSegmentCollection | null>(null);
   mode = input<'wind' | 'rain'>('wind');
+  /** Stärkster |Gegenwind| dieser Fahrt — Bezugsgröße der relativen Farbskala. */
+  maxAbsHeadwind = input<number>(0);
+  /** Stärkster Niederschlag dieser Fahrt. */
+  maxPrecipitation = input<number>(0);
 
   private map!: maplibregl.Map;
-  private pendingData: any = null;
+  private pendingData: WindSegmentCollection | null = null;
+  private popup: maplibregl.Popup | null = null;
+
+  /**
+   * Farben aus den globalen Design-Tokens statt hartkodiert, damit Karte und
+   * Charts dieselbe Ampel sprechen.
+   */
+  private readonly colors = {
+    ok: this.cssVar('--ok', '#4ade80'),
+    critical: this.cssVar('--critical', '#f43f5e'),
+    muted: this.cssVar('--muted', '#8a8e9d'),
+    rain: this.cssVar('--rain', '#38bdf8'),
+  };
 
   constructor() {
     effect(() => {
-      const data = this.routeGeoJson();
+      const data = this.segments();
       if (!data) return;
 
       if (this.map?.isStyleLoaded()) {
-        this.applyRouteData(data);
+        this.applySegments(data);
       } else {
         this.pendingData = data;
       }
     });
 
     effect(() => {
-      const mode = this.mode();
+      // Auf mode + beide Maxima reagieren, damit die Skala mitzieht.
+      const expression = this.lineColorExpression(
+        this.mode(),
+        this.maxAbsHeadwind(),
+        this.maxPrecipitation(),
+      );
       if (this.map?.getLayer('route-line')) {
-        this.map.setPaintProperty('route-line', 'line-color', this.lineColorExpression(mode));
+        this.map.setPaintProperty('route-line', 'line-color', expression);
       }
     });
+  }
+
+  private cssVar(name: string, fallback: string): string {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
   }
 
   ngAfterViewInit(): void {
@@ -54,28 +93,31 @@ export class Map implements AfterViewInit, OnDestroy {
     });
 
     this.map.on('load', () => {
-      const data = this.pendingData ?? this.routeGeoJson();
+      const data = this.pendingData ?? this.segments();
       if (data) {
-        this.applyRouteData(data);
+        this.applySegments(data);
         this.pendingData = null;
       }
     });
   }
 
   ngOnDestroy(): void {
+    this.popup?.remove();
     this.map?.remove();
   }
 
-  private applyRouteData(data: any): void {
-    if (!data || data.type !== 'FeatureCollection') return;
+  private applySegments(data: WindSegmentCollection): void {
+    if (!data.features?.length) return;
 
-    const segmentedData = this.buildSegmentedGeoJson(data);
     const source = this.map.getSource('route') as maplibregl.GeoJSONSource | undefined;
 
     if (source) {
-      source.setData(segmentedData);
+      source.setData(data as unknown as GeoJSON.FeatureCollection);
     } else {
-      this.map.addSource('route', { type: 'geojson', data: segmentedData });
+      this.map.addSource('route', {
+        type: 'geojson',
+        data: data as unknown as GeoJSON.FeatureCollection,
+      });
       this.map.addLayer({
         id: 'route-line',
         type: 'line',
@@ -83,115 +125,118 @@ export class Map implements AfterViewInit, OnDestroy {
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
           'line-width': 4,
-          'line-color': this.lineColorExpression(this.mode()),
+          'line-color': this.lineColorExpression(
+            this.mode(),
+            this.maxAbsHeadwind(),
+            this.maxPrecipitation(),
+          ),
         },
       });
+      this.registerSegmentPopup();
     }
 
-    this.fitBoundsToRoute(data);
+    this.fitBoundsToSegments(data);
   }
 
-  /** Grün = Rückenwind, Grau = neutral, Rot = Gegenwind. */
-  private windLineColorExpression(): maplibregl.ExpressionSpecification {
+  /** Grün = Rückenwind, Grau = neutral, Rot = Gegenwind — relativ zum Maximum der Fahrt. */
+  private windLineColorExpression(maxAbs: number): maplibregl.ExpressionSpecification {
+    // Ohne Wind gäbe es keine Spanne zum Interpolieren; 1 km/h hält die Skala gültig.
+    const span = maxAbs > 0 ? maxAbs : 1;
     return [
       'interpolate',
       ['linear'],
-      ['get', 'wind_force'],
-      -10,
-      '#22c55e',
+      ['coalesce', ['get', 'headwind'], 0],
+      -span,
+      this.colors.ok,
       0,
-      '#94a3b8',
-      10,
-      '#ef4444',
+      this.colors.muted,
+      span,
+      this.colors.critical,
     ];
   }
 
-  /** Grau = kein Regen, Blau = starker Regen. */
-  private rainLineColorExpression(): maplibregl.ExpressionSpecification {
-    return ['interpolate', ['linear'], ['get', 'rain_intensity'], 0, '#94a3b8', 2, '#38bdf8'];
+  /** Grau = kein Regen, Blau = stärkster Regen dieser Fahrt. */
+  private rainLineColorExpression(max: number): maplibregl.ExpressionSpecification {
+    const span = max > 0 ? max : 1;
+    return [
+      'interpolate',
+      ['linear'],
+      ['coalesce', ['get', 'precipitation'], 0],
+      0,
+      this.colors.muted,
+      span,
+      this.colors.rain,
+    ];
   }
 
-  private lineColorExpression(mode: 'wind' | 'rain'): maplibregl.ExpressionSpecification {
-    return mode === 'rain' ? this.rainLineColorExpression() : this.windLineColorExpression();
+  private lineColorExpression(
+    mode: 'wind' | 'rain',
+    maxAbsHeadwind: number,
+    maxPrecipitation: number,
+  ): maplibregl.ExpressionSpecification {
+    return mode === 'rain'
+      ? this.rainLineColorExpression(maxPrecipitation)
+      : this.windLineColorExpression(maxAbsHeadwind);
   }
 
-  /**
-   * Teilt die Route in Einzelsegmente auf und interpoliert Gegenwind- und
-   * Niederschlagswert aus den stündlichen Arrays auf die Position des
-   * Segments entlang der Route.
-   *
-   * Beispiel: 49 Segmente, 3 Stundenwerte → Segment 0–16 bekommt Wert 0,
-   * Segment 17–32 bekommt interpolierten Wert zwischen 0 und 1, usw.
-   */
-  private buildSegmentedGeoJson(data: any): FeatureCollection {
-    const features: any[] = [];
+  /** Klick auf einen Abschnitt zeigt dessen konkrete Zahlen statt nur einer Farbe. */
+  private registerSegmentPopup(): void {
+    this.map.on('click', 'route-line', (event) => {
+      const feature = event.features?.[0];
+      if (!feature) return;
 
-    for (const feature of data.features) {
-      const coords: [number, number][] = feature.geometry.coordinates;
-      const weatherData = feature.properties?.weather_data ?? {};
-      const headwindValues: number[] = weatherData.headwind ?? [];
-      const precipitationValues: number[] = weatherData.precipitation ?? [];
-      const totalSegments = coords.length - 1;
+      const props = feature.properties as unknown as WindSegmentProperties;
+      this.popup?.remove();
+      this.popup = new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
+        .setLngLat(event.lngLat)
+        .setHTML(this.popupHtml(props))
+        .addTo(this.map);
+    });
 
-      for (let i = 0; i < totalSegments; i++) {
-        // Position entlang der Route als Anteil [0, 1]
-        const progress = totalSegments > 1 ? i / (totalSegments - 1) : 0;
-
-        features.push({
-          type: 'Feature',
-          properties: {
-            wind_force: this.interpolateValue(headwindValues, progress),
-            rain_intensity: this.interpolateValue(precipitationValues, progress),
-          },
-          geometry: {
-            type: 'LineString',
-            coordinates: [coords[i], coords[i + 1]],
-          },
-        });
-      }
-    }
-
-    return { type: 'FeatureCollection', features };
+    this.map.on('mouseenter', 'route-line', () => {
+      this.map.getCanvas().style.cursor = 'pointer';
+    });
+    this.map.on('mouseleave', 'route-line', () => {
+      this.map.getCanvas().style.cursor = '';
+    });
   }
 
-  /**
-   * Interpoliert linear zwischen zwei Stundenwerten.
-   * progress: 0.0 = Startpunkt, 1.0 = Endpunkt der Route
-   */
-  private interpolateValue(values: number[], progress: number): number {
-    if (!values.length) return 0;
-    if (values.length === 1) return values[0];
+  private popupHtml(props: WindSegmentProperties): string {
+    const headwind = props.headwind;
+    const label = headwind == null ? 'Wind' : headwind > 0 ? 'Gegenwind' : 'Rückenwind';
+    const value = headwind == null ? '–' : `${Math.abs(headwind).toFixed(1)} km/h`;
 
-    const scaled = progress * (values.length - 1);
-    const lowerIdx = Math.floor(scaled);
-    const upperIdx = Math.min(lowerIdx + 1, values.length - 1);
-    const t = scaled - lowerIdx;
+    const rows = [
+      `<strong>${label}: ${value}</strong>`,
+      props.wind_direction != null
+        ? `Wind aus ${this.compass(props.wind_direction)} (${Math.round(props.wind_direction)}°)`
+        : null,
+      props.bearing != null ? `Fahrtrichtung ${this.compass(props.bearing)}` : null,
+      props.precipitation ? `Niederschlag ${props.precipitation.toFixed(1)} mm/h` : null,
+    ].filter(Boolean);
 
-    return values[lowerIdx] * (1 - t) + values[upperIdx] * t;
+    // Inline-Styles statt Komponenten-CSS: MapLibre hängt das Popup-Markup selbst in
+    // den DOM, ohne Angulars Encapsulation-Attribut — Komponentenstile griffen nicht.
+    return (
+      `<div style="font-family:'DM Mono',monospace;font-size:0.72rem;line-height:1.5;">` +
+      `${rows.join('<br>')}</div>`
+    );
   }
 
-  private fitBoundsToRoute(geojson: any): void {
-    try {
-      const coords = geojson.features[0].geometry.coordinates;
-      if (!coords?.length) return;
+  private compass(degrees: number): string {
+    const points = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+    return points[Math.round(((degrees % 360) / 45)) % 8];
+  }
 
-      const bounds = coords.reduce(
-        (acc: [[number, number], [number, number]], coord: [number, number]) => [
-          [Math.min(acc[0][0], coord[0]), Math.min(acc[0][1], coord[1])],
-          [Math.max(acc[1][0], coord[0]), Math.max(acc[1][1], coord[1])],
-        ],
-        [
-          [coords[0][0], coords[0][1]],
-          [coords[0][0], coords[0][1]],
-        ],
-      );
+  private fitBoundsToSegments(data: WindSegmentCollection): void {
+    const coords = data.features.flatMap((f) => f.geometry.coordinates);
+    if (!coords.length) return;
 
-      this.map.fitBounds(bounds as [maplibregl.LngLatLike, maplibregl.LngLatLike], {
-        padding: 50,
-        duration: 500,
-      });
-    } catch (e) {
-      console.error('Konnte Bounds nicht berechnen', e);
-    }
+    const bounds = coords.reduce(
+      (acc, coord) => acc.extend(coord),
+      new maplibregl.LngLatBounds(coords[0], coords[0]),
+    );
+
+    this.map.fitBounds(bounds, { padding: 50, duration: 500 });
   }
 }

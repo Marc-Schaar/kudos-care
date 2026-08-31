@@ -262,11 +262,25 @@
   color: var(--text);
 }
 
+/* Breadcrumb links, Usermenue rechts. */
+.breadcrumb-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .legend-hint {
   font-family: 'DM Mono', monospace;
   font-size: 0.62rem;
   color: var(--muted);
   margin-top: 0.15rem;
+}
+
+/* Hinweis, dass für diese Fahrt nur die grobe Start-Ziel-Schätzung vorliegt. */
+.legend-hint-warn {
+  color: var(--warn);
+  margin-top: 0.4rem;
 }
 
 .map-wrap {
@@ -311,6 +325,71 @@
   font-size: 0.72rem;
   color: var(--critical);
   margin: 0 0 0.6rem;
+}
+
+/* ── Verschleiß dieser Fahrt ───────────────────────────────────── */
+.wear-impact-card {
+  margin-bottom: 1rem;
+}
+
+.impact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.impact-row {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.impact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.impact-cat {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.impact-components {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.3rem;
+  padding-left: 0.6rem;
+  border-left: 1px solid var(--border);
+}
+
+.impact-component {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+}
+
+.impact-comp-name {
+  color: var(--text);
+}
+
+.impact-comp-share {
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.impact-comp-share.muted {
+  color: var(--muted);
 }
 
 /* ── Empty State ───────────────────────────────────────────────── */

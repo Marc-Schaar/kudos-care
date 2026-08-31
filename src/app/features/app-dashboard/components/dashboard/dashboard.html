@@ -5,7 +5,7 @@
       <h1 class="page-title">
         Hallo, <span class="title-accent">{{ user()?.firstname ?? 'Athlet' }}</span>
       </h1>
-      <button class="logout-btn" (click)="logout()" type="button">Abmelden</button>
+      <app-user-menu></app-user-menu>
     </div>
   </header>
 

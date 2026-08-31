@@ -357,3 +357,53 @@ export const BIKE_TYPE_LABELS: Record<BikeType, string> = {
   triathlon: 'Triathlon/Zeitfahrrad',
   other: 'Sonstiges',
 };
+
+// ── "Kudo" — KI-Assistent fürs Bike-Anlegen ──────────────────────────────────
+// Vorschläge, keine Fakten: `confidence` sagt, wie sicher sich Kudo ist, und jede
+// Zeile bleibt im Stepper editierbar. Die `template_id`s sind serverseitig gegen
+// den Katalog geprüft (app_maintenance/api/bike_assistant.py).
+
+export type KudoConfidence = 'high' | 'medium' | 'low';
+
+export interface KudoModelCandidate {
+  model: string;
+  year_range: string;
+  note: string;
+}
+
+export interface KudoPartSuggestion {
+  template_id: number;
+  include: boolean;
+  brand: string;
+  model_name: string;
+  custom_warn_km: number | null;
+  custom_warn_days: number | null;
+  confidence: KudoConfidence;
+  note: string;
+}
+
+export interface KudoIntervalSuggestion {
+  template_id: number;
+  include: boolean;
+  interval_km: number | null;
+  interval_days: number | null;
+  confidence: KudoConfidence;
+  note: string;
+}
+
+export interface KudoGroupSuggestion {
+  group_id: number;
+  group_name: string;
+  parts: KudoPartSuggestion[];
+  intervals: KudoIntervalSuggestion[];
+}
+
+export interface KudoSetupSuggestion {
+  manufacturer: string;
+  model: string;
+  year: number | null;
+  groups: KudoGroupSuggestion[];
+}
+
+/** Vorbelegung je Baugruppe, wie der Stepper sie an die Checkliste durchreicht. */
+export type KudoPrefill = ReadonlyMap<number, KudoGroupSuggestion>;

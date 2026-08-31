@@ -1,0 +1,91 @@
+@if (user(); as currentUser) {
+  <div class="user-menu">
+    <button
+      type="button"
+      class="avatar-btn"
+      [class.open]="open()"
+      [attr.aria-expanded]="open()"
+      aria-haspopup="menu"
+      aria-label="Benutzermenü"
+      (click)="toggle()"
+    >
+      <span class="avatar-initial">{{ initial() }}</span>
+      @if (currentUser.needs_email) {
+        <span class="avatar-dot" aria-hidden="true"></span>
+      }
+    </button>
+
+    @if (open()) {
+      <div class="menu-panel" role="menu">
+        <div class="menu-head">
+          <span class="menu-name">{{ currentUser.firstname ?? 'Athlet' }}</span>
+          @if (currentUser.email) {
+            <span class="menu-email">{{ currentUser.email }}</span>
+          } @else {
+            <span class="menu-email missing">Keine E-Mail hinterlegt</span>
+          }
+        </div>
+
+        @if (editingEmail()) {
+          <form class="menu-form" (ngSubmit)="saveEmail()">
+            <label class="menu-label" for="user-menu-email">E-Mail-Adresse</label>
+            <input
+              id="user-menu-email"
+              class="menu-input"
+              type="email"
+              [(ngModel)]="emailDraft"
+              name="email"
+              placeholder="du@example.de"
+              autocomplete="email"
+            />
+            <p class="menu-hint">
+              Ohne Adresse verschickt Kudos Care keine Wartungs-Warnungen.
+            </p>
+            <div class="menu-form-actions">
+              @if (currentUser.email) {
+                <button
+                  type="button"
+                  class="menu-btn-ghost"
+                  (click)="editingEmail.set(false)"
+                >
+                  Abbrechen
+                </button>
+              }
+              <button type="submit" class="menu-btn-primary" [disabled]="saving()">
+                {{ saving() ? 'Speichert…' : 'Speichern' }}
+              </button>
+            </div>
+          </form>
+        } @else {
+          <button type="button" class="menu-item" role="menuitem" (click)="startEditingEmail()">
+            E-Mail ändern
+          </button>
+        }
+
+        <button
+          type="button"
+          class="menu-item toggle-item"
+          role="menuitemcheckbox"
+          [attr.aria-checked]="currentUser.email_notifications_enabled"
+          [disabled]="saving()"
+          (click)="toggleNotifications()"
+        >
+          <span>Benachrichtigungen</span>
+          <span
+            class="menu-switch"
+            [class.on]="currentUser.email_notifications_enabled"
+            aria-hidden="true"
+          >
+            {{ currentUser.email_notifications_enabled ? 'AN' : 'AUS' }}
+          </span>
+        </button>
+
+        <div class="menu-divider"></div>
+
+        <button type="button" class="menu-item danger" role="menuitem" (click)="logout()">
+          Abmelden
+        </button>
+      </div>
+    }
+  </div>
+}

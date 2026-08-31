@@ -3,6 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { tap } from 'rxjs';
 import { ActivityDetailModel } from '../../models/activity-detail-model';
 import { RideSummary } from '../../models/ride-summary';
+import { WearImpactResponse } from '../../models/wear-impact';
 import { environment } from './../../../../../environments/environment';
 
 @Injectable({
@@ -23,5 +24,13 @@ export class ActivityService {
   public getRideSummary(id: number, refresh = false) {
     const params = refresh ? '?refresh=true' : '';
     return this.http.get<RideSummary>(`${this.baseUrl}/activities/${id}/summary/${params}`);
+  }
+
+  /** Was diese Fahrt die Komponenten gekostet hat (Zahlen + optionaler KI-Text). */
+  public getWearImpact(id: number, refresh = false) {
+    const params = refresh ? '?refresh=true' : '';
+    return this.http.get<WearImpactResponse>(
+      `${this.baseUrl}/activities/${id}/wear-impact/${params}`,
+    );
   }
 }

@@ -1,4 +1,11 @@
 <form class="checklist" (ngSubmit)="save()">
+  @if (hasPrefill()) {
+    <p class="kudo-hint">
+      <span class="kudo-badge">Kudo</span>
+      Vorschlag aus Hersteller und Baujahr. Bitte prüfen und korrigieren, wo es nicht passt.
+    </p>
+  }
+
   @if (showName()) {
     <div class="field">
       <label class="label">Name der Baugruppe (optional)</label>
@@ -26,7 +33,14 @@
           <label class="row-option" [class.selected]="row.include">
             <input type="checkbox" [(ngModel)]="row.include" [name]="'p-' + row.template.id" />
             <div class="row-body">
-              <span class="row-name">{{ row.template.name }}</span>
+              <span class="row-name">
+                {{ row.template.name }}
+                @if (row.kudo) {
+                  <span class="kudo-badge" [class]="'kudo-' + row.kudo">
+                    {{ confidenceLabel(row.kudo) }}
+                  </span>
+                }
+              </span>
               <div class="row-fields" (click)="$event.stopPropagation()">
                 <input
                   class="input"
@@ -46,6 +60,14 @@
                   autocomplete="off"
                   [disabled]="!row.include"
                 />
+                <input
+                  class="input narrow"
+                  type="number"
+                  [(ngModel)]="row.customWarnKm"
+                  [name]="'p-km-' + row.template.id"
+                  [placeholder]="row.template.warn_km ? row.template.warn_km + ' km' : 'km'"
+                  [disabled]="!row.include"
+                />
               </div>
             </div>
           </label>
@@ -62,7 +84,14 @@
           <label class="row-option" [class.selected]="row.include">
             <input type="checkbox" [(ngModel)]="row.include" [name]="'i-' + row.template.id" />
             <div class="row-body">
-              <span class="row-name">{{ row.template.name }}</span>
+              <span class="row-name">
+                {{ row.template.name }}
+                @if (row.kudo) {
+                  <span class="kudo-badge" [class]="'kudo-' + row.kudo">
+                    {{ confidenceLabel(row.kudo) }}
+                  </span>
+                }
+              </span>
               <div class="row-fields" (click)="$event.stopPropagation()">
                 <input
                   class="input narrow"

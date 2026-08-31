@@ -1,9 +1,12 @@
 <div class="page">
-  <nav class="breadcrumb">
-    <a routerLink="/dashboard">Dashboard</a>
-    <span class="sep">/</span>
-    <span>{{ activityService.activityData()?.name ?? '...' }}</span>
-  </nav>
+  <div class="breadcrumb-row">
+    <nav class="breadcrumb">
+      <a routerLink="/dashboard">Dashboard</a>
+      <span class="sep">/</span>
+      <span>{{ activityService.activityData()?.name ?? '...' }}</span>
+    </nav>
+    <app-user-menu></app-user-menu>
+  </div>
 
   @if (loading()) {
     <div class="loading-bar"></div>
@@ -89,6 +92,88 @@
       } @else {
         <button type="button" class="toggle-btn" (click)="loadRideSummary()">
           KI-Auswertung anzeigen
+        </button>
+      }
+    </section>
+
+    <section class="card card-full wear-impact-card">
+      <div class="card-header-row">
+        <h2 class="card-title">Was diese Fahrt gekostet hat</h2>
+        @if (wearImpact()) {
+          <button
+            type="button"
+            class="toggle-btn"
+            [disabled]="wearImpactLoading()"
+            (click)="loadWearImpact(true)"
+          >
+            Neu generieren
+          </button>
+        }
+      </div>
+
+      @if (wearImpact(); as impact) {
+        <div class="impact-list">
+          @for (cat of impact.breakdown.categories; track cat.category) {
+            <div class="impact-row">
+              <div class="impact-head">
+                <span class="impact-cat">{{ cat.category_display }}</span>
+                <span class="warn-badge" [class]="'status-' + impactClass(cat.extra_pct)">
+                  @if (cat.extra_pct > 0) {
+                    +{{ cat.extra_pct }}% durch {{ cat.dominant_driver_display }}
+                  } @else {
+                    kein Wetter-Aufschlag
+                  }
+                </span>
+              </div>
+              <div class="impact-components">
+                @for (comp of cat.components; track comp.id) {
+                  <div class="impact-component">
+                    <span class="impact-comp-name">{{ comp.name }}</span>
+                    @if (comp.share_of_life_pct != null) {
+                      <span class="impact-comp-share">
+                        {{ comp.share_of_life_pct | number: '1.0-1' }} % der Lebensdauer
+                      </span>
+                    } @else {
+                      <span class="impact-comp-share muted">keine Lebensdauer hinterlegt</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (impact.breakdown.total_extra_km > 0) {
+          <p class="field-hint">
+            Wetterbedingter Mehrverschleiß gesamt:
+            {{ impact.breakdown.total_extra_km | number: '1.0-2' }} km zusätzlich zu den
+            {{ impact.breakdown.distance_km | number: '1.0-1' }} gefahrenen km.
+          </p>
+        }
+
+        @if (impact.summary) {
+          <p class="ai-summary-text">{{ impact.summary }}</p>
+          <p class="field-hint">
+            Kudo · {{ impact.cached ? 'aus Cache' : 'neu generiert' }}
+            @if (impact.generated_at) {
+              · {{ impact.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
+            }
+          </p>
+        } @else if (impact.ai_unavailable) {
+          <p class="field-hint">
+            Die Zahlen stehen — nur Kudos Erklärung ist gerade nicht verfügbar.
+          </p>
+        }
+      } @else if (wearImpactLoading()) {
+        <p class="field-hint">Wird berechnet…</p>
+      } @else if (wearImpactError()) {
+        <p class="error-msg">{{ wearImpactError() }}</p>
+        <button type="button" class="toggle-btn" (click)="loadWearImpact()">
+          Erneut versuchen
+        </button>
+      } @else {
+        <button type="button" class="toggle-btn" (click)="loadWearImpact()">
+          Verschleiß dieser Fahrt anzeigen
         </button>
       }
     </section>
@@ -182,9 +267,14 @@
             </button>
           </div>
         </div>
-        @if (data.geo_json_full.features.length) {
+        @if (windSegments()?.features?.length) {
           <div class="map-wrap">
-            <app-map [routeGeoJson]="data.geo_json_full" [mode]="mapMode()"></app-map>
+            <app-map
+              [segments]="windSegments()"
+              [mode]="mapMode()"
+              [maxAbsHeadwind]="maxAbsHeadwind()"
+              [maxPrecipitation]="maxPrecipitation()"
+            ></app-map>
           </div>
           <div class="wind-legend">
             @if (mapMode() === 'wind') {
@@ -197,7 +287,8 @@
                 <span class="legend-label">Rückenwind</span>
               </div>
               <p class="legend-hint">
-                Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
+                Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark).
+                Abschnitt anklicken für Windrichtung und Fahrtrichtung.
               </p>
             } @else {
               <div class="legend-row">
@@ -206,6 +297,12 @@
               </div>
               <p class="legend-hint">
                 Farbintensität = Menge relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
+              </p>
+            }
+            @if (windSource() === 'coarse') {
+              <p class="legend-hint legend-hint-warn">
+                Für diese Fahrt liegen keine GPS-Detaildaten vor — der Wind ist als grobe
+                Start-Ziel-Schätzung dargestellt, nicht abschnittsweise.
               </p>
             }
           </div>

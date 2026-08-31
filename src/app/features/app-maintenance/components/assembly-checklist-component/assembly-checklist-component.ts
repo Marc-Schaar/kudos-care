@@ -7,6 +7,8 @@ import {
   ComponentGroupCatalog,
   ComponentTemplate,
   CreateAssemblyPayload,
+  KudoConfidence,
+  KudoGroupSuggestion,
 } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 
@@ -15,6 +17,9 @@ interface PartRow {
   include: boolean;
   brand: string;
   modelName: string;
+  customWarnKm: number | null;
+  /** Gesetzt, wenn Kudo diese Zeile vorbelegt hat — die UI weist sie als Vorschlag aus. */
+  kudo: KudoConfidence | null;
 }
 
 interface IntervalRow {
@@ -22,6 +27,7 @@ interface IntervalRow {
   include: boolean;
   intervalKm: number | null;
   intervalDays: number | null;
+  kudo: KudoConfidence | null;
 }
 
 /**
@@ -43,6 +49,12 @@ export class AssemblyChecklistComponent implements OnInit {
   saveLabel = input<string>('Baugruppe anlegen');
   showSkip = input<boolean>(false);
   showName = input<boolean>(true);
+  /**
+   * Optionale Vorbelegung durch Kudo. Ersetzt die `default_in_group`-Defaults, lässt
+   * aber jede Zeile editierbar — der Nutzer soll korrigieren können, nicht bestätigen
+   * müssen.
+   */
+  prefill = input<KudoGroupSuggestion | null>(null);
 
   created = output<BikeAssembly>();
   skipped = output<void>();
@@ -63,20 +75,44 @@ export class AssemblyChecklistComponent implements OnInit {
       this.intervalRows.filter((r) => r.include).length,
   );
 
+  /** True, sobald Kudo mindestens eine Zeile dieser Baugruppe vorbelegt hat. */
+  hasPrefill = computed(() => {
+    const prefill = this.prefill();
+    return !!prefill && (prefill.parts.length > 0 || prefill.intervals.length > 0);
+  });
+
   ngOnInit() {
     const g = this.group();
-    this.partRows = g.parts.map((t) => ({
-      template: t,
-      include: t.default_in_group,
-      brand: '',
-      modelName: '',
-    }));
-    this.intervalRows = g.consumables.map((t) => ({
-      template: t,
-      include: t.default_in_group,
-      intervalKm: t.warn_km,
-      intervalDays: t.warn_days,
-    }));
+    const prefill = this.prefill();
+    const partHints = new Map((prefill?.parts ?? []).map((p) => [p.template_id, p]));
+    const intervalHints = new Map((prefill?.intervals ?? []).map((i) => [i.template_id, i]));
+
+    this.partRows = g.parts.map((t) => {
+      const hint = partHints.get(t.id);
+      return {
+        template: t,
+        include: hint ? hint.include : t.default_in_group,
+        brand: hint?.brand ?? '',
+        modelName: hint?.model_name ?? '',
+        customWarnKm: hint?.custom_warn_km ?? null,
+        kudo: hint ? hint.confidence : null,
+      };
+    });
+    this.intervalRows = g.consumables.map((t) => {
+      const hint = intervalHints.get(t.id);
+      return {
+        template: t,
+        include: hint ? hint.include : t.default_in_group,
+        intervalKm: hint?.interval_km ?? t.warn_km,
+        intervalDays: hint?.interval_days ?? t.warn_days,
+        kudo: hint ? hint.confidence : null,
+      };
+    });
+  }
+
+  /** Kurzlabel für das Kudo-Badge einer Zeile. */
+  confidenceLabel(confidence: KudoConfidence): string {
+    return { high: 'Kudo', medium: 'Kudo ~', low: 'Kudo ?' }[confidence];
   }
 
   buildPayload(): CreateAssemblyPayload {
@@ -85,6 +121,7 @@ export class AssemblyChecklistComponent implements OnInit {
       include: r.include,
       brand: r.brand.trim(),
       model_name: r.modelName.trim(),
+      custom_warn_km: r.customWarnKm,
     }));
     const intervals: AssemblyIntervalItem[] = this.intervalRows.map((r) => ({
       template_id: r.template.id,

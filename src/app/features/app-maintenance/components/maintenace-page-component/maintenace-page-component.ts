@@ -6,10 +6,11 @@ import { BikeService } from '../../services/bike-service/bike-service';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
 
 @Component({
   selector: 'app-maintenace-page-component',
-  imports: [WarnClassPipe, WarnLabelPipe, DecimalPipe, RouterLink, Skeleton],
+  imports: [WarnClassPipe, WarnLabelPipe, DecimalPipe, RouterLink, Skeleton, UserMenu],
   templateUrl: './maintenace-page-component.html',
   styleUrl: './maintenace-page-component.css',
 })

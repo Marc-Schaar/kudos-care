@@ -29,6 +29,26 @@ export interface SyncProgress {
   total: number | null;
 }
 
+/**
+ * Antwort von GET /api/strava/me/.
+ *
+ * `firstname` kommt NICHT vom Backend (der Name wird dort bewusst nicht persistiert),
+ * sondern aus dem localStorage-Cache — siehe setLoggedInUser(). `needs_email` steuert
+ * den Dialog beim nächsten Login: ohne Adresse verschickt das Backend gar nichts.
+ */
+export interface CurrentUser {
+  athlete_id: number;
+  firstname: string | null;
+  email: string;
+  email_notifications_enabled: boolean;
+  needs_email: boolean;
+}
+
+export interface UserSettingsPatch {
+  email?: string;
+  email_notifications_enabled?: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -40,7 +60,7 @@ export class StravaService {
 
   private readonly displayNameStorageKey = 'kudos_care_display_name';
 
-  public user = signal<{ athlete_id: number; firstname: string | null } | null>(null);
+  public user = signal<CurrentUser | null>(null);
   public activities = signal<Activity[]>([]);
   public syncing = signal(false);
   public syncProgress = signal<SyncProgress | null>(null);
@@ -120,10 +140,10 @@ export class StravaService {
    * sondern beim Login einmalig clientseitig gecacht — siehe setLoggedInUser().
    */
   public fetchUser() {
-    return this.http.get<{ athlete_id: number }>(`${this.baseUrl}/strava/me/`).pipe(
+    return this.http.get<Omit<CurrentUser, 'firstname'>>(`${this.baseUrl}/strava/me/`).pipe(
       tap((userData) =>
         this.user.set({
-          athlete_id: userData.athlete_id,
+          ...userData,
           firstname: localStorage.getItem(this.displayNameStorageKey),
         }),
       ),
@@ -134,7 +154,29 @@ export class StravaService {
     if (firstname) {
       localStorage.setItem(this.displayNameStorageKey, firstname);
     }
-    this.user.set({ athlete_id: athleteId, firstname: firstname || null });
+    // Login-Response kennt E-Mail/Flags nicht — fetchUser() fuellt sie gleich nach,
+    // bis dahin konservative Defaults (kein voreiliger E-Mail-Dialog).
+    this.user.set({
+      athlete_id: athleteId,
+      firstname: firstname || null,
+      email: '',
+      email_notifications_enabled: true,
+      needs_email: false,
+    });
+  }
+
+  /** E-Mail und/oder Benachrichtigungs-Schalter aendern (Usermenue, E-Mail-Dialog). */
+  public updateSettings(patch: UserSettingsPatch) {
+    return this.http
+      .patch<Omit<CurrentUser, 'firstname'>>(`${this.baseUrl}/strava/me/`, patch)
+      .pipe(
+        tap((userData) =>
+          this.user.update((current) => ({
+            ...userData,
+            firstname: current?.firstname ?? null,
+          })),
+        ),
+      );
   }
 
   /**

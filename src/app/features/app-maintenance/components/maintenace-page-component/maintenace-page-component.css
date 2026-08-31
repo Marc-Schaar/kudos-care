@@ -11,6 +11,15 @@
   margin-bottom: 2rem;
 }
 
+/* Titelzeile mit Usermenue rechts — gleiche Anordnung wie im Dashboard-Header. */
+.header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .header-eyebrow {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;

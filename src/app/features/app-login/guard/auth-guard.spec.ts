@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn } from '@angular/router';
 
 import { authGuard } from './auth-guard';
 
 describe('authGuard', () => {
-  const executeGuard: CanActivateFn = (...guardParameters) =>
-    TestBed.runInInjectionContext(() => authGuard(...guardParameters));
+  // authGuard nimmt bewusst keine Route/State-Argumente entgegen — das generierte
+  // Scaffold reichte `...guardParameters` durch und brach dadurch den Build.
+  const executeGuard = () => TestBed.runInInjectionContext(() => authGuard());
 
   beforeEach(() => {
     TestBed.configureTestingModule({});

@@ -1,6 +1,13 @@
 <div class="stepper">
   @if (loading()) {
     <app-skeleton variant="bar" />
+  } @else if (showKudo()) {
+    <app-kudo-intro-component
+      [bikeId]="bikeId()"
+      [bikeType]="bikeType()"
+      (suggested)="onKudoSuggested($event)"
+      (skipped)="onKudoSkipped()"
+    />
   } @else if (finished()) {
     <div class="done-panel">
       <div class="done-icon">✓</div>
@@ -34,6 +41,7 @@
           <app-assembly-checklist-component
             [bikeId]="bikeId()"
             [group]="g"
+            [prefill]="currentPrefill()"
             [showSkip]="true"
             [showName]="false"
             saveLabel="Hinzufügen & weiter"
