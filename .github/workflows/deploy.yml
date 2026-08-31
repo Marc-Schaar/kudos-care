@@ -15,28 +15,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Install and Build
         run: |
-          npm install
+          npm ci
           npm run build -- --configuration production
 
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            echo "SSH Verbindung erfolgreich!"
-            mkdir -p /var/www/kudoscare.marc-schaar.com
-            chown -R $USER:$USER /var/www/kudoscare.marc-schaar.com
-            rm -rf /var/www/kudoscare.marc-schaar.com/*
-            # Hinweis: Du musst die Dateien jetzt noch vom Runner auf den Server übertragen
-            # Am besten nutzt du dafür den 'appleboy/scp-action' Schritt
-
+      # Ein einziger SSH-Vorgang: drone-scp leert das Zielverzeichnis (rm: true) und
+      # entpackt die neuen Dateien in derselben Verbindung. Frueher lief das "rm -rf"
+      # in einem eigenen ssh-Schritt davor — schlug der Copy-Schritt fehl, blieb der
+      # Webroot leer zurueck und nginx lieferte 403.
+      # Jede zusaetzliche Verbindung erhoeht ausserdem das Risiko, in sshd's
+      # PerSourcePenalties zu laufen ("Not allowed at this time" -> handshake failed).
       - name: Copy files via SCP
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
@@ -44,12 +37,6 @@ jobs:
           source: 'dist/kudos-care/browser/*'
           target: '/var/www/kudoscare.marc-schaar.com'
           strip_components: 3
-
-      - name: Restart Nginx
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            /usr/bin/sudo /usr/bin/systemctl restart nginx
+          rm: true
+          overwrite: true
+          timeout: 60s
