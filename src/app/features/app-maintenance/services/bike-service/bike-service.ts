@@ -277,9 +277,7 @@ export class BikeService {
 
   fetchGroups(bikeType?: string) {
     const params = bikeType ? `?bike_type=${bikeType}` : '';
-    return this.http.get<ComponentGroupCatalog[]>(
-      `${this.baseUrl}/maintenance/groups/${params}`,
-    );
+    return this.http.get<ComponentGroupCatalog[]>(`${this.baseUrl}/maintenance/groups/${params}`);
   }
 
   fetchAssemblies(bikeId: number) {
@@ -295,7 +293,10 @@ export class BikeService {
     );
   }
 
-  updateAssembly(assemblyId: number, patch: Partial<Pick<BikeAssembly, 'name' | 'installed_at' | 'is_active' | 'retired_at'>>) {
+  updateAssembly(
+    assemblyId: number,
+    patch: Partial<Pick<BikeAssembly, 'name' | 'installed_at' | 'is_active' | 'retired_at'>>,
+  ) {
     return this.http.patch<BikeAssembly>(
       `${this.baseUrl}/maintenance/assemblies/${assemblyId}/`,
       patch,

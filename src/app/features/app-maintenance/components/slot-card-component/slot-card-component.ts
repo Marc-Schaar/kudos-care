@@ -58,9 +58,7 @@ export class SlotCardComponent {
         },
         error: (err) => {
           this.explanationLoading.set(false);
-          this.explanationError.set(
-            err?.error?.error ?? 'Erklärung konnte nicht geladen werden.',
-          );
+          this.explanationError.set(err?.error?.error ?? 'Erklärung konnte nicht geladen werden.');
         },
       });
     }
@@ -84,9 +82,7 @@ export class SlotCardComponent {
         },
         error: (err) => {
           this.instructionsLoading.set(false);
-          this.instructionsError.set(
-            err?.error?.error ?? 'Anleitung konnte nicht geladen werden.',
-          );
+          this.instructionsError.set(err?.error?.error ?? 'Anleitung konnte nicht geladen werden.');
         },
       });
     }

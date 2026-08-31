@@ -47,8 +47,9 @@ export class AssemblyCardComponent {
   savingName = signal(false);
 
   sortedSlots = computed(() =>
-    [...this.assembly().slots].sort((a, b) =>
-      a.category.localeCompare(b.category) || a.display_name.localeCompare(b.display_name),
+    [...this.assembly().slots].sort(
+      (a, b) =>
+        a.category.localeCompare(b.category) || a.display_name.localeCompare(b.display_name),
     ),
   );
 

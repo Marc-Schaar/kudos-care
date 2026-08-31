@@ -35,9 +35,7 @@
               <div class="row-body">
                 <div class="row-heading">
                   <span class="row-name">{{ row.displayName }}</span>
-                  <span class="row-current">
-                    aktuell: {{ row.currentBrand || '—' }}
-                  </span>
+                  <span class="row-current"> aktuell: {{ row.currentBrand || '—' }} </span>
                 </div>
                 <div class="row-fields" (click)="$event.stopPropagation()">
                   <input
@@ -65,11 +63,7 @@
 
           @for (row of intervalRows; track row.templateId) {
             <label class="row-option" [class.selected]="row.include">
-              <input
-                type="checkbox"
-                [(ngModel)]="row.include"
-                [name]="'iv-' + row.templateId"
-              />
+              <input type="checkbox" [(ngModel)]="row.include" [name]="'iv-' + row.templateId" />
               <div class="row-body">
                 <div class="row-heading">
                   <span class="row-name">{{ row.label }}</span>
