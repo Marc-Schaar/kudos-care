@@ -22,21 +22,39 @@ jobs:
           npm ci
           npm run build -- --configuration production
 
-      # Ein einziger SSH-Vorgang: drone-scp leert das Zielverzeichnis (rm: true) und
-      # entpackt die neuen Dateien in derselben Verbindung. Frueher lief das "rm -rf"
-      # in einem eigenen ssh-Schritt davor — schlug der Copy-Schritt fehl, blieb der
-      # Webroot leer zurueck und nginx lieferte 403.
-      # Jede zusaetzliche Verbindung erhoeht ausserdem das Risiko, in sshd's
-      # PerSourcePenalties zu laufen ("Not allowed at this time" -> handshake failed).
-      - name: Copy files via SCP
+      # Zweistufig ueber ein Staging-Verzeichnis im Home von marc, analog zum
+      # rsync-Schritt im Backend-Deploy. Direktes Schreiben in den Webroot mit
+      # drone-scp "rm: true" geht nicht: das loescht den Zielordner selbst, und
+      # /var/www gehoert root -- marc darf ihn nicht neu anlegen.
+      - name: Copy build to staging dir
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: 'dist/kudos-care/browser/*'
-          target: '/var/www/kudoscare.marc-schaar.com'
+          target: '/home/marc/deploy/kudoscare-frontend'
           strip_components: 3
-          rm: true
           overwrite: true
           timeout: 60s
+
+      # rsync --delete fasst nur den *Inhalt* des Webroots an, nicht das
+      # Verzeichnis selbst -- kein root noetig. Der Webroot ist damit nie
+      # laenger leer als der rsync dauert (frueher: eigener rm-Schritt, dessen
+      # Fehlschlag die Seite auf 403 stehen liess).
+      - name: Publish to webroot
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            set -e
+            STAGING=/home/marc/deploy/kudoscare-frontend
+            test -f "$STAGING/index.html" || { echo "index.html fehlt im Staging - Abbruch"; exit 1; }
+            rsync -a --delete "$STAGING/" /var/www/kudoscare.marc-schaar.com/
+            rm -rf "$STAGING"
+            echo "=== Deployed ==="
+            ls /var/www/kudoscare.marc-schaar.com/ | head
