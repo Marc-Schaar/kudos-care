@@ -4,7 +4,14 @@ import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { BikeService } from '../../services/bike-service/bike-service';
+import { wearPercent } from '../../shared/utils/utils';
 
+/**
+ * Element-Zeile innerhalb einer Baugruppen-Karte: ein physisches
+ * Verschleißteil mit echtem km-/Tage-Balken und den Einzelteil-Aktionen
+ * (Bearbeiten, Einzeln tauschen, Prüfen/Freigeben). Der Baugruppen-Tausch
+ * sitzt bewusst NICHT hier, sondern an der Baugruppen-Überschrift.
+ */
 @Component({
   selector: 'app-slot-card-component',
   imports: [WarnClassPipe, WarnLabelPipe, DatePipe, DecimalPipe],
@@ -20,18 +27,17 @@ export class SlotCardComponent {
   editComponent = output<number>();
   swapComponent = output<number>();
   checkComponent = output<number>();
-  quickChange = output<number>();
-
-  hasGroup = computed(() => this.slot().template_detail.group_name != null);
 
   wearPct = computed(() => {
-    const s = this.slot();
-    const comp = s.mounted_component;
-    if (!comp || this.bikeDistanceKm() == null) return 0;
-    // Wir haben kein warn_km direkt am Slot-List-Objekt,
-    // daher zeigen wir den Balken nur wenn der Detail-Slot geladen ist.
-    // Hier als Placeholder — wird im SlotDetail erweitert.
-    return 0;
+    const comp = this.slot().mounted_component;
+    if (!comp) return 0;
+    return wearPercent(comp.wear_km, comp.effective_warn_km);
+  });
+
+  wearDaysPct = computed(() => {
+    const comp = this.slot().mounted_component;
+    if (!comp) return 0;
+    return wearPercent(comp.wear_days, comp.effective_warn_days);
   });
 
   showExplanation = signal(false);

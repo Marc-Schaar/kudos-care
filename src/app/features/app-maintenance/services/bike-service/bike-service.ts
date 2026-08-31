@@ -3,17 +3,22 @@ import { map, Observable, of, tap } from 'rxjs';
 import { environment } from './../../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import {
+  AssembliesResponse,
+  BikeAssembly,
   BikeComponent,
   BikeDetail,
   BikeList,
   CheckInstructions,
   ComponentCheckPayload,
+  ComponentGroupCatalog,
   ComponentSlotDetail,
   ComponentSlotList,
   ComponentTemplate,
+  CreateAssemblyPayload,
   CreateComponentPayload,
-  QuickChangeGroupResponse,
-  QuickChangeRequest,
+  CreateIntervalPayload,
+  IntervalLogPayload,
+  MaintenanceInterval,
   WeatherWearExplanation,
 } from '../../models/maintenance.models';
 
@@ -259,21 +264,6 @@ export class BikeService {
     );
   }
 
-  // ── Quick-Change (Baugruppen-Tausch) ──────────────────────────────────────────
-
-  fetchQuickChangeGroup(slotId: number) {
-    return this.http.get<QuickChangeGroupResponse>(
-      `${this.baseUrl}/maintenance/slots/${slotId}/quick-change/`,
-    );
-  }
-
-  submitQuickChange(slotId: number, payload: QuickChangeRequest) {
-    return this.http.post<ComponentSlotDetail[]>(
-      `${this.baseUrl}/maintenance/slots/${slotId}/quick-change/`,
-      payload,
-    );
-  }
-
   // ── Templates ──────────────────────────────────────────────────────────────
 
   fetchTemplates(bikeType?: string) {
@@ -283,12 +273,70 @@ export class BikeService {
       .pipe(tap((res) => this.templates.set(res)));
   }
 
-  // ── Slot zu Bike hinzufügen ─────────────────────────────────────────────────
+  // ── Baugruppen-Katalog + Bike-Baugruppen ───────────────────────────────────
 
-  addSlot(bikeId: number, templateId: number, customName = '') {
-    return this.http.post<ComponentSlotList>(`${this.baseUrl}/maintenance/bikes/${bikeId}/slots/`, {
-      template: templateId,
-      custom_name: customName,
-    });
+  fetchGroups(bikeType?: string) {
+    const params = bikeType ? `?bike_type=${bikeType}` : '';
+    return this.http.get<ComponentGroupCatalog[]>(
+      `${this.baseUrl}/maintenance/groups/${params}`,
+    );
+  }
+
+  fetchAssemblies(bikeId: number) {
+    return this.http.get<AssembliesResponse>(
+      `${this.baseUrl}/maintenance/bikes/${bikeId}/assemblies/`,
+    );
+  }
+
+  createAssembly(bikeId: number, payload: CreateAssemblyPayload) {
+    return this.http.post<BikeAssembly>(
+      `${this.baseUrl}/maintenance/bikes/${bikeId}/assemblies/`,
+      payload,
+    );
+  }
+
+  updateAssembly(assemblyId: number, patch: Partial<Pick<BikeAssembly, 'name' | 'installed_at' | 'is_active' | 'retired_at'>>) {
+    return this.http.patch<BikeAssembly>(
+      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/`,
+      patch,
+    );
+  }
+
+  deleteAssembly(assemblyId: number) {
+    return this.http.delete(`${this.baseUrl}/maintenance/assemblies/${assemblyId}/`);
+  }
+
+  swapAssembly(assemblyId: number, payload: CreateAssemblyPayload) {
+    return this.http.post<BikeAssembly>(
+      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/swap/`,
+      payload,
+    );
+  }
+
+  // ── Wartungs-Intervalle (Verbrauchsmaterial / Pflege) ──────────────────────
+
+  addInterval(bikeId: number, payload: CreateIntervalPayload) {
+    return this.http.post<MaintenanceInterval>(
+      `${this.baseUrl}/maintenance/bikes/${bikeId}/intervals/`,
+      payload,
+    );
+  }
+
+  updateInterval(intervalId: number, patch: Partial<MaintenanceInterval>) {
+    return this.http.patch<MaintenanceInterval>(
+      `${this.baseUrl}/maintenance/intervals/${intervalId}/`,
+      patch,
+    );
+  }
+
+  deleteInterval(intervalId: number) {
+    return this.http.delete(`${this.baseUrl}/maintenance/intervals/${intervalId}/`);
+  }
+
+  logInterval(intervalId: number, payload: IntervalLogPayload = {}) {
+    return this.http.post<MaintenanceInterval>(
+      `${this.baseUrl}/maintenance/intervals/${intervalId}/log/`,
+      payload,
+    );
   }
 }

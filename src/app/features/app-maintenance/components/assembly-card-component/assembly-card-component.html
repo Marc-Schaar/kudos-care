@@ -1,0 +1,80 @@
+<section class="assembly">
+  <header class="assembly-header" [class]="assembly().worst_status | warnClass">
+    <div class="ah-title-row">
+      <span class="ah-dot" [class]="assembly().worst_status | warnClass"></span>
+
+      @if (editingName()) {
+        <input
+          class="ah-name-input"
+          [ngModel]="nameDraft()"
+          (ngModelChange)="nameDraft.set($event)"
+          (keyup.enter)="saveRename()"
+          (keyup.escape)="cancelRename()"
+          autocomplete="off"
+        />
+        <button class="ah-icon-btn" (click)="saveRename()" [disabled]="savingName()">✓</button>
+        <button class="ah-icon-btn" (click)="cancelRename()">✕</button>
+      } @else {
+        <h2 class="ah-name">{{ assembly().display_name }}</h2>
+        <button class="ah-icon-btn" (click)="startRename()" title="Umbenennen">✎</button>
+      }
+
+      <span class="ah-status" [class]="assembly().worst_status | warnClass">
+        {{ assembly().worst_status | warnLabel }}
+      </span>
+    </div>
+
+    <div class="ah-meta-row">
+      <div class="ah-stats">
+        @if (assembly().assembly_km != null) {
+          <span class="ah-stat">
+            <span class="ah-stat-label">Setup</span>
+            <span class="ah-stat-value">{{ assembly().assembly_km | number: '1.0-0' }} km</span>
+          </span>
+        }
+        @if (assembly().installed_at) {
+          <span class="ah-stat">
+            <span class="ah-stat-label">seit</span>
+            <span class="ah-stat-value">{{ assembly().installed_at | date: 'dd.MM.yyyy' }}</span>
+          </span>
+        }
+        <span class="ah-stat">
+          <span class="ah-stat-label">Teile</span>
+          <span class="ah-stat-value">{{ assembly().slots.length }}</span>
+        </span>
+      </div>
+
+      <button class="ah-swap-btn" (click)="swapAssembly.emit(assembly().id)">
+        Baugruppe tauschen
+      </button>
+    </div>
+  </header>
+
+  <div class="assembly-body">
+    @if (assembly().slots.length === 0 && assembly().intervals.length === 0) {
+      <p class="assembly-empty">Noch keine Elemente in dieser Baugruppe.</p>
+    }
+
+    <div class="slots-grid">
+      @for (slot of sortedSlots(); track slot.id) {
+        <app-slot-card-component
+          [slot]="slot"
+          [bikeDistanceKm]="bikeDistanceKm()"
+          [highlighted]="highlightedSlotId() === slot.id"
+          (editComponent)="editComponent.emit($event)"
+          (swapComponent)="swapComponent.emit($event)"
+          (checkComponent)="checkComponent.emit($event)"
+        />
+      }
+    </div>
+
+    @if (assembly().intervals.length > 0) {
+      <div class="intervals">
+        <span class="intervals-label">Pflege &amp; Verbrauchsmaterial</span>
+        @for (interval of assembly().intervals; track interval.id) {
+          <app-interval-row-component [interval]="interval" (logged)="changed.emit()" />
+        }
+      </div>
+    }
+  </div>
+</section>

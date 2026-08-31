@@ -1,5 +1,4 @@
 <div class="page">
-  <!-- Breadcrumb -->
   <nav class="breadcrumb">
     <a routerLink="/maintenance">Wartung</a>
     <span class="sep">/</span>
@@ -13,13 +12,12 @@
   }
 
   @if (bike(); as bike) {
-    <!-- Bike Header -->
     <header class="bike-header">
       <div class="header-top">
         <app-bike-diagram-component
           class="diagram"
           [bikeType]="bike.bike_type"
-          [slots]="bike.slots"
+          [slots]="diagramSlots()"
           (dotClick)="onDiagramDotClick($event)"
         />
 
@@ -43,12 +41,11 @@
               </span>
             </div>
             <div class="stat">
-              <span class="stat-label">Slots</span>
-              <span class="stat-value">{{ bike.slots.length }}</span>
+              <span class="stat-label">Baugruppen</span>
+              <span class="stat-value">{{ assemblies().length }}</span>
             </div>
           </div>
 
-          <!-- Kritische Slots Zusammenfassung -->
           @if (criticalCount() > 0) {
             <div class="alert-banner critical">
               <span class="alert-icon">⚠</span>
@@ -65,20 +62,33 @@
       </div>
     </header>
 
-    <!-- Slot-Gruppen -->
-    <div class="groups">
-      @for (group of slotGroups(); track group.category) {
-        <section class="group">
-          <div class="group-header">
-            <div class="group-title-row">
-              <span class="group-dot" [class]="group.worst_status | warnClass"></span>
-              <h2 class="group-title">{{ group.category_display }}</h2>
-              <span class="group-count">{{ group.slots.length }}</span>
-            </div>
-          </div>
+    @if (isEmpty() && !loading()) {
+      <app-bike-setup-stepper-component
+        [bikeId]="bike.id"
+        [bikeType]="bike.bike_type"
+        (done)="onStepperDone()"
+      />
+    } @else {
+      <div class="assemblies">
+        @for (assembly of assemblies(); track assembly.id) {
+          <app-assembly-card-component
+            [assembly]="assembly"
+            [bikeDistanceKm]="bike.total_distance_km"
+            [highlightedSlotId]="highlightedSlotId()"
+            (swapAssembly)="openSwapAssembly($event)"
+            (editComponent)="openEditComponentDialog($event)"
+            (swapComponent)="openSwapDialog($event)"
+            (checkComponent)="openCheckDialog($event)"
+            (changed)="onAssemblyChanged()"
+          />
+        }
+      </div>
 
+      @if (ungroupedSlots().length > 0) {
+        <section class="ungrouped">
+          <h2 class="ungrouped-title">Ohne Baugruppe</h2>
           <div class="slots-grid">
-            @for (slot of group.slots; track slot.id) {
+            @for (slot of ungroupedSlots(); track slot.id) {
               <app-slot-card-component
                 [slot]="slot"
                 [bikeDistanceKm]="bike.total_distance_km"
@@ -86,22 +96,37 @@
                 (editComponent)="openEditComponentDialog($event)"
                 (swapComponent)="openSwapDialog($event)"
                 (checkComponent)="openCheckDialog($event)"
-                (quickChange)="openQuickChangeDialog($event)"
               />
             }
           </div>
         </section>
       }
-    </div>
 
-    <!-- Slot hinzufügen Button -->
-    <button class="add-slot-btn" (click)="openAddSlotDialog()">
-      + Komponenten-Slot hinzufügen
-    </button>
+      <button class="add-assembly-btn" (click)="openAddAssemblyDialog()">
+        + Baugruppe hinzufügen
+      </button>
+    }
   }
 </div>
 
-<!-- Dialog -->
+@if (showAddAssemblyDialog() && bike(); as bike) {
+  <app-add-assembly-dialog-component
+    [bikeId]="bike.id"
+    [bikeType]="bike.bike_type"
+    [availableGroups]="availableGroups()"
+    (close)="closeAddAssemblyDialog()"
+    (saved)="onAssemblyAdded()"
+  />
+}
+
+@if (swapAssembly(); as assembly) {
+  <app-quick-change-dialog-component
+    [assembly]="assembly"
+    (close)="closeSwapAssembly()"
+    (saved)="onAssemblySwapped()"
+  />
+}
+
 @if (dialogSlotId() != null) {
   <app-add-component-dialog-component
     [slotId]="dialogSlotId()!"
@@ -109,7 +134,7 @@
     [bikeDistanceKm]="bike()?.total_distance_km ?? null"
     [template]="dialogSlotTemplate()"
     [editComponent]="editingComponent()"
-    (close)="closeDialog()"
+    (close)="closeComponentDialog()"
     (saved)="onComponentSaved()"
   />
 }
@@ -120,16 +145,6 @@
     (close)="closeSwapDialog()"
     (mounted)="onSwapMounted()"
     (createNew)="onCreateNewFromSwap($event)"
-  />
-}
-
-@if (showAddSlotDialog() && bike(); as bike) {
-  <app-add-slot-dialog-component
-    [bikeId]="bike.id"
-    [bikeType]="bike.bike_type"
-    [existingTemplateIds]="existingTemplateIds()"
-    (close)="closeAddSlotDialog()"
-    (created)="onSlotCreated($event)"
   />
 }
 
@@ -148,13 +163,5 @@
     [bike]="bike"
     (close)="closeEditBikeDialog()"
     (saved)="onBikeSaved()"
-  />
-}
-
-@if (quickChangeSlotId() != null) {
-  <app-quick-change-dialog-component
-    [slotId]="quickChangeSlotId()!"
-    (close)="closeQuickChangeDialog()"
-    (saved)="onQuickChangeSaved()"
   />
 }

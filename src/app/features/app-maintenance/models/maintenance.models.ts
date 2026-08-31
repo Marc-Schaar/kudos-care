@@ -25,6 +25,16 @@ export type ComponentCategory =
 
 export type WarnStatus = 'ok' | 'warn' | 'critical' | 'unknown';
 
+export type MaintenanceKind = 'part' | 'consumable';
+
+export type MaintenanceIntervalKind =
+  | 'chain_lube'
+  | 'sealant'
+  | 'brake_bleed'
+  | 'di2_charge'
+  | 'battery'
+  | 'custom';
+
 // ── ComponentTemplate ─────────────────────────────────────────────────────────
 
 export interface ComponentTemplate {
@@ -38,6 +48,8 @@ export interface ComponentTemplate {
   warn_days: number | null;
   is_system: boolean;
   supports_condition_estimate: boolean;
+  maintenance_kind: MaintenanceKind;
+  default_in_group: boolean;
   notes: string;
   group: number | null;
   group_name: string | null;
@@ -108,6 +120,11 @@ export interface MountedComponentSummary {
   model_name: string;
   installed_at: string | null;
   condition_pct: number | null;
+  wear_km: number | null;
+  wear_days: number | null;
+  effective_warn_km: number | null;
+  effective_warn_days: number | null;
+  warn_status_overall: WarnStatus;
   weather_wear_km: number | null;
   weather_wear_ride_count: number | null;
   warn_status_weather_km: WarnStatus;
@@ -176,6 +193,116 @@ export interface QuickChangeRequestItem {
 export interface QuickChangeRequest {
   installed_at?: string;
   items: QuickChangeRequestItem[];
+}
+
+// ── Baugruppen-Katalog (ComponentGroup) ──────────────────────────────────────
+
+export interface ComponentGroupCatalog {
+  id: number;
+  name: string;
+  notes: string;
+  category: ComponentCategory;
+  category_display: string;
+  applicable_bike_types: BikeType[];
+  sort_order: number;
+  recommended: boolean;
+  is_system: boolean;
+  parts: ComponentTemplate[];
+  consumables: ComponentTemplate[];
+}
+
+// ── Wartungs-Intervall (Verbrauchsmaterial / Pflege) ─────────────────────────
+
+export interface MaintenanceLog {
+  id: number;
+  done_at: string;
+  done_distance_km: number | null;
+  note: string;
+  created_at: string;
+}
+
+export interface MaintenanceInterval {
+  id: number;
+  bike: number;
+  assembly: number | null;
+  template: number | null;
+  kind: MaintenanceIntervalKind;
+  label: string;
+  interval_km: number | null;
+  interval_days: number | null;
+  last_done_at: string | null;
+  last_done_distance_km: number | null;
+  notes: string;
+  status: WarnStatus;
+  km_since: number | null;
+  days_since: number | null;
+  last_log: MaintenanceLog | null;
+}
+
+export interface IntervalLogPayload {
+  done_at?: string;
+  done_distance_km?: number | null;
+  note?: string;
+}
+
+export interface CreateIntervalPayload {
+  assembly?: number | null;
+  kind?: MaintenanceIntervalKind;
+  label: string;
+  interval_km?: number | null;
+  interval_days?: number | null;
+  last_done_at?: string;
+  notes?: string;
+}
+
+// ── Baugruppe (BikeAssembly, Bike-Instanz) ───────────────────────────────────
+
+export interface BikeAssembly {
+  id: number;
+  bike: number;
+  group: number;
+  group_detail: ComponentGroupCatalog;
+  name: string;
+  display_name: string;
+  installed_at: string | null;
+  retired_at: string | null;
+  is_active: boolean;
+  slots: ComponentSlotList[];
+  intervals: MaintenanceInterval[];
+  assembly_km: number | null;
+  worst_status: WarnStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssembliesResponse {
+  assemblies: BikeAssembly[];
+  ungrouped_slots: ComponentSlotList[];
+  available_groups: ComponentGroupCatalog[];
+}
+
+export interface AssemblyPartItem {
+  template_id: number;
+  include: boolean;
+  brand?: string;
+  model_name?: string;
+  custom_warn_km?: number | null;
+  custom_warn_days?: number | null;
+}
+
+export interface AssemblyIntervalItem {
+  template_id: number;
+  include: boolean;
+  interval_km?: number | null;
+  interval_days?: number | null;
+}
+
+export interface CreateAssemblyPayload {
+  group_id?: number;
+  name?: string;
+  installed_at?: string;
+  parts: AssemblyPartItem[];
+  intervals: AssemblyIntervalItem[];
 }
 
 // ── Bike ──────────────────────────────────────────────────────────────────────

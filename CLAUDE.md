@@ -53,9 +53,19 @@ features/
   app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)
   app-activity/                 — Strava Activity List/Detail, Map, Wetter-Overlay
     pipes/headwind-label, services/activity-service
-  app-maintenance/               — Kern-Domäne: Bikes, Component-Slots, Verschleiß
+  app-maintenance/               — Kern-Domäne: Bikes → Baugruppen → Elemente, Verschleiß
     services/bike-service, pipes/(km, warn-class, warn-label)
-    models/maintenance.models.ts — BikeList/BikeDetail, ComponentSlot, BikeComponent, ...
+    models/maintenance.models.ts — BikeList/BikeDetail, BikeAssembly, ComponentGroupCatalog,
+                                   MaintenanceInterval, ComponentSlot, BikeComponent, ...
+    Ein Bike besteht aus Baugruppen (`BikeAssembly`). `detail-bike-component` lädt
+    `GET bikes/<id>/assemblies/` und rendert je Baugruppe eine `assembly-card-component`
+    (Kopfzeile trägt Name, Setup-km, Gesamt-Status und den **"Baugruppe tauschen"**-Button;
+    Body = `slot-card-component`-Elementzeilen mit echtem km-/Tage-Balken +
+    `interval-row-component` für Verbrauchsmaterial mit "Erledigt"-Button).
+    Anlegen: `add-assembly-dialog-component` (Gruppe wählen → `assembly-checklist-component`).
+    Neues Bike ohne Komponenten → `bike-setup-stepper-component` (ein Schritt je empfohlener
+    Baugruppe). `quick-change-dialog-component` = "Baugruppe tauschen" (→ `assemblies/<id>/swap/`).
+    Einzelteil weiter über `add-component-dialog-component` / `component-swap-dialog-component`.
 
 shared/
   components/notification-component — Toast-UI (liest NotificationService-Signal)

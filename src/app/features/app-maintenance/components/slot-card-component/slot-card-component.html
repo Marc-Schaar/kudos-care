@@ -27,6 +27,45 @@
       }
     </div>
 
+    <!-- km-Verschleiß dieses Elements -->
+    @if (comp.wear_km != null) {
+      <div class="wear-bar-wrap">
+        <span class="wear-axis">km</span>
+        <div class="wear-bar">
+          <div
+            class="wear-fill"
+            [class]="slot().warn_status | warnClass"
+            [style.width.%]="wearPct()"
+          ></div>
+        </div>
+        <span class="wear-label">
+          {{ comp.wear_km | number: '1.0-0' }}
+          @if (comp.effective_warn_km) {
+            / {{ comp.effective_warn_km | number: '1.0-0' }} km
+          } @else {
+            km
+          }
+        </span>
+      </div>
+    }
+
+    <!-- Tage-Verschleiß, nur wenn eine Tages-Grenze definiert ist -->
+    @if (comp.wear_days != null && comp.effective_warn_days) {
+      <div class="wear-bar-wrap">
+        <span class="wear-axis">Tage</span>
+        <div class="wear-bar">
+          <div
+            class="wear-fill"
+            [class]="slot().warn_status | warnClass"
+            [style.width.%]="wearDaysPct()"
+          ></div>
+        </div>
+        <span class="wear-label">
+          {{ comp.wear_days }} / {{ comp.effective_warn_days }} Tage
+        </span>
+      </div>
+    }
+
     @if (comp.warn_status_weather_km === 'warn' || comp.warn_status_weather_km === 'critical') {
       <div class="weather-wear-indicator" [class]="comp.warn_status_weather_km | warnClass">
         <span class="weather-icon">☔</span>
@@ -54,20 +93,6 @@
       }
     }
 
-    <!-- Wear-Balken nur wenn wir km-Daten haben -->
-    @if (wearPct() > 0) {
-      <div class="wear-bar-wrap">
-        <div class="wear-bar">
-          <div
-            class="wear-fill"
-            [class]="slot().warn_status | warnClass"
-            [style.width.%]="wearPct()"
-          ></div>
-        </div>
-        <span class="wear-label">{{ wearPct() }}%</span>
-      </div>
-    }
-
     @if (slot().warn_status === 'warn' || slot().warn_status === 'critical') {
       <div class="check-instructions-row">
         <button class="instructions-toggle-btn" (click)="toggleInstructions(comp.id)">
@@ -93,19 +118,13 @@
         <button class="check-btn" (click)="checkComponent.emit(comp.id)">Prüfen / Freigeben</button>
       }
       <button class="edit-btn" (click)="editComponent.emit(comp.id)">Bearbeiten</button>
-      <button class="replace-btn" (click)="swapComponent.emit(slot().id)">Tauschen</button>
-      @if (hasGroup()) {
-        <button class="group-btn" (click)="quickChange.emit(slot().id)">Baugruppe tauschen</button>
-      }
+      <button class="replace-btn" (click)="swapComponent.emit(slot().id)">Einzeln tauschen</button>
     </div>
   } @else {
     <div class="empty-slot">
       <span class="empty-label">Keine Komponente montiert</span>
       <div class="empty-actions">
         <button class="add-btn" (click)="swapComponent.emit(slot().id)">+ Hinzufügen</button>
-        @if (hasGroup()) {
-          <button class="group-btn" (click)="quickChange.emit(slot().id)">Baugruppe tauschen</button>
-        }
       </div>
     </div>
   }

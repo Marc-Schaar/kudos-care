@@ -1,0 +1,41 @@
+<div class="interval-row" [class]="interval().status | warnClass">
+  <div class="iv-main">
+    <div class="iv-heading">
+      <span class="iv-dot" [class]="interval().status | warnClass"></span>
+      <span class="iv-label">{{ interval().label }}</span>
+      <span class="iv-status" [class]="interval().status | warnClass">
+        {{ interval().status | warnLabel }}
+      </span>
+    </div>
+
+    <div class="iv-meta">
+      @if (remainingKm() != null) {
+        <span class="iv-metric">
+          @if (remainingKm()! >= 0) {
+            noch ~{{ remainingKm() }} km
+          } @else {
+            {{ -remainingKm()! }} km überfällig
+          }
+        </span>
+      }
+      @if (remainingDays() != null) {
+        <span class="iv-metric">
+          @if (remainingDays()! >= 0) {
+            noch ~{{ remainingDays() }} Tage
+          } @else {
+            {{ -remainingDays()! }} Tage überfällig
+          }
+        </span>
+      }
+      @if (interval().last_done_at) {
+        <span class="iv-metric muted">
+          zuletzt {{ interval().last_done_at | date: 'dd.MM.yyyy' }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <button class="iv-done-btn" (click)="markDone()" [disabled]="saving()">
+    {{ saving() ? '…' : 'Erledigt / Erneuert' }}
+  </button>
+</div>

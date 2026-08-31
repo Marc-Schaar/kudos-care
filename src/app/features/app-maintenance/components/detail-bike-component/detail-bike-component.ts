@@ -1,39 +1,46 @@
-import { Component, computed, inject, numberAttribute, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
 import { BikeService } from '../../services/bike-service/bike-service';
 import {
+  AssembliesResponse,
+  BikeAssembly,
   BikeComponent as BikeComponentModel,
+  ComponentSlotList,
   ComponentTemplate,
-  SlotGroup,
 } from '../../models/maintenance.models';
-import { groupSlotsByCategory } from '../../shared/utils/utils';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
-import { DecimalPipe } from '@angular/common';
+import { AssemblyCardComponent } from '../assembly-card-component/assembly-card-component';
 import { SlotCardComponent } from '../slot-card-component/slot-card-component';
 import { AddComponentDialogComponent } from '../add-component-dialog-component/add-component-dialog-component';
-import { AddSlotDialogComponent } from '../add-slot-dialog-component/add-slot-dialog-component';
+import { AddAssemblyDialogComponent } from '../add-assembly-dialog-component/add-assembly-dialog-component';
 import { ComponentCheckDialogComponent } from '../component-check-dialog-component/component-check-dialog-component';
 import { BikeDiagramComponent } from '../bike-diagram-component/bike-diagram-component';
 import { EditBikeDialogComponent } from '../edit-bike-dialog-component/edit-bike-dialog-component';
 import { ComponentSwapDialogComponent } from '../component-swap-dialog-component/component-swap-dialog-component';
 import { QuickChangeDialogComponent } from '../quick-change-dialog-component/quick-change-dialog-component';
+import { BikeSetupStepperComponent } from '../bike-setup-stepper-component/bike-setup-stepper-component';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-detail-bike-component',
   imports: [
+    RouterLink,
     WarnLabelPipe,
     WarnClassPipe,
     DecimalPipe,
+    AssemblyCardComponent,
     SlotCardComponent,
     AddComponentDialogComponent,
-    AddSlotDialogComponent,
+    AddAssemblyDialogComponent,
     ComponentCheckDialogComponent,
     BikeDiagramComponent,
     EditBikeDialogComponent,
     ComponentSwapDialogComponent,
     QuickChangeDialogComponent,
+    BikeSetupStepperComponent,
     Skeleton,
   ],
   templateUrl: './detail-bike-component.html',
@@ -45,30 +52,36 @@ export class DetailBikeComponent implements OnInit {
 
   public bike = this.bikeService.selectedBike;
   public loading = signal(false);
+  public assembliesData = signal<AssembliesResponse | null>(null);
+
   public dialogSlotId = signal<number | null>(null);
-  public showAddSlotDialog = signal(false);
   public checkComponentId = signal<number | null>(null);
   public highlightedSlotId = signal<number | null>(null);
   public showEditBikeDialog = signal(false);
+  public showAddAssemblyDialog = signal(false);
   public editingComponent = signal<BikeComponentModel | null>(null);
   public swapSlotId = signal<number | null>(null);
-  public quickChangeSlotId = signal<number | null>(null);
+  public swapAssembly = signal<BikeAssembly | null>(null);
 
-  public slotGroups = computed<SlotGroup[]>(() => {
-    const b = this.bike();
-    if (!b) return [];
-    return groupSlotsByCategory(b.slots);
+  public assemblies = computed(() => this.assembliesData()?.assemblies ?? []);
+  public ungroupedSlots = computed(() => this.assembliesData()?.ungrouped_slots ?? []);
+  public availableGroups = computed(() => this.assembliesData()?.available_groups ?? []);
+
+  public isEmpty = computed(
+    () => this.assemblies().length === 0 && this.ungroupedSlots().length === 0,
+  );
+
+  public diagramSlots = computed<ComponentSlotList[]>(() => {
+    const fromAssemblies = this.assemblies().flatMap((a) => a.slots);
+    return [...fromAssemblies, ...this.ungroupedSlots()];
   });
 
   public criticalCount = computed(
     () => this.bike()?.slots.filter((s) => s.warn_status === 'critical').length ?? 0,
   );
-
   public warnCount = computed(
     () => this.bike()?.slots.filter((s) => s.warn_status === 'warn').length ?? 0,
   );
-
-  public existingTemplateIds = computed(() => this.bike()?.slots.map((s) => s.template) ?? []);
 
   public dialogSlotTemplate = computed<ComponentTemplate | null>(() => {
     const slot = this.bike()?.slots.find((s) => s.id === this.dialogSlotId());
@@ -93,17 +106,57 @@ export class DetailBikeComponent implements OnInit {
     this.route.params.subscribe((params) => {
       const id = +params['id'];
       this.loading.set(true);
-      this.bikeService.fetchBikeDetails(id).subscribe({
+      this.bikeService.fetchBikeDetails(id).subscribe();
+      this.bikeService.fetchAssemblies(id).subscribe({
+        next: (data) => this.assembliesData.set(data),
         complete: () => this.loading.set(false),
       });
     });
   }
 
-  openAddDialog(slotId: number) {
-    this.editingComponent.set(null);
-    this.dialogSlotId.set(slotId);
+  private reload() {
+    const id = this.bike()?.id;
+    if (!id) return;
+    this.bikeService.fetchBikeDetails(id).subscribe();
+    this.bikeService.fetchAssemblies(id).subscribe({
+      next: (data) => this.assembliesData.set(data),
+    });
   }
 
+  // ── Baugruppe hinzufügen ────────────────────────────────────────────────────
+  openAddAssemblyDialog() {
+    this.showAddAssemblyDialog.set(true);
+  }
+  closeAddAssemblyDialog() {
+    this.showAddAssemblyDialog.set(false);
+  }
+  onAssemblyAdded() {
+    this.showAddAssemblyDialog.set(false);
+    this.reload();
+  }
+
+  // ── Baugruppe tauschen ──────────────────────────────────────────────────────
+  openSwapAssembly(assemblyId: number) {
+    const assembly = this.assemblies().find((a) => a.id === assemblyId) ?? null;
+    this.swapAssembly.set(assembly);
+  }
+  closeSwapAssembly() {
+    this.swapAssembly.set(null);
+  }
+  onAssemblySwapped() {
+    this.swapAssembly.set(null);
+    this.reload();
+  }
+
+  onStepperDone() {
+    this.reload();
+  }
+
+  onAssemblyChanged() {
+    this.reload();
+  }
+
+  // ── Einzelteil bearbeiten / tauschen / prüfen ───────────────────────────────
   openEditComponentDialog(componentId: number) {
     this.bikeService.fetchComponent(componentId).subscribe({
       next: (comp) => {
@@ -112,10 +165,56 @@ export class DetailBikeComponent implements OnInit {
       },
     });
   }
+  closeComponentDialog() {
+    this.dialogSlotId.set(null);
+    this.editingComponent.set(null);
+  }
+  onComponentSaved() {
+    this.dialogSlotId.set(null);
+    this.editingComponent.set(null);
+    this.reload();
+  }
+
+  openSwapDialog(slotId: number) {
+    this.swapSlotId.set(slotId);
+  }
+  closeSwapDialog() {
+    this.swapSlotId.set(null);
+  }
+  onSwapMounted() {
+    this.swapSlotId.set(null);
+    this.reload();
+  }
+  onCreateNewFromSwap(slotId: number) {
+    this.swapSlotId.set(null);
+    this.editingComponent.set(null);
+    this.dialogSlotId.set(slotId);
+  }
+
+  openCheckDialog(componentId: number) {
+    this.checkComponentId.set(componentId);
+  }
+  closeCheckDialog() {
+    this.checkComponentId.set(null);
+  }
+  onCheckSaved() {
+    this.checkComponentId.set(null);
+    this.reload();
+  }
+
+  // ── Bike bearbeiten ─────────────────────────────────────────────────────────
+  openEditBikeDialog() {
+    this.showEditBikeDialog.set(true);
+  }
+  closeEditBikeDialog() {
+    this.showEditBikeDialog.set(false);
+  }
+  onBikeSaved() {
+    this.showEditBikeDialog.set(false);
+  }
 
   onDiagramDotClick(slotId: number) {
     this.highlightedSlotId.set(slotId);
-    // Nächster Tick, damit das Ziel-Element sicher gerendert ist.
     setTimeout(() => {
       document.getElementById('slot-' + slotId)?.scrollIntoView({
         behavior: 'smooth',
@@ -125,94 +224,5 @@ export class DetailBikeComponent implements OnInit {
     setTimeout(() => {
       if (this.highlightedSlotId() === slotId) this.highlightedSlotId.set(null);
     }, 1600);
-  }
-
-  closeDialog() {
-    this.dialogSlotId.set(null);
-    this.editingComponent.set(null);
-  }
-
-  onComponentSaved() {
-    this.dialogSlotId.set(null);
-    this.editingComponent.set(null);
-    // Bike neu laden damit Warn-Status aktuell ist
-    const id = this.bike()?.id;
-    if (id) this.bikeService.fetchBikeDetails(id).subscribe();
-  }
-
-  openSwapDialog(slotId: number) {
-    this.swapSlotId.set(slotId);
-  }
-
-  closeSwapDialog() {
-    this.swapSlotId.set(null);
-  }
-
-  onSwapMounted() {
-    this.swapSlotId.set(null);
-    const id = this.bike()?.id;
-    if (id) this.bikeService.fetchBikeDetails(id).subscribe();
-  }
-
-  onCreateNewFromSwap(slotId: number) {
-    this.swapSlotId.set(null);
-    this.openAddDialog(slotId);
-  }
-
-  openQuickChangeDialog(slotId: number) {
-    this.quickChangeSlotId.set(slotId);
-  }
-
-  closeQuickChangeDialog() {
-    this.quickChangeSlotId.set(null);
-  }
-
-  onQuickChangeSaved() {
-    this.quickChangeSlotId.set(null);
-    const id = this.bike()?.id;
-    if (id) this.bikeService.fetchBikeDetails(id).subscribe();
-  }
-
-  openAddSlotDialog() {
-    this.showAddSlotDialog.set(true);
-  }
-
-  closeAddSlotDialog() {
-    this.showAddSlotDialog.set(false);
-  }
-
-  onSlotCreated(newSlotId: number) {
-    this.showAddSlotDialog.set(false);
-    const id = this.bike()?.id;
-    if (!id) return;
-    this.bikeService.fetchBikeDetails(id).subscribe({
-      complete: () => this.dialogSlotId.set(newSlotId),
-    });
-  }
-
-  openEditBikeDialog() {
-    this.showEditBikeDialog.set(true);
-  }
-
-  closeEditBikeDialog() {
-    this.showEditBikeDialog.set(false);
-  }
-
-  onBikeSaved() {
-    this.showEditBikeDialog.set(false);
-  }
-
-  openCheckDialog(componentId: number) {
-    this.checkComponentId.set(componentId);
-  }
-
-  closeCheckDialog() {
-    this.checkComponentId.set(null);
-  }
-
-  onCheckSaved() {
-    this.checkComponentId.set(null);
-    const id = this.bike()?.id;
-    if (id) this.bikeService.fetchBikeDetails(id).subscribe();
   }
 }

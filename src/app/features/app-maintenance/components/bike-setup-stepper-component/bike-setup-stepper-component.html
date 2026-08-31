@@ -1,0 +1,47 @@
+<div class="stepper">
+  @if (loading()) {
+    <app-skeleton variant="bar" />
+  } @else if (finished()) {
+    <div class="done-panel">
+      <div class="done-icon">✓</div>
+      <h2 class="done-title">Einrichtung abgeschlossen</h2>
+      <p class="done-sub">
+        {{ addedCount() }}
+        @if (addedCount() === 1) {
+          Baugruppe wurde angelegt.
+        } @else {
+          Baugruppen wurden angelegt.
+        }
+        Weitere kannst du jederzeit über „Baugruppe hinzufügen" ergänzen.
+      </p>
+      <button class="done-btn" (click)="finish()">Zum Bike</button>
+    </div>
+  } @else {
+    <div class="step-head">
+      <div class="step-progress">
+        <div class="step-progress-fill" [style.width.%]="progress()"></div>
+      </div>
+      <span class="step-count">Schritt {{ index() + 1 }} / {{ steps().length }}</span>
+    </div>
+
+    @for (g of [currentGroup()]; track g?.id) {
+      @if (g) {
+        <div class="step-body">
+          <h2 class="step-title">{{ g.name }}</h2>
+          @if (g.notes) {
+            <p class="step-note">{{ g.notes }}</p>
+          }
+          <app-assembly-checklist-component
+            [bikeId]="bikeId()"
+            [group]="g"
+            [showSkip]="true"
+            [showName]="false"
+            saveLabel="Hinzufügen & weiter"
+            (created)="onCreated()"
+            (skipped)="onSkipped()"
+          />
+        </div>
+      }
+    }
+  }
+</div>

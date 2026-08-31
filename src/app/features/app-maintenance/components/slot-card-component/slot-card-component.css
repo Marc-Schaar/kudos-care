@@ -128,6 +128,19 @@
   gap: 0.5rem;
 }
 
+.wear-axis {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 2.2rem;
+}
+
+.wear-label {
+  white-space: nowrap;
+}
+
 .wear-bar {
   flex: 1;
   height: 4px;

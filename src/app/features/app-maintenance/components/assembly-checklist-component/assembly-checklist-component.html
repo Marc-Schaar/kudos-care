@@ -1,0 +1,103 @@
+<form class="checklist" (ngSubmit)="save()">
+  @if (showName()) {
+    <div class="field">
+      <label class="label">Name der Baugruppe (optional)</label>
+      <input
+        class="input"
+        type="text"
+        [(ngModel)]="name"
+        name="name"
+        [placeholder]="group().name"
+        autocomplete="off"
+      />
+    </div>
+  }
+
+  <div class="field">
+    <label class="label">Einbaudatum (gemeinsam)</label>
+    <input class="input" type="date" [(ngModel)]="installedAt" name="installedAt" />
+  </div>
+
+  @if (partRows.length > 0) {
+    <div class="field">
+      <label class="label">Teile</label>
+      <div class="row-list">
+        @for (row of partRows; track row.template.id) {
+          <label class="row-option" [class.selected]="row.include">
+            <input type="checkbox" [(ngModel)]="row.include" [name]="'p-' + row.template.id" />
+            <div class="row-body">
+              <span class="row-name">{{ row.template.name }}</span>
+              <div class="row-fields" (click)="$event.stopPropagation()">
+                <input
+                  class="input"
+                  type="text"
+                  [(ngModel)]="row.brand"
+                  [name]="'p-brand-' + row.template.id"
+                  placeholder="Hersteller"
+                  autocomplete="off"
+                  [disabled]="!row.include"
+                />
+                <input
+                  class="input"
+                  type="text"
+                  [(ngModel)]="row.modelName"
+                  [name]="'p-model-' + row.template.id"
+                  placeholder="Modell"
+                  autocomplete="off"
+                  [disabled]="!row.include"
+                />
+              </div>
+            </div>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  @if (intervalRows.length > 0) {
+    <div class="field">
+      <label class="label">Pflege &amp; Verbrauchsmaterial</label>
+      <div class="row-list">
+        @for (row of intervalRows; track row.template.id) {
+          <label class="row-option" [class.selected]="row.include">
+            <input type="checkbox" [(ngModel)]="row.include" [name]="'i-' + row.template.id" />
+            <div class="row-body">
+              <span class="row-name">{{ row.template.name }}</span>
+              <div class="row-fields" (click)="$event.stopPropagation()">
+                <input
+                  class="input narrow"
+                  type="number"
+                  [(ngModel)]="row.intervalKm"
+                  [name]="'i-km-' + row.template.id"
+                  placeholder="km"
+                  [disabled]="!row.include"
+                />
+                <input
+                  class="input narrow"
+                  type="number"
+                  [(ngModel)]="row.intervalDays"
+                  [name]="'i-days-' + row.template.id"
+                  placeholder="Tage"
+                  [disabled]="!row.include"
+                />
+              </div>
+            </div>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-msg">{{ error() }}</div>
+  }
+
+  <div class="checklist-actions">
+    @if (showSkip()) {
+      <button type="button" class="btn-cancel" (click)="skipped.emit()">Überspringen</button>
+    }
+    <button type="submit" class="btn-save" [disabled]="saving() || selectedCount() === 0">
+      {{ saving() ? 'Wird angelegt…' : saveLabel() + ' (' + selectedCount() + ')' }}
+    </button>
+  </div>
+</form>
