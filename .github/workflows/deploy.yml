@@ -22,39 +22,42 @@ jobs:
           npm ci
           npm run build -- --configuration production
 
-      # Zweistufig ueber ein Staging-Verzeichnis im Home von marc, analog zum
-      # rsync-Schritt im Backend-Deploy. Direktes Schreiben in den Webroot mit
-      # drone-scp "rm: true" geht nicht: das loescht den Zielordner selbst, und
-      # /var/www gehoert root -- marc darf ihn nicht neu anlegen.
-      - name: Copy build to staging dir
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: 'dist/kudos-care/browser/*'
-          target: '/home/marc/deploy/kudoscare-frontend'
-          strip_components: 3
-          overwrite: true
-          timeout: 60s
+      - name: Setup SSH key
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.SERVER_IP }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-      # rsync --delete fasst nur den *Inhalt* des Webroots an, nicht das
-      # Verzeichnis selbst -- kein root noetig. Der Webroot ist damit nie
-      # laenger leer als der rsync dauert (frueher: eigener rm-Schritt, dessen
-      # Fehlschlag die Seite auf 403 stehen liess).
-      - name: Publish to webroot
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          timeout: 60s
-          command_timeout: 10m
-          script: |
-            set -e
-            STAGING=/home/marc/deploy/kudoscare-frontend
-            test -f "$STAGING/index.html" || { echo "index.html fehlt im Staging - Abbruch"; exit 1; }
-            rsync -a --delete "$STAGING/" /var/www/kudoscare.marc-schaar.com/
-            rm -rf "$STAGING"
-            echo "=== Deployed ==="
-            ls /var/www/kudoscare.marc-schaar.com/ | head
+      # rsync --delete direkt in den Webroot: fasst nur den *Inhalt* an, nicht das
+      # Verzeichnis selbst -- /var/www gehoert root, der Deploy-User darf den Ordner
+      # also nicht neu anlegen. Damit ist der Webroot auch nie leer (frueher lief ein
+      # eigener "rm -rf"-Schritt vorweg, dessen Fehlschlag die Seite auf 403 stehen liess).
+      #
+      # Retry, weil sshd auf dem Server Verbindungen per PerSourcePenalties abweisen
+      # kann ("Not allowed at this time" -> handshake failed). Eine Penalty haelt ~15s,
+      # 30s Backoff kommt also sicher darueber. rsync ist idempotent, ein Retry ist
+      # gefahrlos.
+      - name: Deploy to webroot
+        env:
+          HOST: ${{ secrets.SERVER_IP }}
+          DEPLOY_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          set -uo pipefail
+          SSH_OPTS="ssh -i $HOME/.ssh/id_deploy -o ConnectTimeout=15 -o BatchMode=yes"
+          for attempt in 1 2 3 4 5; do
+            if rsync -az --delete -e "$SSH_OPTS" \
+                 dist/kudos-care/browser/ \
+                 "$DEPLOY_USER@$HOST:/var/www/kudoscare.marc-schaar.com/"; then
+              echo "Deploy erfolgreich (Versuch $attempt)"
+              exit 0
+            fi
+            echo "Versuch $attempt fehlgeschlagen, warte 30s"
+            sleep 30
+          done
+          echo "Deploy nach 5 Versuchen fehlgeschlagen"
+          exit 1
