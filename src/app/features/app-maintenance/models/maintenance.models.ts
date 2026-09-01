@@ -294,6 +294,12 @@ export interface AssemblyPartItem {
   model_name?: string;
   custom_warn_km?: number | null;
   custom_warn_days?: number | null;
+  /**
+   * Statt eine neue Komponente anzulegen: eine bereits vorhandene, noch
+   * ungruppierte ComponentSlot-Id übernehmen (samt Verlauf). brand/model_name/
+   * custom_warn_* werden dann vom Backend ignoriert.
+   */
+  existing_slot_id?: number;
 }
 
 export interface AssemblyIntervalItem {

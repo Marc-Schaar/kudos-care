@@ -41,34 +41,55 @@
                   </span>
                 }
               </span>
-              <div class="row-fields" (click)="$event.stopPropagation()">
-                <input
-                  class="input"
-                  type="text"
-                  [(ngModel)]="row.brand"
-                  [name]="'p-brand-' + row.template.id"
-                  placeholder="Hersteller"
-                  autocomplete="off"
-                  [disabled]="!row.include"
-                />
-                <input
-                  class="input"
-                  type="text"
-                  [(ngModel)]="row.modelName"
-                  [name]="'p-model-' + row.template.id"
-                  placeholder="Modell"
-                  autocomplete="off"
-                  [disabled]="!row.include"
-                />
-                <input
-                  class="input narrow"
-                  type="number"
-                  [(ngModel)]="row.customWarnKm"
-                  [name]="'p-km-' + row.template.id"
-                  [placeholder]="row.template.warn_km ? row.template.warn_km + ' km' : 'km'"
-                  [disabled]="!row.include"
-                />
-              </div>
+              @if (row.existingSlot; as existing) {
+                <label class="reuse-option" (click)="$event.stopPropagation()">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="row.reuseExisting"
+                    [name]="'p-reuse-' + row.template.id"
+                    [disabled]="!row.include"
+                  />
+                  <span class="reuse-text">
+                    Vorhandene Komponente übernehmen:
+                    <strong>{{ existingLabel(existing) }}</strong>
+                    @if (existing.mounted_component?.wear_km != null) {
+                      <span class="reuse-meta">
+                        · {{ existing.mounted_component!.wear_km }} km
+                      </span>
+                    }
+                  </span>
+                </label>
+              }
+              @if (!row.existingSlot || !row.reuseExisting) {
+                <div class="row-fields" (click)="$event.stopPropagation()">
+                  <input
+                    class="input"
+                    type="text"
+                    [(ngModel)]="row.brand"
+                    [name]="'p-brand-' + row.template.id"
+                    placeholder="Hersteller"
+                    autocomplete="off"
+                    [disabled]="!row.include"
+                  />
+                  <input
+                    class="input"
+                    type="text"
+                    [(ngModel)]="row.modelName"
+                    [name]="'p-model-' + row.template.id"
+                    placeholder="Modell"
+                    autocomplete="off"
+                    [disabled]="!row.include"
+                  />
+                  <input
+                    class="input narrow"
+                    type="number"
+                    [(ngModel)]="row.customWarnKm"
+                    [name]="'p-km-' + row.template.id"
+                    [placeholder]="row.template.warn_km ? row.template.warn_km + ' km' : 'km'"
+                    [disabled]="!row.include"
+                  />
+                </div>
+              }
             </div>
           </label>
         }

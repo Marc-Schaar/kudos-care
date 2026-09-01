@@ -1,5 +1,5 @@
 import { Component, inject, input, OnInit, output, signal } from '@angular/core';
-import { BikeType, ComponentGroupCatalog } from '../../models/maintenance.models';
+import { BikeType, ComponentGroupCatalog, ComponentSlotList } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 import { AssemblyChecklistComponent } from '../assembly-checklist-component/assembly-checklist-component';
 import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
@@ -19,6 +19,8 @@ export class AddAssemblyDialogComponent implements OnInit {
   bikeId = input.required<number>();
   bikeType = input.required<BikeType>();
   availableGroups = input<ComponentGroupCatalog[] | null>(null);
+  /** Ungruppierte Slots des Bikes — für den "vorhandene Komponente übernehmen"-Vorschlag. */
+  ungroupedSlots = input<ComponentSlotList[]>([]);
 
   close = output<void>();
   saved = output<void>();

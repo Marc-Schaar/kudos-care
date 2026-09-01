@@ -1,5 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { BikeAssembly } from '../../models/maintenance.models';
+import { BikeAssembly, ComponentSlotList } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 import { AssemblyChecklistComponent } from '../assembly-checklist-component/assembly-checklist-component';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
@@ -30,6 +30,8 @@ export class SwitchAssemblyDialogComponent {
   assembly = input.required<BikeAssembly>();
   /** Alle geparkten Baugruppen des Bikes — hier auf die Gruppe gefiltert. */
   parked = input<BikeAssembly[]>([]);
+  /** Ungruppierte Slots des Bikes — für den "vorhandene Komponente übernehmen"-Vorschlag. */
+  ungroupedSlots = input<ComponentSlotList[]>([]);
 
   close = output<void>();
   switched = output<void>();

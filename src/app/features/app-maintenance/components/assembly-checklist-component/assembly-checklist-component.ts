@@ -5,6 +5,7 @@ import {
   AssemblyPartItem,
   BikeAssembly,
   ComponentGroupCatalog,
+  ComponentSlotList,
   ComponentTemplate,
   CreateAssemblyPayload,
   KudoConfidence,
@@ -20,6 +21,14 @@ interface PartRow {
   customWarnKm: number | null;
   /** Gesetzt, wenn Kudo diese Zeile vorbelegt hat — die UI weist sie als Vorschlag aus. */
   kudo: KudoConfidence | null;
+  /**
+   * Ein bereits vorhandener, ungruppierter Slot mit exakt diesem Template —
+   * z.B. ein Altteil, das noch keiner Baugruppe zugeordnet ist. Wenn gesetzt,
+   * kann der Nutzer ihn statt eines neuen Teils übernehmen (`reuseExisting`).
+   */
+  existingSlot: ComponentSlotList | null;
+  /** True = existingSlot wird übernommen (Slot umgehängt), statt ein neues Teil anzulegen. */
+  reuseExisting: boolean;
 }
 
 interface IntervalRow {
@@ -61,6 +70,12 @@ export class AssemblyChecklistComponent implements OnInit {
    * müssen.
    */
   prefill = input<KudoGroupSuggestion | null>(null);
+  /**
+   * Ungruppierte Slots des Bikes (z.B. "Ohne Baugruppe"-Alt-Teile). Für jede
+   * Teile-Zeile mit exakt passendem Template wird ein Übernehmen-Vorschlag
+   * angeboten, statt den Nutzer zur Neuanlage zu zwingen.
+   */
+  ungroupedSlots = input<ComponentSlotList[]>([]);
 
   created = output<BikeAssembly>();
   skipped = output<void>();
@@ -92,9 +107,18 @@ export class AssemblyChecklistComponent implements OnInit {
     const prefill = this.prefill();
     const partHints = new Map((prefill?.parts ?? []).map((p) => [p.template_id, p]));
     const intervalHints = new Map((prefill?.intervals ?? []).map((i) => [i.template_id, i]));
+    // Pro Template höchstens ein ungruppierter Slot möglich (DB-Constraint) —
+    // eine einfache Map reicht, kein Auswahl-Dropdown nötig. Ohne montiertes
+    // Teil gibt es nichts Sinnvolles zu übernehmen.
+    const existingByTemplate = new Map(
+      this.ungroupedSlots()
+        .filter((s) => s.mounted_component !== null)
+        .map((s) => [s.template, s]),
+    );
 
     this.partRows = g.parts.map((t) => {
       const hint = partHints.get(t.id);
+      const existingSlot = existingByTemplate.get(t.id) ?? null;
       return {
         template: t,
         include: hint ? hint.include : t.default_in_group,
@@ -102,6 +126,11 @@ export class AssemblyChecklistComponent implements OnInit {
         modelName: hint?.model_name ?? '',
         customWarnKm: hint?.custom_warn_km ?? null,
         kudo: hint ? hint.confidence : null,
+        existingSlot,
+        // Fund automatisch vorschlagen (kein Rätselraten für den Nutzer nötig,
+        // Template-Match ist eindeutig) — abwählbar, falls doch ein zweites,
+        // neues Teil gewünscht ist.
+        reuseExisting: existingSlot !== null,
       };
     });
     this.intervalRows = g.consumables.map((t) => {
@@ -121,14 +150,25 @@ export class AssemblyChecklistComponent implements OnInit {
     return { high: 'Kudo', medium: 'Kudo ~', low: 'Kudo ?' }[confidence];
   }
 
+  /** Anzeigename für den Übernehmen-Vorschlag einer bestehenden Komponente. */
+  existingLabel(slot: ComponentSlotList): string {
+    const comp = slot.mounted_component;
+    const name = [comp?.brand, comp?.model_name].filter((v) => !!v).join(' ');
+    return name || 'ohne Marke/Modell';
+  }
+
   buildPayload(): CreateAssemblyPayload {
-    const parts: AssemblyPartItem[] = this.partRows.map((r) => ({
-      template_id: r.template.id,
-      include: r.include,
-      brand: r.brand.trim(),
-      model_name: r.modelName.trim(),
-      custom_warn_km: r.customWarnKm,
-    }));
+    const parts: AssemblyPartItem[] = this.partRows.map((r) =>
+      r.existingSlot && r.reuseExisting
+        ? { template_id: r.template.id, include: r.include, existing_slot_id: r.existingSlot.id }
+        : {
+            template_id: r.template.id,
+            include: r.include,
+            brand: r.brand.trim(),
+            model_name: r.modelName.trim(),
+            custom_warn_km: r.customWarnKm,
+          },
+    );
     const intervals: AssemblyIntervalItem[] = this.intervalRows.map((r) => ({
       template_id: r.template.id,
       include: r.include,

@@ -90,6 +90,15 @@ features/
     `quick-change-dialog-component` = "Teile erneuern" (→ `assemblies/<id>/swap/`): ersetzt
     die verschlissenen Teile *dieses* Satzes, der alte wird dabei ausgemustert.
     Einzelteil weiter über `add-component-dialog-component` / `component-swap-dialog-component`.
+    **"Vorhandene Komponente übernehmen"**: `assembly-checklist-component` bekommt vom
+    Aufrufer (`detail-bike-component` über `add-assembly-dialog-component` bzw.
+    `switch-assembly-dialog-component`) die ungruppierten Slots des Bikes als
+    `ungroupedSlots`-Input. Findet sich pro Teile-Zeile ein exakt passendes Template darunter
+    (mit montiertem Teil), wird automatisch ein Übernehmen-Vorschlag angeboten ("Vorhandene
+    Komponente übernehmen: Marke Modell · X km") statt der Marke/Modell-Felder — abwählbar,
+    falls doch ein zweites neues Teil gewünscht ist. Der Payload trägt dann
+    `existing_slot_id` statt `brand`/`model_name`; das Backend hängt den Slot per Umhängen in
+    die neue Baugruppe (Verlauf bleibt erhalten, keine neue Component).
 
 shared/
   components/notification-component — Toast-UI (liest NotificationService-Signal)

@@ -92,6 +92,39 @@
   color: var(--text);
 }
 
+/* ── "Vorhandene Komponente übernehmen" ──────────────────────────────────── */
+.reuse-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.35rem 0.5rem;
+  background: color-mix(in srgb, var(--ok) 8%, transparent);
+  border-left: 2px solid var(--ok);
+}
+
+.reuse-option input[type='checkbox'] {
+  accent-color: var(--ok);
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.reuse-text {
+  font-size: 0.78rem;
+  color: var(--text);
+}
+.reuse-text strong {
+  font-weight: 600;
+}
+
+.reuse-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
 .row-fields {
   display: flex;
   gap: 0.5rem;

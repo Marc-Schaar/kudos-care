@@ -152,6 +152,7 @@
     [bikeId]="bike.id"
     [bikeType]="bike.bike_type"
     [availableGroups]="availableGroups()"
+    [ungroupedSlots]="ungroupedSlots()"
     (close)="closeAddAssemblyDialog()"
     (saved)="onAssemblyAdded()"
   />
@@ -161,6 +162,7 @@
   <app-switch-assembly-dialog-component
     [assembly]="assembly"
     [parked]="parkedAssemblies()"
+    [ungroupedSlots]="ungroupedSlots()"
     (close)="closeSwitchAssembly()"
     (switched)="onAssemblySwitched()"
   />
