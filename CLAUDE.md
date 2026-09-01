@@ -42,6 +42,9 @@ core/                          — Shell, Bootstrapping, Routing, Interceptors
   maintenances.routes.ts       — Lazy Child-Routes für /maintenance
   interceptors/
     auth-interceptor/          — setzt withCredentials: true auf jeden Request
+    csrf-interceptor/          — haengt X-CSRFToken manuell an, origin-unabhaengig
+                                  (siehe Auth-Abschnitt unten — Angulars eingebauter
+                                  Mechanismus reicht im lokalen Dev-Betrieb NICHT)
     error-interceptor/         — globaler HTTP-Error-Handler → NotificationService-Toast
 
 features/
@@ -140,10 +143,24 @@ Konsistenz zu neueren Features halten.
   `environment.prod.ts` (`/api`, same-origin via Nginx-Reverse-Proxy). Kein zentraler
   `ApiService` — jeder Feature-Service (`StravaService`, `BikeService`, `ActivityService`)
   injiziert `HttpClient` direkt.
-- **Session-Cookie-Auth, kein JWT.** `provideHttpClient` nutzt
+- **Session-Cookie-Auth, kein JWT.** `provideHttpClient` nutzt zusätzlich
   `withXsrfConfiguration({cookieName:'csrftoken', headerName:'X-CSRFToken'})` (Django-CSRF-
   Konvention). `authInterceptor` setzt nur `withCredentials: true` — keine Token-Logik.
   **Beim Debuggen von Auth-Problemen niemals einen `Authorization`-Header vorschlagen.**
+  **Wichtig — `withXsrfConfiguration` allein reicht im lokalen Dev-Betrieb NICHT:**
+  Angulars eingebauter `HttpXsrfInterceptor` haengt den Header laut eigener Quelle nur an,
+  wenn Request- und Seiten-Origin identisch sind (`new URL(req.url).origin ===
+  new URL(location.href).origin`) — bei Produktion stimmt das (`environment.prod.ts`:
+  `apiUrl: '/api'`, relativ, selbe Origin via Reverse-Proxy), aber lokal ist `apiUrl`
+  absolut (`http://localhost:8000/api`, andere Origin als der Angular-Dev-Server) und der
+  Header blieb bislang komplett weg — jeder POST/PATCH/DELETE scheiterte lokal an Djangos
+  CSRF-Pruefung ("CSRF token missing"), obwohl das (nicht-HttpOnly) `csrftoken`-Cookie im
+  Browser lag. `csrf-interceptor` behebt das: liest das Cookie selbst und setzt den Header
+  unabhängig von der Origin (das von Django empfohlene Muster für eine getrennt gehostete
+  SPA). Gefunden erst beim Durchklicken der echten UI mit einem Browser (Playwright) — reine
+  API-Testskripte gegen `django.test.Client`/`requests` hatten das nie bemerkt, weil sie
+  Angulars HttpClient/Interceptor-Kette gar nicht durchlaufen. **Bei "funktioniert lokal
+  nicht, in Produktion schon"-Berichten zu POST/PATCH/DELETE zuerst hier nachsehen.**
 - Login: `Login`-Component baut Strava-Authorize-URL client-seitig und redirected per
   `window.location.href`. `StravaCallback` liest `code`/`scope`/`error` aus Query-Params,
   postet an `${apiUrl}/strava/auth/`, setzt `StravaService.user`-Signal, navigiert nach
