@@ -283,6 +283,33 @@
   border-color: transparent;
   color: var(--critical);
 }
+.parked-btn.icon-only {
+  padding: 0.4rem 0.55rem;
+  border-color: transparent;
+  color: var(--muted);
+}
+.parked-btn.icon-only:hover {
+  border-color: transparent;
+  color: var(--critical);
+}
+.parked-btn.confirm-yes {
+  border-color: var(--critical);
+  color: var(--critical);
+}
+.parked-btn.confirm-yes:hover:not(:disabled) {
+  background: var(--critical);
+  color: var(--bg);
+}
+
+.parked-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--critical);
+  white-space: nowrap;
+}
 
 .add-assembly-btn {
   margin-top: 1.5rem;
@@ -390,4 +417,22 @@
 .add-slot-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .parked-row {
+    flex-wrap: wrap;
+  }
+  .parked-info {
+    flex-basis: 100%;
+  }
+  .parked-btn {
+    flex: 1;
+    text-align: center;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+  .parked-btn.icon-only {
+    flex: 0 0 auto;
+  }
 }

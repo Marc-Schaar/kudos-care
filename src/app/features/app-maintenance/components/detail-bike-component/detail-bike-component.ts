@@ -24,6 +24,7 @@ import { QuickChangeDialogComponent } from '../quick-change-dialog-component/qui
 import { SwitchAssemblyDialogComponent } from '../switch-assembly-dialog-component/switch-assembly-dialog-component';
 import { BikeSetupStepperComponent } from '../bike-setup-stepper-component/bike-setup-stepper-component';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
 
 @Component({
   selector: 'app-detail-bike-component',
@@ -52,6 +53,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 export class DetailBikeComponent implements OnInit {
   private route = inject(ActivatedRoute);
   public bikeService = inject(BikeService);
+  private notify = inject(NotificationService);
 
   public bike = this.bikeService.selectedBike;
   public loading = signal(false);
@@ -67,6 +69,9 @@ export class DetailBikeComponent implements OnInit {
   public swapAssembly = signal<BikeAssembly | null>(null);
   public switchAssembly = signal<BikeAssembly | null>(null);
   public retiringAssemblyId = signal<number | null>(null);
+  public deletingAssemblyId = signal<number | null>(null);
+  /** Zwei-Klick-Bestätigung fürs Löschen einer geparkten Baugruppe (hart, cascadiert). */
+  public confirmingDeleteId = signal<number | null>(null);
 
   public assemblies = computed(() => this.assembliesData()?.assemblies ?? []);
   public parkedAssemblies = computed(() => this.assembliesData()?.parked_assemblies ?? []);
@@ -181,6 +186,30 @@ export class DetailBikeComponent implements OnInit {
         this.reload();
       },
       error: () => this.retiringAssemblyId.set(null),
+    });
+  }
+
+  requestDeleteParked(assembly: BikeAssembly) {
+    this.confirmingDeleteId.set(assembly.id);
+  }
+
+  cancelDeleteParked() {
+    this.confirmingDeleteId.set(null);
+  }
+
+  confirmDeleteParked(assembly: BikeAssembly) {
+    this.deletingAssemblyId.set(assembly.id);
+    this.bikeService.deleteAssembly(assembly.id).subscribe({
+      next: () => {
+        this.deletingAssemblyId.set(null);
+        this.confirmingDeleteId.set(null);
+        this.notify.show(`Baugruppe "${assembly.display_name}" gelöscht.`, 'success');
+        this.reload();
+      },
+      error: () => {
+        this.deletingAssemblyId.set(null);
+        this.notify.show('Löschen fehlgeschlagen.', 'error');
+      },
     });
   }
 

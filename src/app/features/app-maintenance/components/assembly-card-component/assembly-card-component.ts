@@ -10,14 +10,27 @@ import { BikeService } from '../../services/bike-service/bike-service';
 import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
 
 /**
- * Karte einer Baugruppe (BikeAssembly). Die Kopfzeile trägt Name, Gesamt-Status,
- * Setup-km und die beiden Aktionen; darunter die Element-Zeilen (SlotCard) und
- * die Wartungs-Intervalle (IntervalRow).
+ * Karte einer Baugruppe (BikeAssembly) — als Expansion Panel (mobile first: bei
+ * vielen Baugruppen wäre alles-immer-offen auf kleinen Screens ein endloser
+ * Scroll). Die Kopfzeile trägt Name, Gesamt-Status, Setup-km und die Aktionen
+ * und ist selbst der Auf-/Zuklapp-Trigger; darunter die Element-Zeilen
+ * (SlotCard) und die Wartungs-Intervalle (IntervalRow).
  *
- * Die zwei Aktionen sind bewusst getrennt, weil sie Unterschiedliches tun:
+ * Default-Zustand kommt aus `worst_status`: warn/critical startet offen (nichts
+ * Überfälliges soll hinter einem Klick verschwinden), ok/unknown startet zu.
+ * Ein manuelles Auf-/Zuklappen überschreibt diesen Default für die Sitzung
+ * (`expandOverride`). Ein per Bike-Diagramm hervorgehobenes Teil
+ * (`highlightedSlotId`) klappt die Karte IMMER auf, auch gegen einen manuellen
+ * Override — sonst liefe `scrollIntoView` ins Leere.
+ *
+ * Die zwei Wechsel-Aktionen sind bewusst getrennt, weil sie Unterschiedliches tun:
  * "Wechseln" tauscht die ganze Baugruppe gegen einen anderen vorhandenen Satz
  * (Sommer-/Winter-LRS, der alte wird geparkt), "Teile erneuern" ersetzt die
  * verschlissenen Teile *dieses* Satzes durch neue (der alte wird ausgemustert).
+ * "Löschen" ist ein hartes Backend-DELETE (Cascade auf Slots/Components/
+ * Intervalle/Perioden, siehe `assemblies/<id>/` DELETE) — anders als "Ausmustern"
+ * bleibt dabei keine Historie übrig, daher die Zwei-Klick-Bestätigung inline
+ * statt eines eigenen Dialogs.
  */
 @Component({
   selector: 'app-assembly-card-component',
@@ -48,6 +61,8 @@ export class AssemblyCardComponent {
   swapComponent = output<number>();
   checkComponent = output<number>();
   changed = output<void>();
+  /** Baugruppe wurde geloescht — Aufrufer muss sie aus seiner Liste entfernen. */
+  deleted = output<number>();
 
   private readonly bikeService = inject(BikeService);
   private readonly notify = inject(NotificationService);
@@ -55,6 +70,12 @@ export class AssemblyCardComponent {
   editingName = signal(false);
   nameDraft = signal('');
   savingName = signal(false);
+
+  confirmingDelete = signal(false);
+  deleting = signal(false);
+
+  /** null = folgt dem Default aus worst_status, sonst manuell gesetzt. */
+  private expandOverride = signal<boolean | null>(null);
 
   sortedSlots = computed(() =>
     [...this.assembly().slots].sort(
@@ -67,6 +88,24 @@ export class AssemblyCardComponent {
   alternativeCount = computed(
     () => this.parkedAssemblies().filter((a) => a.group === this.assembly().group).length,
   );
+
+  private defaultExpanded = computed(() => {
+    const status = this.assembly().worst_status;
+    return status === 'warn' || status === 'critical';
+  });
+
+  private hasHighlightedSlot = computed(() => {
+    const id = this.highlightedSlotId();
+    return id != null && this.assembly().slots.some((s) => s.id === id);
+  });
+
+  expanded = computed(
+    () => this.hasHighlightedSlot() || (this.expandOverride() ?? this.defaultExpanded()),
+  );
+
+  toggleExpanded() {
+    this.expandOverride.set(!this.expanded());
+  }
 
   startRename() {
     this.nameDraft.set(this.assembly().name || this.assembly().group_detail.name);
@@ -89,6 +128,31 @@ export class AssemblyCardComponent {
       error: () => {
         this.savingName.set(false);
         this.notify.show('Umbenennen fehlgeschlagen.', 'error');
+      },
+    });
+  }
+
+  requestDelete() {
+    this.confirmingDelete.set(true);
+  }
+
+  cancelDelete() {
+    this.confirmingDelete.set(false);
+  }
+
+  confirmDeleteNow() {
+    this.deleting.set(true);
+    const id = this.assembly().id;
+    const name = this.assembly().display_name;
+    this.bikeService.deleteAssembly(id).subscribe({
+      next: () => {
+        this.notify.show(`Baugruppe "${name}" gelöscht.`, 'success');
+        this.deleted.emit(id);
+      },
+      error: () => {
+        this.deleting.set(false);
+        this.confirmingDelete.set(false);
+        this.notify.show('Löschen fehlgeschlagen.', 'error');
       },
     });
   }

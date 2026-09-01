@@ -71,11 +71,25 @@ features/
                                    MaintenanceInterval, ComponentSlot, BikeComponent, ...
     Ein Bike besteht aus Baugruppen (`BikeAssembly`). `detail-bike-component` lädt
     `GET bikes/<id>/assemblies/` und rendert je Baugruppe eine `assembly-card-component`
-    (Kopfzeile trägt Name, Setup-km, Gesamt-Status und die zwei Aktions-Buttons
-    **"Wechseln"** / **"Teile erneuern"**; Body = `slot-card-component`-Elementzeilen mit
-    echtem km-/Tage-Balken + `interval-row-component` für Verbrauchsmaterial mit
-    "Erledigt"-Button). Darunter der Abschnitt **"Geparkte Baugruppen"** aus
-    `parked_assemblies` (Montieren / Ausmustern).
+    als **Expansion Panel** (mobile first — bei 7-8 Baugruppen wäre alles-immer-offen ein
+    endloser Scroll): die Kopfzeile (Name, Setup-km, Gesamt-Status,
+    **"Wechseln"** / **"Teile erneuern"** / 🗑) ist selbst der Auf-/Zuklapp-Trigger
+    (`role="button"`, tastaturbedienbar), CSS-Grid-Trick (`grid-template-rows: 0fr → 1fr`)
+    animiert den Body ohne JS-Höhenmessung. Default-Zustand kommt aus `worst_status`:
+    warn/critical startet offen, ok/unknown startet zu — ein manueller Klick überschreibt
+    das für die Sitzung; ein per Bike-Diagramm hervorgehobener Slot
+    (`highlightedSlotId`, siehe `onDiagramDotClick`/`scrollIntoView`) klappt IMMER auf,
+    auch gegen einen manuellen Zuklapp-Override, sonst liefe der Scroll ins Leere.
+    Body = `slot-card-component`-Elementzeilen mit echtem km-/Tage-Balken +
+    `interval-row-component` für Verbrauchsmaterial mit "Erledigt"-Button.
+    **Löschen** (🗑 in der Aktionsreihe, ersetzt Wechseln/Teile-erneuern durch eine
+    Zwei-Klick-Inline-Bestätigung statt eines eigenen Dialogs — kein Overhead für eine
+    Aktion, die man selten braucht) ruft das harte `DELETE assemblies/<id>/`: cascadiert
+    auf Slots/Components/Intervalle/Nutzungsperioden, anders als "Ausmustern" bleibt keine
+    Historie übrig. Genauso für geparkte Sätze im Abschnitt **"Geparkte Baugruppen"**
+    (`parked_assemblies`: Montieren / Ausmustern / 🗑, Bestätigung analog in
+    `detail-bike-component` selbst statt in einer Kind-Komponente, da dort keine
+    Card-pro-Item-Komponente existiert).
     Anlegen: `add-assembly-dialog-component` (Gruppe wählen → `assembly-checklist-component`).
     Neues Bike ohne Komponenten → `bike-setup-stepper-component` (ein Schritt je empfohlener
     Baugruppe). Davor liegt **Kudo** (`kudo-intro-component`, Schritt 0): Hersteller +
