@@ -4,14 +4,14 @@
     <div>
       <h2 class="kudo-title">Kudo hilft dir beim Anlegen</h2>
       <p class="kudo-sub">
-        Sag mir Hersteller und Baujahr — ich schlage dir die passenden Komponenten vor.
-        Du kannst danach alles korrigieren.
+        Sag mir Hersteller und Baujahr — kennst du auch das Modell, gib es gleich mit an,
+        das macht den Vorschlag treffsicherer. Du kannst danach alles korrigieren.
       </p>
     </div>
   </div>
 
   @if (phase() === 'ask') {
-    <form class="kudo-form" (ngSubmit)="askModels()">
+    <form class="kudo-form" (ngSubmit)="submitAsk()">
       <div class="kudo-fields">
         <div class="field">
           <label class="label" for="kudo-manufacturer">Hersteller</label>
@@ -22,6 +22,18 @@
             [(ngModel)]="manufacturer"
             name="manufacturer"
             placeholder="z.B. Canyon"
+            autocomplete="off"
+          />
+        </div>
+        <div class="field">
+          <label class="label" for="kudo-model">Modell (optional)</label>
+          <input
+            id="kudo-model"
+            class="input"
+            type="text"
+            [(ngModel)]="model"
+            name="model"
+            placeholder="z.B. Grail CF SL 7"
             autocomplete="off"
           />
         </div>
@@ -37,6 +49,12 @@
           />
         </div>
       </div>
+      @if (model.trim()) {
+        <p class="kudo-hint">
+          Mit Modell überspringt Kudo die Modellsuche und schlägt direkt Komponenten
+          dafür vor.
+        </p>
+      }
 
       @if (error()) {
         <div class="error-msg">{{ error() }}</div>

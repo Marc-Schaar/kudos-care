@@ -60,6 +60,15 @@
   min-width: 7rem;
 }
 
+/* Rückmeldung, dass die Modellsuche übersprungen wird, sobald Modell ausgefüllt ist. */
+.kudo-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--accent);
+  margin: -0.4rem 0 0;
+}
+
 .field {
   display: flex;
   flex-direction: column;

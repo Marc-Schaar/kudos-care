@@ -12,10 +12,15 @@ type Phase = 'ask' | 'models' | 'building';
 /**
  * "Kudo hilft dir beim Anlegen" — Schritt 0 des Bike-Setups.
  *
- * Zwei Fragen (Hersteller, Baujahr) statt einer leeren Checkliste: Kudo schlägt
- * passende Modelle vor, und aus dem gewählten Modell eine Vorbelegung für den
- * bestehenden Stepper. Angelegt wird hier nichts — der Nutzer läuft danach den
- * normalen Ablauf durch und kann jede Zeile korrigieren.
+ * Hersteller, Baujahr und optional gleich das Modell — statt einer leeren
+ * Checkliste schlägt Kudo daraus eine Vorbelegung für den bestehenden Stepper vor.
+ * Angelegt wird hier nichts — der Nutzer läuft danach den normalen Ablauf durch
+ * und kann jede Zeile korrigieren.
+ *
+ * Ist das Modell schon bekannt, wird die Modellsuche übersprungen und direkt mit
+ * Hersteller+Modell+Baujahr eine Setup-Vorbelegung angefragt — das trifft genauer,
+ * weil Kudo dann nicht erst selbst raten muss, welches Modell gemeint sein könnte.
+ * Kennt der Nutzer nur den Hersteller, schlägt Kudo wie bisher passende Modelle vor.
  *
  * Fällt Kudo aus (kein API-Key, Timeout), bleibt der manuelle Weg unverändert
  * offen; deshalb ist "Selbst einrichten" hier gleichberechtigt sichtbar und kein
@@ -39,6 +44,8 @@ export class KudoIntroComponent {
   private readonly bikeService = inject(BikeService);
 
   manufacturer = '';
+  /** Optional schon in Schritt 1 angebbar — dann entfällt die Modellsuche. */
+  model = '';
   year: number | null = null;
 
   phase = signal<Phase>('ask');
@@ -46,14 +53,32 @@ export class KudoIntroComponent {
   error = signal<string | null>(null);
   models = signal<KudoModelCandidate[]>([]);
 
-  askModels() {
+  /**
+   * Einstiegspunkt des ersten Formulars. Ist ein Modell angegeben, wird direkt eine
+   * Setup-Vorbelegung dafür angefragt (treffsicherer als der Umweg über eine von
+   * Kudo selbst geratene Modellliste); ohne Modell läuft die bisherige Modellsuche.
+   */
+  submitAsk() {
     const manufacturer = this.manufacturer.trim();
     if (!manufacturer) {
       this.error.set('Bitte einen Hersteller angeben.');
       return;
     }
-
     this.error.set(null);
+
+    const model = this.model.trim();
+    if (model) {
+      // Für den Fall, dass die Setup-Anfrage fehlschlägt: chooseModel() fällt dann
+      // auf die Modell-Phase zurück, deren Eintippen-Feld so schon vorbefüllt ist.
+      this.customModel = model;
+      this.chooseModel(model);
+      return;
+    }
+
+    this.askModels(manufacturer);
+  }
+
+  private askModels(manufacturer: string) {
     this.loading.set(true);
     this.bikeService.fetchKudoModels(manufacturer, this.year, this.bikeType()).subscribe({
       next: (res) => {
