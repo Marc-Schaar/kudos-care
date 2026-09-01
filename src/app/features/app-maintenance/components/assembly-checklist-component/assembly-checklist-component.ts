@@ -31,13 +31,17 @@ interface PartRow {
   /** True = existingSlot wird übernommen (Slot umgehängt), statt ein neues Teil anzulegen. */
   reuseExisting: boolean;
   /**
-   * Ein bereits *ausgebautes* Teil mit exakt diesem Template (z.B. ein
-   * zurückgelegter Laufradsatz-Teil aus dem Keller) — Alternative zu
+   * Alle bereits *ausgebauten* Teile mit exakt diesem Template (z.B. mehrere
+   * historische Felgen auf einem längst ausgemusterten Slot) — Alternative zu
    * `existingSlot` für den Fall, dass gerade nichts (mehr) montiert ist. Nur
-   * relevant, wenn `existingSlot` null ist (siehe ngOnInit).
+   * relevant, wenn `existingSlot` null ist (siehe ngOnInit). Mehr als ein
+   * Kandidat ist möglich — es gibt keine zuverlässige Heuristik, "den einen
+   * richtigen" zu erraten, deshalb wählt der Nutzer selbst (`selectedSpareId`).
    */
-  spareComponent: SpareComponent | null;
-  /** True = spareComponent wird reaktiviert, statt ein neues Teil anzulegen. */
+  spareCandidates: SpareComponent[];
+  /** Id des in `spareCandidates` ausgewählten Kandidaten (Default: erster). */
+  selectedSpareId: number | null;
+  /** True = der ausgewählte Kandidat wird reaktiviert, statt ein neues Teil anzulegen. */
   reuseSpare: boolean;
 }
 
@@ -131,15 +135,21 @@ export class AssemblyChecklistComponent implements OnInit {
         .filter((s) => s.mounted_component !== null)
         .map((s) => [s.template, s]),
     );
-    // Ebenfalls pro Template höchstens ein Kandidat (Backend liefert nur den
-    // zuletzt ausgebauten). Nur relevant, wenn kein montierter ungruppierter
-    // Slot existiert — der ist der "näherliegende" Fund (durchgehend montiert).
-    const spareByTemplate = new Map(this.spareComponents().map((s) => [s.template, s]));
+    // Kann mehrere Kandidaten je Template geben (z.B. mehrere historische
+    // Felgen auf einem längst ausgemusterten Slot) — nur relevant, wenn kein
+    // montierter ungruppierter Slot existiert (der ist der "näherliegende"
+    // Fund, durchgehend montiert).
+    const sparesByTemplate = new Map<number, SpareComponent[]>();
+    for (const spare of this.spareComponents()) {
+      const list = sparesByTemplate.get(spare.template) ?? [];
+      list.push(spare);
+      sparesByTemplate.set(spare.template, list);
+    }
 
     this.partRows = g.parts.map((t) => {
       const hint = partHints.get(t.id);
       const existingSlot = existingByTemplate.get(t.id) ?? null;
-      const spareComponent = existingSlot ? null : (spareByTemplate.get(t.id) ?? null);
+      const spareCandidates = existingSlot ? [] : (sparesByTemplate.get(t.id) ?? []);
       return {
         template: t,
         include: hint ? hint.include : t.default_in_group,
@@ -152,8 +162,9 @@ export class AssemblyChecklistComponent implements OnInit {
         // Template-Match ist eindeutig) — abwählbar, falls doch ein zweites,
         // neues Teil gewünscht ist.
         reuseExisting: existingSlot !== null,
-        spareComponent,
-        reuseSpare: spareComponent !== null,
+        spareCandidates,
+        selectedSpareId: spareCandidates[0]?.id ?? null,
+        reuseSpare: spareCandidates.length > 0,
       };
     });
     this.intervalRows = g.consumables.map((t) => {
@@ -186,16 +197,28 @@ export class AssemblyChecklistComponent implements OnInit {
     return name || 'ohne Marke/Modell';
   }
 
+  /** Anzeigetext einer Zeile im Auswahlfeld, wenn mehrere Kandidaten existieren. */
+  spareOptionLabel(spare: SpareComponent): string {
+    const parts = [this.spareLabel(spare)];
+    if (spare.prior_wear_km != null) {
+      parts.push(`${spare.prior_wear_km} km`);
+    }
+    if (spare.retired_at) {
+      parts.push(`ausgebaut ${spare.retired_at}`);
+    }
+    return parts.join(' · ');
+  }
+
   buildPayload(): CreateAssemblyPayload {
     const parts: AssemblyPartItem[] = this.partRows.map((r) => {
       if (r.existingSlot && r.reuseExisting) {
         return { template_id: r.template.id, include: r.include, existing_slot_id: r.existingSlot.id };
       }
-      if (r.spareComponent && r.reuseSpare) {
+      if (r.spareCandidates.length > 0 && r.reuseSpare && r.selectedSpareId != null) {
         return {
           template_id: r.template.id,
           include: r.include,
-          reuse_component_id: r.spareComponent.id,
+          reuse_component_id: r.selectedSpareId,
         };
       }
       return {

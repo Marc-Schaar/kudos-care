@@ -60,7 +60,7 @@
                   </span>
                 </label>
               }
-              @if (!row.existingSlot && row.spareComponent; as spare) {
+              @if (!row.existingSlot && row.spareCandidates.length === 1) {
                 <label class="reuse-option" (click)="$event.stopPropagation()">
                   <input
                     type="checkbox"
@@ -70,17 +70,39 @@
                   />
                   <span class="reuse-text">
                     Ausgebautes Teil reaktivieren:
-                    <strong>{{ spareLabel(spare) }}</strong>
-                    @if (spare.prior_wear_km != null) {
-                      <span class="reuse-meta"> · {{ spare.prior_wear_km }} km</span>
+                    <strong>{{ spareLabel(row.spareCandidates[0]) }}</strong>
+                    @if (row.spareCandidates[0].prior_wear_km != null) {
+                      <span class="reuse-meta"> · {{ row.spareCandidates[0].prior_wear_km }} km</span>
                     }
-                    @if (spare.retired_at) {
-                      <span class="reuse-meta"> · ausgebaut {{ spare.retired_at }}</span>
+                    @if (row.spareCandidates[0].retired_at) {
+                      <span class="reuse-meta"> · ausgebaut {{ row.spareCandidates[0].retired_at }}</span>
                     }
                   </span>
                 </label>
+              } @else if (!row.existingSlot && row.spareCandidates.length > 1) {
+                <div class="reuse-option reuse-option-multi" (click)="$event.stopPropagation()">
+                  <label class="reuse-check">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="row.reuseSpare"
+                      [name]="'p-reuse-spare-' + row.template.id"
+                      [disabled]="!row.include"
+                    />
+                    <span class="reuse-text">Ausgebautes Teil reaktivieren:</span>
+                  </label>
+                  <select
+                    class="input reuse-select"
+                    [(ngModel)]="row.selectedSpareId"
+                    [name]="'p-reuse-spare-select-' + row.template.id"
+                    [disabled]="!row.include || !row.reuseSpare"
+                  >
+                    @for (spare of row.spareCandidates; track spare.id) {
+                      <option [ngValue]="spare.id">{{ spareOptionLabel(spare) }}</option>
+                    }
+                  </select>
+                </div>
               }
-              @if ((!row.existingSlot || !row.reuseExisting) && (!row.spareComponent || !row.reuseSpare)) {
+              @if ((!row.existingSlot || !row.reuseExisting) && (row.spareCandidates.length === 0 || !row.reuseSpare)) {
                 <div class="row-fields" (click)="$event.stopPropagation()">
                   <input
                     class="input"

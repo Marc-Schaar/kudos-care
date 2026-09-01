@@ -125,6 +125,24 @@
   color: var(--muted);
 }
 
+.reuse-option-multi {
+  flex-direction: column;
+  align-items: stretch;
+  cursor: default;
+  gap: 0.4rem;
+}
+
+.reuse-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.reuse-select {
+  font-size: 0.75rem;
+}
+
 .row-fields {
   display: flex;
   gap: 0.5rem;
