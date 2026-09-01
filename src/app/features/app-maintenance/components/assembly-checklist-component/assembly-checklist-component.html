@@ -60,7 +60,24 @@
                   </span>
                 </label>
               }
-              @if (!row.existingSlot || !row.reuseExisting) {
+              @if (!row.existingSlot && row.spareComponent; as spare) {
+                <label class="reuse-option" (click)="$event.stopPropagation()">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="row.reuseSpare"
+                    [name]="'p-reuse-spare-' + row.template.id"
+                    [disabled]="!row.include"
+                  />
+                  <span class="reuse-text">
+                    Ausgebautes Teil reaktivieren:
+                    <strong>{{ spareLabel(spare) }}</strong>
+                    @if (spare.retired_at) {
+                      <span class="reuse-meta"> · ausgebaut {{ spare.retired_at }}</span>
+                    }
+                  </span>
+                </label>
+              }
+              @if ((!row.existingSlot || !row.reuseExisting) && (!row.spareComponent || !row.reuseSpare)) {
                 <div class="row-fields" (click)="$event.stopPropagation()">
                   <input
                     class="input"

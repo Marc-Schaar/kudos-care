@@ -39,6 +39,7 @@ function makeGroup(parts: ComponentTemplate[]): ComponentGroupCatalog {
     is_system: true,
     parts,
     consumables: [],
+    has_active_instance: false,
   } as ComponentGroupCatalog;
 }
 

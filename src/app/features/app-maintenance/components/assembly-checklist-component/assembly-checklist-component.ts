@@ -10,6 +10,7 @@ import {
   CreateAssemblyPayload,
   KudoConfidence,
   KudoGroupSuggestion,
+  SpareComponent,
 } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 
@@ -29,6 +30,15 @@ interface PartRow {
   existingSlot: ComponentSlotList | null;
   /** True = existingSlot wird übernommen (Slot umgehängt), statt ein neues Teil anzulegen. */
   reuseExisting: boolean;
+  /**
+   * Ein bereits *ausgebautes* Teil mit exakt diesem Template (z.B. ein
+   * zurückgelegter Laufradsatz-Teil aus dem Keller) — Alternative zu
+   * `existingSlot` für den Fall, dass gerade nichts (mehr) montiert ist. Nur
+   * relevant, wenn `existingSlot` null ist (siehe ngOnInit).
+   */
+  spareComponent: SpareComponent | null;
+  /** True = spareComponent wird reaktiviert, statt ein neues Teil anzulegen. */
+  reuseSpare: boolean;
 }
 
 interface IntervalRow {
@@ -76,6 +86,12 @@ export class AssemblyChecklistComponent implements OnInit {
    * angeboten, statt den Nutzer zur Neuanlage zu zwingen.
    */
   ungroupedSlots = input<ComponentSlotList[]>([]);
+  /**
+   * Ausgebaute Teile des Bikes (z.B. ein zurückgelegter Laufradsatz-Teil) —
+   * für den "vorhandene Komponente übernehmen"-Vorschlag, wenn kein
+   * montierter ungruppierter Slot desselben Templates existiert.
+   */
+  spareComponents = input<SpareComponent[]>([]);
 
   created = output<BikeAssembly>();
   skipped = output<void>();
@@ -115,10 +131,15 @@ export class AssemblyChecklistComponent implements OnInit {
         .filter((s) => s.mounted_component !== null)
         .map((s) => [s.template, s]),
     );
+    // Ebenfalls pro Template höchstens ein Kandidat (Backend liefert nur den
+    // zuletzt ausgebauten). Nur relevant, wenn kein montierter ungruppierter
+    // Slot existiert — der ist der "näherliegende" Fund (durchgehend montiert).
+    const spareByTemplate = new Map(this.spareComponents().map((s) => [s.template, s]));
 
     this.partRows = g.parts.map((t) => {
       const hint = partHints.get(t.id);
       const existingSlot = existingByTemplate.get(t.id) ?? null;
+      const spareComponent = existingSlot ? null : (spareByTemplate.get(t.id) ?? null);
       return {
         template: t,
         include: hint ? hint.include : t.default_in_group,
@@ -131,6 +152,8 @@ export class AssemblyChecklistComponent implements OnInit {
         // Template-Match ist eindeutig) — abwählbar, falls doch ein zweites,
         // neues Teil gewünscht ist.
         reuseExisting: existingSlot !== null,
+        spareComponent,
+        reuseSpare: spareComponent !== null,
       };
     });
     this.intervalRows = g.consumables.map((t) => {
@@ -157,18 +180,32 @@ export class AssemblyChecklistComponent implements OnInit {
     return name || 'ohne Marke/Modell';
   }
 
+  /** Anzeigename für den Übernehmen-Vorschlag eines ausgebauten Teils. */
+  spareLabel(spare: SpareComponent): string {
+    const name = [spare.brand, spare.model_name].filter((v) => !!v).join(' ');
+    return name || 'ohne Marke/Modell';
+  }
+
   buildPayload(): CreateAssemblyPayload {
-    const parts: AssemblyPartItem[] = this.partRows.map((r) =>
-      r.existingSlot && r.reuseExisting
-        ? { template_id: r.template.id, include: r.include, existing_slot_id: r.existingSlot.id }
-        : {
-            template_id: r.template.id,
-            include: r.include,
-            brand: r.brand.trim(),
-            model_name: r.modelName.trim(),
-            custom_warn_km: r.customWarnKm,
-          },
-    );
+    const parts: AssemblyPartItem[] = this.partRows.map((r) => {
+      if (r.existingSlot && r.reuseExisting) {
+        return { template_id: r.template.id, include: r.include, existing_slot_id: r.existingSlot.id };
+      }
+      if (r.spareComponent && r.reuseSpare) {
+        return {
+          template_id: r.template.id,
+          include: r.include,
+          reuse_component_id: r.spareComponent.id,
+        };
+      }
+      return {
+        template_id: r.template.id,
+        include: r.include,
+        brand: r.brand.trim(),
+        model_name: r.modelName.trim(),
+        custom_warn_km: r.customWarnKm,
+      };
+    });
     const intervals: AssemblyIntervalItem[] = this.intervalRows.map((r) => ({
       template_id: r.template.id,
       include: r.include,

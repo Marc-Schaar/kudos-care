@@ -76,6 +76,7 @@ export class DetailBikeComponent implements OnInit {
   public assemblies = computed(() => this.assembliesData()?.assemblies ?? []);
   public parkedAssemblies = computed(() => this.assembliesData()?.parked_assemblies ?? []);
   public ungroupedSlots = computed(() => this.assembliesData()?.ungrouped_slots ?? []);
+  public spareComponents = computed(() => this.assembliesData()?.spare_components ?? []);
   public availableGroups = computed(() => this.assembliesData()?.available_groups ?? []);
 
   public isEmpty = computed(

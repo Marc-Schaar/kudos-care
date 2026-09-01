@@ -164,6 +164,22 @@ export interface ComponentSlotDetail extends ComponentSlotList {
   components: BikeComponent[];
 }
 
+/**
+ * Ein ausgebautes (nicht montiertes) Teil als Übernahme-Vorschlag beim
+ * Baugruppe-Anlegen — Pendant zu `ComponentSlotList.mounted_component` für
+ * den Fall, dass das Teil gerade nicht montiert ist (z.B. ein zurückgelegter
+ * Laufradsatz-Teil aus dem Keller). Siehe `AssemblyPartItem.reuse_component_id`.
+ */
+export interface SpareComponent {
+  id: number;
+  template: number;
+  brand: string;
+  model_name: string;
+  installed_at: string | null;
+  retired_at: string | null;
+  distance_at_retire: number | null;
+}
+
 // ── Quick-Change (Baugruppen-Tausch) ───────────────────────────────────────────
 
 export interface ComponentGroupRef {
@@ -209,6 +225,8 @@ export interface ComponentGroupCatalog {
   is_system: boolean;
   parts: ComponentTemplate[];
   consumables: ComponentTemplate[];
+  /** True, wenn das Bike bereits eine aufgezogene Instanz dieser Gruppe hat. */
+  has_active_instance: boolean;
 }
 
 // ── Wartungs-Intervall (Verbrauchsmaterial / Pflege) ─────────────────────────
@@ -284,6 +302,7 @@ export interface AssembliesResponse {
   /** Alternativen zum Wechseln (inaktiv, aber nicht ausgemustert). */
   parked_assemblies: BikeAssembly[];
   ungrouped_slots: ComponentSlotList[];
+  spare_components: SpareComponent[];
   available_groups: ComponentGroupCatalog[];
 }
 
@@ -300,6 +319,11 @@ export interface AssemblyPartItem {
    * custom_warn_* werden dann vom Backend ignoriert.
    */
   existing_slot_id?: number;
+  /**
+   * Statt eine neue Komponente anzulegen: ein bereits ausgebautes Teil (siehe
+   * `SpareComponent`) reaktivieren. Schließt sich mit `existing_slot_id` aus.
+   */
+  reuse_component_id?: number;
 }
 
 export interface AssemblyIntervalItem {

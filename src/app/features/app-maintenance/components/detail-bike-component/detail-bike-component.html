@@ -181,6 +181,7 @@
     [bikeType]="bike.bike_type"
     [availableGroups]="availableGroups()"
     [ungroupedSlots]="ungroupedSlots()"
+    [spareComponents]="spareComponents()"
     (close)="closeAddAssemblyDialog()"
     (saved)="onAssemblyAdded()"
   />
@@ -191,6 +192,7 @@
     [assembly]="assembly"
     [parked]="parkedAssemblies()"
     [ungroupedSlots]="ungroupedSlots()"
+    [spareComponents]="spareComponents()"
     (close)="closeSwitchAssembly()"
     (switched)="onAssemblySwitched()"
     (deleted)="onAssemblyChanged()"
