@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { RouterLink } from '@angular/router';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { BikeService } from '../../services/bike-service/bike-service';
 import {
   AssembliesResponse,
@@ -21,6 +21,7 @@ import { BikeDiagramComponent } from '../bike-diagram-component/bike-diagram-com
 import { EditBikeDialogComponent } from '../edit-bike-dialog-component/edit-bike-dialog-component';
 import { ComponentSwapDialogComponent } from '../component-swap-dialog-component/component-swap-dialog-component';
 import { QuickChangeDialogComponent } from '../quick-change-dialog-component/quick-change-dialog-component';
+import { SwitchAssemblyDialogComponent } from '../switch-assembly-dialog-component/switch-assembly-dialog-component';
 import { BikeSetupStepperComponent } from '../bike-setup-stepper-component/bike-setup-stepper-component';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
@@ -30,6 +31,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
     RouterLink,
     WarnLabelPipe,
     WarnClassPipe,
+    DatePipe,
     DecimalPipe,
     AssemblyCardComponent,
     SlotCardComponent,
@@ -40,6 +42,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
     EditBikeDialogComponent,
     ComponentSwapDialogComponent,
     QuickChangeDialogComponent,
+    SwitchAssemblyDialogComponent,
     BikeSetupStepperComponent,
     Skeleton,
   ],
@@ -62,8 +65,11 @@ export class DetailBikeComponent implements OnInit {
   public editingComponent = signal<BikeComponentModel | null>(null);
   public swapSlotId = signal<number | null>(null);
   public swapAssembly = signal<BikeAssembly | null>(null);
+  public switchAssembly = signal<BikeAssembly | null>(null);
+  public retiringAssemblyId = signal<number | null>(null);
 
   public assemblies = computed(() => this.assembliesData()?.assemblies ?? []);
+  public parkedAssemblies = computed(() => this.assembliesData()?.parked_assemblies ?? []);
   public ungroupedSlots = computed(() => this.assembliesData()?.ungrouped_slots ?? []);
   public availableGroups = computed(() => this.assembliesData()?.available_groups ?? []);
 
@@ -135,7 +141,19 @@ export class DetailBikeComponent implements OnInit {
     this.reload();
   }
 
-  // ── Baugruppe tauschen ──────────────────────────────────────────────────────
+  // ── Baugruppe wechseln (anderer Satz) ───────────────────────────────────────
+  openSwitchAssembly(assemblyId: number) {
+    this.switchAssembly.set(this.assemblies().find((a) => a.id === assemblyId) ?? null);
+  }
+  closeSwitchAssembly() {
+    this.switchAssembly.set(null);
+  }
+  onAssemblySwitched() {
+    this.switchAssembly.set(null);
+    this.reload();
+  }
+
+  // ── Teile dieser Baugruppe erneuern ─────────────────────────────────────────
   openSwapAssembly(assemblyId: number) {
     const assembly = this.assemblies().find((a) => a.id === assemblyId) ?? null;
     this.swapAssembly.set(assembly);
@@ -146,6 +164,24 @@ export class DetailBikeComponent implements OnInit {
   onAssemblySwapped() {
     this.swapAssembly.set(null);
     this.reload();
+  }
+
+  // ── Geparkte Baugruppen ─────────────────────────────────────────────────────
+  activateParked(assembly: BikeAssembly) {
+    this.bikeService.activateAssembly(assembly.id).subscribe({
+      next: () => this.reload(),
+    });
+  }
+
+  retireParked(assembly: BikeAssembly) {
+    this.retiringAssemblyId.set(assembly.id);
+    this.bikeService.retireAssembly(assembly.id).subscribe({
+      next: () => {
+        this.retiringAssemblyId.set(null);
+        this.reload();
+      },
+      error: () => this.retiringAssemblyId.set(null),
+    });
   }
 
   onStepperDone() {

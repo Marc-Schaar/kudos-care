@@ -158,6 +158,44 @@
   color: var(--accent);
 }
 
+.ah-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Zähler der verfügbaren Alternativen direkt im "Wechseln"-Button. */
+.ah-alt-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  margin-left: 0.4rem;
+  padding: 0 0.25rem;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.6rem;
+}
+
+/* Sekundäre Aktion — bewusst zurückhaltender als "Wechseln". */
+.ah-renew-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.6rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+.ah-renew-btn:hover {
+  color: var(--text);
+}
+
 .assembly-body {
   padding: 0.9rem 1rem;
   display: flex;

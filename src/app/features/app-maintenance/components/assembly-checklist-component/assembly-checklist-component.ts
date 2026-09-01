@@ -50,6 +50,12 @@ export class AssemblyChecklistComponent implements OnInit {
   showSkip = input<boolean>(false);
   showName = input<boolean>(true);
   /**
+   * Soll die neue Baugruppe direkt aufgezogen werden? `null` überlässt die
+   * Entscheidung dem Backend (aufziehen, solange die Gruppe frei ist). Der
+   * Wechsel-Dialog setzt `true` — dort ist das Aufziehen ja der ganze Zweck.
+   */
+  activate = input<boolean | null>(null);
+  /**
    * Optionale Vorbelegung durch Kudo. Ersetzt die `default_in_group`-Defaults, lässt
    * aber jede Zeile editierbar — der Nutzer soll korrigieren können, nicht bestätigen
    * müssen.
@@ -129,13 +135,18 @@ export class AssemblyChecklistComponent implements OnInit {
       interval_km: r.intervalKm,
       interval_days: r.intervalDays,
     }));
-    return {
+    const payload: CreateAssemblyPayload = {
       group_id: this.group().id,
       name: this.name.trim(),
       installed_at: this.installedAt || undefined,
       parts,
       intervals,
     };
+    const activate = this.activate();
+    if (activate !== null) {
+      payload.activate = activate;
+    }
+    return payload;
   }
 
   save() {

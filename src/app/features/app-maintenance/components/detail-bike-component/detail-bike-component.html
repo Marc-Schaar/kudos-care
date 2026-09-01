@@ -75,6 +75,8 @@
             [assembly]="assembly"
             [bikeDistanceKm]="bike.total_distance_km"
             [highlightedSlotId]="highlightedSlotId()"
+            [parkedAssemblies]="parkedAssemblies()"
+            (switchAssembly)="openSwitchAssembly($event)"
             (swapAssembly)="openSwapAssembly($event)"
             (editComponent)="openEditComponentDialog($event)"
             (swapComponent)="openSwapDialog($event)"
@@ -102,6 +104,42 @@
         </section>
       }
 
+      @if (parkedAssemblies().length > 0) {
+        <section class="parked">
+          <h2 class="parked-title">Geparkte Baugruppen</h2>
+          <p class="parked-hint">
+            Abgezogen, aber nicht ausgemustert — sie sammeln keine Kilometer, solange sie
+            nicht montiert sind.
+          </p>
+          <div class="parked-list">
+            @for (parked of parkedAssemblies(); track parked.id) {
+              <div class="parked-row">
+                <div class="parked-info">
+                  <span class="parked-name">{{ parked.display_name }}</span>
+                  <span class="parked-meta">
+                    {{ parked.group_detail.name }}
+                    @if (parked.assembly_km !== null) {
+                      · {{ parked.assembly_km | number: '1.0-0' }} km
+                    }
+                    @if (parked.last_used_at) {
+                      · zuletzt {{ parked.last_used_at | date: 'dd.MM.yyyy' }}
+                    }
+                  </span>
+                </div>
+                <button class="parked-btn" (click)="activateParked(parked)">Montieren</button>
+                <button
+                  class="parked-btn secondary"
+                  [disabled]="retiringAssemblyId() === parked.id"
+                  (click)="retireParked(parked)"
+                >
+                  Ausmustern
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
       <button class="add-assembly-btn" (click)="openAddAssemblyDialog()">
         + Baugruppe hinzufügen
       </button>
@@ -116,6 +154,15 @@
     [availableGroups]="availableGroups()"
     (close)="closeAddAssemblyDialog()"
     (saved)="onAssemblyAdded()"
+  />
+}
+
+@if (switchAssembly(); as assembly) {
+  <app-switch-assembly-dialog-component
+    [assembly]="assembly"
+    [parked]="parkedAssemblies()"
+    (close)="closeSwitchAssembly()"
+    (switched)="onAssemblySwitched()"
   />
 }
 

@@ -11,8 +11,13 @@ import { NotificationService } from '../../../../shared/services/notification-se
 
 /**
  * Karte einer Baugruppe (BikeAssembly). Die Kopfzeile trägt Name, Gesamt-Status,
- * Setup-km und den "Baugruppe tauschen"-Button; darunter die Element-Zeilen
- * (SlotCard) und die Wartungs-Intervalle (IntervalRow).
+ * Setup-km und die beiden Aktionen; darunter die Element-Zeilen (SlotCard) und
+ * die Wartungs-Intervalle (IntervalRow).
+ *
+ * Die zwei Aktionen sind bewusst getrennt, weil sie Unterschiedliches tun:
+ * "Wechseln" tauscht die ganze Baugruppe gegen einen anderen vorhandenen Satz
+ * (Sommer-/Winter-LRS, der alte wird geparkt), "Teile erneuern" ersetzt die
+ * verschlissenen Teile *dieses* Satzes durch neue (der alte wird ausgemustert).
  */
 @Component({
   selector: 'app-assembly-card-component',
@@ -32,7 +37,12 @@ export class AssemblyCardComponent {
   assembly = input.required<BikeAssembly>();
   bikeDistanceKm = input<number | null>(null);
   highlightedSlotId = input<number | null>(null);
+  /** Geparkte Sätze des Bikes — nur die Anzahl passender wird hier angezeigt. */
+  parkedAssemblies = input<BikeAssembly[]>([]);
 
+  /** Ganze Baugruppe gegen einen anderen Satz tauschen. */
+  switchAssembly = output<number>();
+  /** Teile dieses Satzes erneuern (Legacy-"Baugruppe tauschen"). */
   swapAssembly = output<number>();
   editComponent = output<number>();
   swapComponent = output<number>();
@@ -51,6 +61,11 @@ export class AssemblyCardComponent {
       (a, b) =>
         a.category.localeCompare(b.category) || a.display_name.localeCompare(b.display_name),
     ),
+  );
+
+  /** Wie viele geparkte Sätze derselben Gruppe zur Auswahl stehen. */
+  alternativeCount = computed(
+    () => this.parkedAssemblies().filter((a) => a.group === this.assembly().group).length,
   );
 
   startRename() {

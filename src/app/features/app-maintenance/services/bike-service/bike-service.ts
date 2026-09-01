@@ -325,10 +325,31 @@ export class BikeService {
     return this.http.delete(`${this.baseUrl}/maintenance/assemblies/${assemblyId}/`);
   }
 
+  /** "Teile erneuern": alte Instanz ausmustern, neue mit frischen Teilen anlegen. */
   swapAssembly(assemblyId: number, payload: CreateAssemblyPayload) {
     return this.http.post<BikeAssembly>(
       `${this.baseUrl}/maintenance/assemblies/${assemblyId}/swap/`,
       payload,
+    );
+  }
+
+  /**
+   * Eine geparkte Baugruppe aufziehen (z.B. Winter-LRS montieren). Die bislang
+   * aufgezogene Instanz derselben Gruppe wird dabei geparkt, nicht ausgemustert —
+   * ihre Teile bleiben montiert und sammeln nur keine km mehr.
+   */
+  activateAssembly(assemblyId: number) {
+    return this.http.post<BikeAssembly>(
+      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/activate/`,
+      {},
+    );
+  }
+
+  /** Endgültig ausmustern (verkauft/entsorgt) — Teile werden ausgebaut. */
+  retireAssembly(assemblyId: number) {
+    return this.http.post<BikeAssembly>(
+      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/retire/`,
+      {},
     );
   }
 

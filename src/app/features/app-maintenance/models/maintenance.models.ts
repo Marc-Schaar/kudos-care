@@ -267,6 +267,10 @@ export interface BikeAssembly {
   installed_at: string | null;
   retired_at: string | null;
   is_active: boolean;
+  /** Abgezogen, aber nicht entsorgt — z.B. der Sommer-LRS im Keller. */
+  is_parked: boolean;
+  /** Bei geparkten Sätzen der Tag des Abziehens, bei aufgezogenen heute. */
+  last_used_at: string | null;
   slots: ComponentSlotList[];
   intervals: MaintenanceInterval[];
   assembly_km: number | null;
@@ -277,6 +281,8 @@ export interface BikeAssembly {
 
 export interface AssembliesResponse {
   assemblies: BikeAssembly[];
+  /** Alternativen zum Wechseln (inaktiv, aber nicht ausgemustert). */
+  parked_assemblies: BikeAssembly[];
   ungrouped_slots: ComponentSlotList[];
   available_groups: ComponentGroupCatalog[];
 }
@@ -303,6 +309,12 @@ export interface CreateAssemblyPayload {
   installed_at?: string;
   parts: AssemblyPartItem[];
   intervals: AssemblyIntervalItem[];
+  /**
+   * Neue Instanz direkt aufziehen? Ohne Angabe entscheidet das Backend: ist die
+   * Gruppe noch frei, wird aufgezogen — ist bereits ein Satz drauf, wird die
+   * neue Instanz geparkt angelegt statt den bestehenden zu verdrängen.
+   */
+  activate?: boolean;
 }
 
 // ── Bike ──────────────────────────────────────────────────────────────────────

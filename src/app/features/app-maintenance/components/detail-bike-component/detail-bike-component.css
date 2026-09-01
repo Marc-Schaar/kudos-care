@@ -195,6 +195,95 @@
   margin-bottom: 0.75rem;
 }
 
+/* Abgezogene, aber nicht ausgemusterte Baugruppen (z.B. Sommer-LRS im Keller). */
+.parked {
+  margin-top: 1.5rem;
+}
+
+.parked-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.parked-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+
+.parked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.parked-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+}
+
+.parked-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.parked-name {
+  font-size: 0.88rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.parked-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+.parked-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.7rem;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.parked-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.parked-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.parked-btn.secondary {
+  border-color: transparent;
+  color: var(--muted);
+}
+.parked-btn.secondary:hover:not(:disabled) {
+  border-color: transparent;
+  color: var(--critical);
+}
+
 .add-assembly-btn {
   margin-top: 1.5rem;
   background: none;

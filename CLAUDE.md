@@ -53,22 +53,54 @@ features/
   app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)
   app-activity/                 — Strava Activity List/Detail, Map, Wetter-Overlay
     pipes/headwind-label, services/activity-service
+    Die Karte (`components/map`) rendert die **fertigen `wind_segments` vom Backend**
+    und interpoliert selbst nichts mehr. Früher schnitt sie den vereinfachten Track in
+    Segmente und verteilte die Stundenwerte über den Segment-Index — das war falsch,
+    weil RDP in Kurven viele und auf Geraden wenige Punkte behält. Chart, Karte und
+    Kopfzeilen-Ø teilen sich jetzt eine relative Farbskala (`maxAbsHeadwind`/
+    `maxPrecipitation` aus `activity-detail`), womit auch die Legende endlich stimmt.
+    `wind_source` steuert den Hinweis darunter: `coarse` = grobe Start-Ziel-Schätzung,
+    `none` = keine Winddaten, Route neutral (Normalfall vor dem `recompute_wind`-Backfill).
+    Karte „Was diese Fahrt gekostet hat" = `GET activities/<id>/wear-impact/`.
   app-maintenance/               — Kern-Domäne: Bikes → Baugruppen → Elemente, Verschleiß
     services/bike-service, pipes/(km, warn-class, warn-label)
     models/maintenance.models.ts — BikeList/BikeDetail, BikeAssembly, ComponentGroupCatalog,
                                    MaintenanceInterval, ComponentSlot, BikeComponent, ...
     Ein Bike besteht aus Baugruppen (`BikeAssembly`). `detail-bike-component` lädt
     `GET bikes/<id>/assemblies/` und rendert je Baugruppe eine `assembly-card-component`
-    (Kopfzeile trägt Name, Setup-km, Gesamt-Status und den **"Baugruppe tauschen"**-Button;
-    Body = `slot-card-component`-Elementzeilen mit echtem km-/Tage-Balken +
-    `interval-row-component` für Verbrauchsmaterial mit "Erledigt"-Button).
+    (Kopfzeile trägt Name, Setup-km, Gesamt-Status und die zwei Aktions-Buttons
+    **"Wechseln"** / **"Teile erneuern"**; Body = `slot-card-component`-Elementzeilen mit
+    echtem km-/Tage-Balken + `interval-row-component` für Verbrauchsmaterial mit
+    "Erledigt"-Button). Darunter der Abschnitt **"Geparkte Baugruppen"** aus
+    `parked_assemblies` (Montieren / Ausmustern).
     Anlegen: `add-assembly-dialog-component` (Gruppe wählen → `assembly-checklist-component`).
     Neues Bike ohne Komponenten → `bike-setup-stepper-component` (ein Schritt je empfohlener
-    Baugruppe). `quick-change-dialog-component` = "Baugruppe tauschen" (→ `assemblies/<id>/swap/`).
+    Baugruppe). Davor liegt **Kudo** (`kudo-intro-component`, Schritt 0): Hersteller +
+    Baujahr → Modellauswahl → Vorbelegung aller Schritte. Der Stepper reicht sie per
+    `prefill`-Input an die `assembly-checklist-component` durch, die daraus ihre Zeilen
+    vorbelegt und mit einem Confidence-Badge als Vorschlag markiert. Ablauf und
+    Korrigierbarkeit bleiben identisch — Kudo füllt nur Felder vor, überspringen und
+    überschreiben geht wie vorher.
+    **Zwei Dialoge, die man nicht verwechseln darf:**
+    `switch-assembly-dialog-component` = "Wechseln" — listet die geparkten Sätze *derselben*
+    Gruppe zum Direktwechsel (→ `assemblies/<id>/activate/`, der bisherige wird geparkt und
+    behält seinen km-Stand) und bietet darunter "Neuen Satz anlegen" an, das dieselbe
+    `assembly-checklist-component` mit `activate=true` wiederverwendet. Damit hat der Wechsel
+    endlich etwas vorzuschlagen — genau das fehlte vorher.
+    `quick-change-dialog-component` = "Teile erneuern" (→ `assemblies/<id>/swap/`): ersetzt
+    die verschlissenen Teile *dieses* Satzes, der alte wird dabei ausgemustert.
     Einzelteil weiter über `add-component-dialog-component` / `component-swap-dialog-component`.
 
 shared/
   components/notification-component — Toast-UI (liest NotificationService-Signal)
+  components/user-menu               — E-Mail ändern, Benachrichtigungen an/aus, Abmelden.
+    Bewusst eine Shared-Komponente in den bestehenden Seiten-Headern (Dashboard,
+    Wartung, Activity-Breadcrumb) statt einer globalen Topbar — so bleibt das Layout
+    aller Seiten unangetastet.
+  components/email-prompt-dialog     — fragt einmal pro Session nach der E-Mail, wenn
+    `needs_email` gesetzt ist. Liegt in `core/app.html`, damit er unabhängig von der
+    Landing-Route erscheint; „Später" merkt sich das in `sessionStorage` (nicht
+    `localStorage` — sonst käme er nie wieder).
   components/skeleton                — Loading-Skeleton (variant: block/row/bar, count, height/width)
   pipes/abs
   services/notification-service, strava-service
@@ -107,6 +139,10 @@ Konsistenz zu neueren Features halten.
   `window.location.href`. `StravaCallback` liest `code`/`scope`/`error` aus Query-Params,
   postet an `${apiUrl}/strava/auth/`, setzt `StravaService.user`-Signal, navigiert nach
   2s Delay zu `/dashboard`.
+- `StravaService.user` traegt seit dem Usermenue auch `email`,
+  `email_notifications_enabled` und `needs_email` (aus `GET /strava/me/`);
+  `updateSettings()` schreibt sie per `PATCH /strava/me/` zurueck. `firstname` kommt
+  weiterhin nicht vom Backend, sondern aus dem `localStorage`-Cache.
 - `authGuard` (`features/app-login/guard/auth-guard.ts`): wenn `stravaService.user()`
   gesetzt ist → erlaubt; sonst `GET /strava/me/` (via Session-Cookie), Erfolg → erlaubt,
   Fehler → Redirect `/login`.
@@ -137,9 +173,14 @@ Signal-basierte Root-Services sind der durchgängige Pattern:
 ## Testing
 
 Vitest, Specs co-located (`*.spec.ts` neben Source), Standard-Angular-CLI-`TestBed`-Pattern.
-Viele Specs sind bislang generierte "should be created"-Stubs statt echter
-Verhaltenstests — bei neuen Features auf echte Assertions achten, nicht nur Scaffold
-übernehmen.
+
+**Stand:** 13 der 28 Spec-Dateien schlagen fehl — allesamt generierte
+"should be created"-Stubs, denen `provideHttpClient`/Router-Provider fehlen bzw. die
+Komponenten mit `required`-Inputs oder WebGL-Abhaengigkeit instanziieren
+(`map.spec.ts` scheitert an "Failed to initialize WebGL", weil jsdom kein WebGL hat).
+Das sind Scaffold-Altlasten, keine echten Regressionen — aber sie machen `npm test` als
+Signal wertlos. Bei neuen Features echte Assertions schreiben statt Scaffold uebernehmen;
+die Stubs sollten mittelfristig entweder mit Providern versorgt oder geloescht werden.
 
 ## Deployment
 
