@@ -178,6 +178,8 @@ export interface SpareComponent {
   installed_at: string | null;
   retired_at: string | null;
   distance_at_retire: number | null;
+  /** Bereits gefahrene km bis zum Ausbau — bleibt bei Übernahme erhalten. */
+  prior_wear_km: number | null;
 }
 
 // ── Quick-Change (Baugruppen-Tausch) ───────────────────────────────────────────

@@ -71,6 +71,9 @@
                   <span class="reuse-text">
                     Ausgebautes Teil reaktivieren:
                     <strong>{{ spareLabel(spare) }}</strong>
+                    @if (spare.prior_wear_km != null) {
+                      <span class="reuse-meta"> · {{ spare.prior_wear_km }} km</span>
+                    }
                     @if (spare.retired_at) {
                       <span class="reuse-meta"> · ausgebaut {{ spare.retired_at }}</span>
                     }
