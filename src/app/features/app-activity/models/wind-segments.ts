@@ -8,8 +8,16 @@
  * nichts mehr, sonst laufen Karte, Chart und Kopfzeile wieder auseinander.
  */
 
-/** `stream` = abschnittsgenau aus dem GPS-Stream. `coarse` = Start-Ziel-Schätzung. */
-export type WindSource = 'stream' | 'coarse';
+/**
+ * `stream` = abschnittsgenau aus dem GPS-Stream.
+ * `coarse` = nur Start-Ziel-Schätzung (kein GPS-Stream vorhanden).
+ * `none`   = Route vorhanden, aber keine Wetterdaten — neutral gezeichnet.
+ *
+ * `none` ist der Normalfall für Fahrten, die vor der Wind-Umstellung importiert
+ * wurden: deren `weather_data` kennt `wind_direction_10m` noch nicht, bis im
+ * Backend `recompute_wind` durchgelaufen ist.
+ */
+export type WindSource = 'stream' | 'coarse' | 'none';
 
 export interface WindSegmentProperties {
   index: number;

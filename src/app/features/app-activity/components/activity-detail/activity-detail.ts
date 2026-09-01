@@ -81,7 +81,7 @@ export class ActivityDetail implements OnInit {
    */
   public windSegments = computed(() => this.activityService.activityData()?.wind_segments ?? null);
 
-  public windSource = computed(() => this.windSegments()?.wind_source ?? 'coarse');
+  public windSource = computed(() => this.windSegments()?.wind_source ?? 'none');
 
   public maxAbsHeadwind = computed(() =>
     (this.windSegments()?.features ?? []).reduce(
