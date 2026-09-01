@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { SwitchAssemblyDialogComponent } from './switch-assembly-dialog-component';
 import { BikeAssembly } from '../../models/maintenance.models';
@@ -37,6 +37,7 @@ function makeAssembly(overrides: Partial<BikeAssembly> = {}): BikeAssembly {
 describe('SwitchAssemblyDialogComponent', () => {
   let component: SwitchAssemblyDialogComponent;
   let fixture: ComponentFixture<SwitchAssemblyDialogComponent>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -46,9 +47,12 @@ describe('SwitchAssemblyDialogComponent', () => {
 
     fixture = TestBed.createComponent(SwitchAssemblyDialogComponent);
     component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
     fixture.componentRef.setInput('assembly', makeAssembly());
     await fixture.whenStable();
   });
+
+  afterEach(() => httpMock.verify());
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -65,5 +69,49 @@ describe('SwitchAssemblyDialogComponent', () => {
   it('zeigt keine Alternativen, wenn es nur einen Satz gibt', () => {
     fixture.componentRef.setInput('parked', []);
     expect(component.alternatives()).toEqual([]);
+  });
+
+  describe('Löschen einer Alternative', () => {
+    const winter = makeAssembly({ id: 2, group: 100, display_name: 'Winter-LRS', is_active: false });
+
+    it('zeigt erst nach requestDelete() eine Bestätigung', () => {
+      expect(component.confirmingDeleteId()).toBeNull();
+      component.requestDelete(winter);
+      expect(component.confirmingDeleteId()).toBe(2);
+    });
+
+    it('cancelDelete() bricht ohne HTTP-Aufruf ab', () => {
+      component.requestDelete(winter);
+      component.cancelDelete();
+      expect(component.confirmingDeleteId()).toBeNull();
+      httpMock.expectNone(() => true);
+    });
+
+    it('confirmDeleteNow() ruft DELETE auf und emittiert deleted bei Erfolg', () => {
+      let deletedCount = 0;
+      component.deleted.subscribe(() => deletedCount++);
+
+      component.confirmDeleteNow(winter);
+      const req = httpMock.expectOne(
+        (r) => r.method === 'DELETE' && r.url.includes('/assemblies/2/'),
+      );
+      req.flush(null);
+
+      expect(deletedCount).toBe(1);
+      expect(component.confirmingDeleteId()).toBeNull();
+    });
+
+    it('confirmDeleteNow() setzt bei Fehlschlag zurück, ohne deleted zu emittieren', () => {
+      let deletedCount = 0;
+      component.deleted.subscribe(() => deletedCount++);
+
+      component.requestDelete(winter);
+      component.confirmDeleteNow(winter);
+      const req = httpMock.expectOne((r) => r.method === 'DELETE');
+      req.flush('error', { status: 500, statusText: 'Server Error' });
+
+      expect(component.deletingId()).toBeNull();
+      expect(deletedCount).toBe(0);
+    });
   });
 });

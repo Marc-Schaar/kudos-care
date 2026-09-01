@@ -103,7 +103,10 @@ features/
     Gruppe zum Direktwechsel (→ `assemblies/<id>/activate/`, der bisherige wird geparkt und
     behält seinen km-Stand) und bietet darunter "Neuen Satz anlegen" an, das dieselbe
     `assembly-checklist-component` mit `activate=true` wiederverwendet. Damit hat der Wechsel
-    endlich etwas vorzuschlagen — genau das fehlte vorher.
+    endlich etwas vorzuschlagen — genau das fehlte vorher. Jede Alternative in der Liste hat
+    ebenfalls ein 🗑 mit derselben Zwei-Klick-Bestätigung wie die Baugruppen-Karten
+    (`DELETE assemblies/<id>/`) — ersetzt bei Bestätigung nur "Montieren" für diese eine
+    Zeile, nicht den ganzen Dialog.
     `quick-change-dialog-component` = "Teile erneuern" (→ `assemblies/<id>/swap/`): ersetzt
     die verschlissenen Teile *dieses* Satzes, der alte wird dabei ausgemustert.
     Einzelteil weiter über `add-component-dialog-component` / `component-swap-dialog-component`.

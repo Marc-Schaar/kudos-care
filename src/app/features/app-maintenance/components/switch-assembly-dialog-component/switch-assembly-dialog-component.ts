@@ -35,6 +35,8 @@ export class SwitchAssemblyDialogComponent {
 
   close = output<void>();
   switched = output<void>();
+  /** Eine der Alternativen wurde geloescht — Aufrufer muss die Liste neu laden. */
+  deleted = output<void>();
 
   private readonly bikeService = inject(BikeService);
   private readonly notify = inject(NotificationService);
@@ -42,6 +44,10 @@ export class SwitchAssemblyDialogComponent {
   switching = signal<number | null>(null);
   error = signal<string | null>(null);
   showCreate = signal(false);
+
+  /** Zwei-Klick-Bestätigung fürs Löschen einer Alternative (hart, cascadiert). */
+  confirmingDeleteId = signal<number | null>(null);
+  deletingId = signal<number | null>(null);
 
   /** Nur Alternativen derselben Baugruppe — ein Laufrad ersetzt keinen Antrieb. */
   alternatives = computed(() =>
@@ -67,6 +73,30 @@ export class SwitchAssemblyDialogComponent {
       error: (err) => {
         this.switching.set(null);
         this.error.set(err?.error?.error ?? 'Wechsel fehlgeschlagen. Bitte erneut versuchen.');
+      },
+    });
+  }
+
+  requestDelete(alt: BikeAssembly) {
+    this.confirmingDeleteId.set(alt.id);
+  }
+
+  cancelDelete() {
+    this.confirmingDeleteId.set(null);
+  }
+
+  confirmDeleteNow(alt: BikeAssembly) {
+    this.deletingId.set(alt.id);
+    this.bikeService.deleteAssembly(alt.id).subscribe({
+      next: () => {
+        this.deletingId.set(null);
+        this.confirmingDeleteId.set(null);
+        this.notify.show(`Baugruppe "${alt.display_name}" gelöscht.`, 'success');
+        this.deleted.emit();
+      },
+      error: () => {
+        this.deletingId.set(null);
+        this.notify.show('Löschen fehlgeschlagen.', 'error');
       },
     });
   }
