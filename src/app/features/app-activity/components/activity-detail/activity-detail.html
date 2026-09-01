@@ -304,6 +304,11 @@
                 Für diese Fahrt liegen keine GPS-Detaildaten vor — der Wind ist als grobe
                 Start-Ziel-Schätzung dargestellt, nicht abschnittsweise.
               </p>
+            } @else if (windSource() === 'none') {
+              <p class="legend-hint legend-hint-warn">
+                Für diese Fahrt liegen keine Winddaten vor — die Strecke wird neutral
+                dargestellt.
+              </p>
             }
           </div>
         } @else {
