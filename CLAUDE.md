@@ -82,6 +82,17 @@ features/
     auch gegen einen manuellen Zuklapp-Override, sonst liefe der Scroll ins Leere.
     Body = `slot-card-component`-Elementzeilen mit echtem km-/Tage-Balken +
     `interval-row-component` für Verbrauchsmaterial mit "Erledigt"-Button.
+    **KI-Texte** gibt es an drei Stellen, alle nach demselben Muster: erst auf Klick
+    laden (die Generierung kostet einen AI-Call und ist Zugabe, nicht Voraussetzung
+    fürs Rendern), Zustände `loading` / `error` / `text` als Signals, Fehlermeldung aus
+    `err.error.error` mit Fallback-Satz. Zwei davon sitzen pro Komponente im
+    `slot-card-component` ("Warum?" → `weather-explanation`, "Wie prüfen?" →
+    `check-instructions`), der dritte pro Bike direkt in `detail-bike-component`:
+    **"Zustandsbericht"** (`GET bikes/<id>/condition-report/`) fasst alle montierten
+    Komponenten zusammen, zeigt `generated_at` und bietet "Neu generieren"
+    (`?refresh=true`). Der Server cacht ihn und erkennt Staleness selbst; die
+    Komponente verwirft den lokal gehaltenen Text zusätzlich bei jedem `reload()`
+    und beim Bike-Wechsel, sonst bliebe der Bericht des vorigen Zustands stehen.
     **Löschen** (🗑 in der Aktionsreihe, ersetzt Wechseln/Teile-erneuern durch eine
     Zwei-Klick-Inline-Bestätigung statt eines eigenen Dialogs — kein Overhead für eine
     Aktion, die man selten braucht) ruft das harte `DELETE assemblies/<id>/`: cascadiert

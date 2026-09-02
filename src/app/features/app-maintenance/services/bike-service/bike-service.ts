@@ -6,6 +6,7 @@ import {
   AssembliesResponse,
   BikeAssembly,
   BikeComponent,
+  BikeConditionReport,
   BikeDetail,
   BikeList,
   CheckInstructions,
@@ -243,6 +244,17 @@ export class BikeService {
     const params = refresh ? '?refresh=true' : '';
     return this.http.get<WeatherWearExplanation>(
       `${this.baseUrl}/maintenance/components/${componentId}/weather-explanation/${params}`,
+    );
+  }
+
+  /**
+   * KI-Zustandsbericht ueber alle montierten Komponenten eines Bikes.
+   * Serverseitig gecacht; `refresh` erzwingt eine Neugenerierung.
+   */
+  fetchConditionReport(bikeId: number, refresh = false) {
+    const params = refresh ? '?refresh=true' : '';
+    return this.http.get<BikeConditionReport>(
+      `${this.baseUrl}/maintenance/bikes/${bikeId}/condition-report/${params}`,
     );
   }
 

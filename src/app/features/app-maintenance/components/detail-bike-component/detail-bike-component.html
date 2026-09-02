@@ -62,6 +62,40 @@
       </div>
     </header>
 
+    @if (!isEmpty()) {
+      <section class="condition-report">
+        <div class="condition-report-row">
+          <button class="report-toggle-btn" (click)="toggleConditionReport()">
+            {{ showConditionReport() ? 'Zustandsbericht ausblenden' : 'Zustandsbericht' }}
+          </button>
+          @if (showConditionReport() && conditionReport(); as report) {
+            <span class="report-meta">
+              Stand {{ report.generated_at | date: 'dd.MM.yyyy HH:mm' }}
+            </span>
+            <button
+              class="report-refresh-btn"
+              [disabled]="conditionReportLoading()"
+              (click)="reloadConditionReport()"
+            >
+              Neu generieren
+            </button>
+          }
+        </div>
+
+        @if (showConditionReport()) {
+          <div class="condition-report-block">
+            @if (conditionReportLoading()) {
+              <span class="field-hint">(wird generiert…)</span>
+            } @else if (conditionReportError()) {
+              <span class="error-msg">{{ conditionReportError() }}</span>
+            } @else if (conditionReport(); as report) {
+              <p class="report-text">{{ report.report }}</p>
+            }
+          </div>
+        }
+      </section>
+    }
+
     @if (isEmpty() && !loading()) {
       <app-bike-setup-stepper-component
         [bikeId]="bike.id"
@@ -109,8 +143,8 @@
         <section class="parked">
           <h2 class="parked-title">Geparkte Baugruppen</h2>
           <p class="parked-hint">
-            Abgezogen, aber nicht ausgemustert — sie sammeln keine Kilometer, solange sie
-            nicht montiert sind.
+            Abgezogen, aber nicht ausgemustert — sie sammeln keine Kilometer, solange sie nicht
+            montiert sind.
           </p>
           <div class="parked-list">
             @for (parked of parkedAssemblies(); track parked.id) {

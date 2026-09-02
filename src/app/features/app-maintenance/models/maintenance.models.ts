@@ -146,6 +146,14 @@ export interface CheckInstructions {
   cached: boolean;
 }
 
+// ── Zustandsbericht (KI-generiert, on-demand, pro Bike) ───────────────────────
+
+export interface BikeConditionReport {
+  report: string;
+  generated_at: string; // ISO datetime
+  cached: boolean;
+}
+
 export interface ComponentSlotList {
   id: number;
   bike: number;

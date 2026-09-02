@@ -7,6 +7,7 @@ import {
   AssembliesResponse,
   BikeAssembly,
   BikeComponent as BikeComponentModel,
+  BikeConditionReport,
   ComponentSlotList,
   ComponentTemplate,
 } from '../../models/maintenance.models';
@@ -73,6 +74,18 @@ export class DetailBikeComponent implements OnInit {
   /** Zwei-Klick-Bestätigung fürs Löschen einer geparkten Baugruppe (hart, cascadiert). */
   public confirmingDeleteId = signal<number | null>(null);
 
+  /**
+   * KI-Zustandsbericht über alle montierten Komponenten. Wird erst beim
+   * Aufklappen geladen — die Generierung kostet einen AI-Call, und der Bericht
+   * ist eine Zugabe, keine Voraussetzung für die Seite. Der Server cacht ihn
+   * und regeneriert nur bei veränderten Zahlen; `reloadConditionReport()`
+   * erzwingt es per `refresh=true`.
+   */
+  public showConditionReport = signal(false);
+  public conditionReport = signal<BikeConditionReport | null>(null);
+  public conditionReportLoading = signal(false);
+  public conditionReportError = signal<string | null>(null);
+
   public assemblies = computed(() => this.assembliesData()?.assemblies ?? []);
   public parkedAssemblies = computed(() => this.assembliesData()?.parked_assemblies ?? []);
   public ungroupedSlots = computed(() => this.assembliesData()?.ungrouped_slots ?? []);
@@ -118,6 +131,11 @@ export class DetailBikeComponent implements OnInit {
     this.route.params.subscribe((params) => {
       const id = +params['id'];
       this.loading.set(true);
+      // Beim Wechsel auf ein anderes Bike darf der Bericht des vorigen nicht
+      // stehen bleiben.
+      this.showConditionReport.set(false);
+      this.conditionReport.set(null);
+      this.conditionReportError.set(null);
       this.bikeService.fetchBikeDetails(id).subscribe();
       this.bikeService.fetchAssemblies(id).subscribe({
         next: (data) => this.assembliesData.set(data),
@@ -132,6 +150,46 @@ export class DetailBikeComponent implements OnInit {
     this.bikeService.fetchBikeDetails(id).subscribe();
     this.bikeService.fetchAssemblies(id).subscribe({
       next: (data) => this.assembliesData.set(data),
+    });
+    // Der Bericht beschreibt einen Zustand, der sich gerade geändert hat. Der
+    // Server erkennt die Staleness selbst, aber der lokal gehaltene Text bliebe
+    // sonst stehen — also verwerfen und beim nächsten Aufklappen neu holen.
+    this.conditionReport.set(null);
+    this.conditionReportError.set(null);
+    if (this.showConditionReport()) {
+      this.loadConditionReport(false);
+    }
+  }
+
+  // ── KI-Zustandsbericht ──────────────────────────────────────────────────────
+  toggleConditionReport() {
+    const next = !this.showConditionReport();
+    this.showConditionReport.set(next);
+    if (next && this.conditionReport() === null && !this.conditionReportLoading()) {
+      this.loadConditionReport(false);
+    }
+  }
+
+  reloadConditionReport() {
+    this.loadConditionReport(true);
+  }
+
+  private loadConditionReport(refresh: boolean) {
+    const id = this.bike()?.id;
+    if (!id) return;
+    this.conditionReportLoading.set(true);
+    this.conditionReportError.set(null);
+    this.bikeService.fetchConditionReport(id, refresh).subscribe({
+      next: (res) => {
+        this.conditionReportLoading.set(false);
+        this.conditionReport.set(res);
+      },
+      error: (err) => {
+        this.conditionReportLoading.set(false);
+        this.conditionReportError.set(
+          err?.error?.error ?? 'Zustandsbericht konnte nicht geladen werden.',
+        );
+      },
     });
   }
 
