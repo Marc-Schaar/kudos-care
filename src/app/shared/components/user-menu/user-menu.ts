@@ -107,4 +107,39 @@ export class UserMenu {
     this.close();
     this.stravaService.logout();
   }
+
+  // ── Konto löschen ───────────────────────────────────────────────────────────
+  /**
+   * Zwei Schritte statt eines Dialogs: der erste Klick blendet die Warnung mit
+   * dem endgültigen Knopf ein. Das Löschen entfernt Fahrten, Bikes und die
+   * komplette Verschleiß-Historie und ist nicht rückgängig zu machen.
+   */
+  confirmingDelete = signal(false);
+  deleting = signal(false);
+
+  requestDelete() {
+    this.confirmingDelete.set(true);
+  }
+
+  cancelDelete() {
+    this.confirmingDelete.set(false);
+  }
+
+  deleteAccount() {
+    this.deleting.set(true);
+    this.stravaService.deleteAccount().subscribe({
+      next: () => {
+        this.deleting.set(false);
+        this.confirmingDelete.set(false);
+        this.close();
+        this.notificationService.show('Konto und alle Daten gelöscht.', 'success');
+        // Die Session ist serverseitig weg — den lokalen Zustand mitnehmen.
+        this.stravaService.logout();
+      },
+      error: (err) => {
+        this.deleting.set(false);
+        this.notificationService.show(err?.error?.error ?? 'Löschen fehlgeschlagen.', 'error');
+      },
+    });
+  }
 }

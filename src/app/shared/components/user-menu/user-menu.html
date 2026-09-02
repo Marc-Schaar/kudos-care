@@ -38,16 +38,10 @@
               placeholder="du@example.de"
               autocomplete="email"
             />
-            <p class="menu-hint">
-              Ohne Adresse verschickt Kudos Care keine Wartungs-Warnungen.
-            </p>
+            <p class="menu-hint">Ohne Adresse verschickt Kudos Care keine Wartungs-Warnungen.</p>
             <div class="menu-form-actions">
               @if (currentUser.email) {
-                <button
-                  type="button"
-                  class="menu-btn-ghost"
-                  (click)="editingEmail.set(false)"
-                >
+                <button type="button" class="menu-btn-ghost" (click)="editingEmail.set(false)">
                   Abbrechen
                 </button>
               }
@@ -85,6 +79,44 @@
         <button type="button" class="menu-item danger" role="menuitem" (click)="logout()">
           Abmelden
         </button>
+
+        <!-- Konto löschen: zwei Schritte, weil der Vorgang Fahrten, Bikes und
+             die komplette Verschleiß-Historie unwiderruflich entfernt. -->
+        @if (confirmingDelete()) {
+          <div class="delete-confirm">
+            <p class="delete-warning">
+              Konto endgültig löschen? Alle Fahrten, Bikes und Komponenten werden entfernt. Das
+              lässt sich nicht rückgängig machen.
+            </p>
+            <div class="delete-actions">
+              <button
+                type="button"
+                class="delete-btn"
+                [disabled]="deleting()"
+                (click)="deleteAccount()"
+              >
+                {{ deleting() ? 'Wird gelöscht…' : 'Endgültig löschen' }}
+              </button>
+              <button
+                type="button"
+                class="delete-btn subtle"
+                [disabled]="deleting()"
+                (click)="cancelDelete()"
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        } @else {
+          <button
+            type="button"
+            class="menu-item subtle-danger"
+            role="menuitem"
+            (click)="requestDelete()"
+          >
+            Konto löschen
+          </button>
+        }
       </div>
     }
   </div>

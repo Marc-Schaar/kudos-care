@@ -211,3 +211,72 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── Konto löschen ─────────────────────────────────────────────────────────
+   Bewusst leiser als "Abmelden": eine Aktion, die man selten und nie aus
+   Versehen will. Die Warnung erscheint erst nach dem ersten Klick. */
+.menu-item.subtle-danger {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.menu-item.subtle-danger:hover {
+  color: var(--critical);
+}
+
+.delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--critical) 6%, transparent);
+}
+
+.delete-warning {
+  margin: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.delete-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.delete-btn {
+  flex: 1 1 auto;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--critical);
+  color: var(--critical);
+  cursor: pointer;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: var(--critical);
+  color: var(--bg);
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-btn.subtle {
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.delete-btn.subtle:hover {
+  background: none;
+  color: var(--text);
+}

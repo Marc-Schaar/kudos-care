@@ -180,15 +180,25 @@ export class StravaService {
   }
 
   /**
+   * Loescht das Konto samt aller Daten (Art. 17 DSGVO).
+   *
+   * `confirm=true` verlangt das Backend zusaetzlich zur Rueckfrage im Client —
+   * ein versehentlich abgesetztes DELETE wuerde jahrelange Fahrthistorie
+   * unwiederbringlich entfernen.
+   */
+  public deleteAccount() {
+    return this.http.delete<void>(`${this.baseUrl}/strava/me/?confirm=true`);
+  }
+
+  /**
    * Nur fuer lokale Entwicklung (siehe environment.devLoginEnabled) — ruft den
    * Dev-Mock-Login des Backends auf (existiert dort nur bei DEBUG=True) statt des
    * echten Strava-OAuth-Roundtrips.
    */
   public devLogin() {
-    return this.http.post<{ athlete: { id: number; firstname: string } }>(
-      `${this.baseUrl}/dev/login/`,
-      {},
-    ).pipe(tap((res) => this.setLoggedInUser(res.athlete.id, res.athlete.firstname)));
+    return this.http
+      .post<{ athlete: { id: number; firstname: string } }>(`${this.baseUrl}/dev/login/`, {})
+      .pipe(tap((res) => this.setLoggedInUser(res.athlete.id, res.athlete.firstname)));
   }
 
   public fetchActivities() {
