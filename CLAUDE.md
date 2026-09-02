@@ -199,7 +199,14 @@ features/
 
 shared/
   components/notification-component — Toast-UI (liest NotificationService-Signal)
-  components/user-menu               — E-Mail ändern, Benachrichtigungen an/aus, Abmelden.
+  components/user-menu               — E-Mail ändern, Benachrichtigungen an/aus, Abmelden,
+                                       **Konto löschen** (`deleteAccount()` → `DELETE
+                                       strava/me/?confirm=true`). Zwei Schritte statt
+                                       eines Dialogs: der erste Klick blendet die Warnung
+                                       mit dem endgültigen Knopf ein, weil Fahrten, Bikes
+                                       und die Verschleiß-Historie unwiderruflich
+                                       verschwinden. Der Eintrag ist leiser gesetzt als
+                                       „Abmelden" — selten gewollt, nie aus Versehen.
     Bewusst eine Shared-Komponente in den bestehenden Seiten-Headern (Dashboard,
     Wartung, Activity-Breadcrumb) statt einer globalen Topbar — so bleibt das Layout
     aller Seiten unangetastet.
