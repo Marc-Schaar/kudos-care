@@ -420,6 +420,9 @@ export type KudoConfidence = 'high' | 'medium' | 'low';
 export interface KudoModelCandidate {
   model: string;
   year_range: string;
+  /** Serienausstattung in Stichworten. Wird angezeigt UND an Schritt 2 durchgereicht. */
+  spec: string;
+  confidence: KudoConfidence;
   note: string;
 }
 
@@ -454,6 +457,10 @@ export interface KudoSetupSuggestion {
   manufacturer: string;
   model: string;
   year: number | null;
+  /** Ausstattung, die Kudo ermittelt hat — die Teileauswahl wird dagegen geprueft. */
+  spec: Record<string, string | boolean>;
+  /** Ob wirklich im Web recherchiert wurde (sonst: aus dem Modellwissen). */
+  researched: boolean;
   groups: KudoGroupSuggestion[];
 }
 

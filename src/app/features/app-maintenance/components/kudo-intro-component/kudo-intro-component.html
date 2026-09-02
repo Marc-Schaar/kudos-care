@@ -4,8 +4,8 @@
     <div>
       <h2 class="kudo-title">Kudo hilft dir beim Anlegen</h2>
       <p class="kudo-sub">
-        Sag mir Hersteller und Baujahr — kennst du auch das Modell, gib es gleich mit an,
-        das macht den Vorschlag treffsicherer. Du kannst danach alles korrigieren.
+        Sag mir Hersteller und Baujahr — kennst du auch das Modell, gib es gleich mit an, das macht
+        den Vorschlag treffsicherer. Du kannst danach alles korrigieren.
       </p>
     </div>
   </div>
@@ -51,8 +51,7 @@
       </div>
       @if (model.trim()) {
         <p class="kudo-hint">
-          Mit Modell überspringt Kudo die Modellsuche und schlägt direkt Komponenten
-          dafür vor.
+          Mit Modell überspringt Kudo die Modellsuche und schlägt direkt Komponenten dafür vor.
         </p>
       }
 
@@ -81,7 +80,7 @@
               type="button"
               class="model-option"
               [disabled]="loading()"
-              (click)="chooseModel(candidate.model)"
+              (click)="chooseModel(candidate.model, candidate.spec)"
             >
               <span class="model-name">{{ candidate.model }}</span>
               <span class="model-meta">
@@ -92,6 +91,9 @@
                   · {{ candidate.note }}
                 }
               </span>
+              @if (candidate.spec) {
+                <span class="model-spec">{{ candidate.spec }}</span>
+              }
             </button>
           }
         </div>

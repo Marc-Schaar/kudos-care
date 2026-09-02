@@ -298,10 +298,16 @@ export class BikeService {
   }
 
   /** Kudo, Schritt 2: gewähltes Modell → Vorbelegung für den Setup-Stepper. */
-  fetchKudoSetup(bikeId: number, manufacturer: string, model: string, year: number | null) {
+  fetchKudoSetup(
+    bikeId: number,
+    manufacturer: string,
+    model: string,
+    year: number | null,
+    spec = '',
+  ) {
     return this.http.post<KudoSetupSuggestion>(
       `${this.baseUrl}/maintenance/bikes/${bikeId}/assistant/setup/`,
-      { manufacturer, model, year },
+      { manufacturer, model, year, spec },
     );
   }
 

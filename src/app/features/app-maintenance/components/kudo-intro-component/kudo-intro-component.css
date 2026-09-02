@@ -149,6 +149,16 @@
   color: var(--muted);
 }
 
+/* Serienausstattung — der Nutzer erkennt daran, ob es wirklich sein Rad ist.
+   Etwas heller als .model-meta, weil es die Auswahl trägt und nicht nur einordnet. */
+.model-spec {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text);
+  opacity: 0.75;
+  margin-top: 0.15rem;
+}
+
 .kudo-custom-row {
   display: flex;
   gap: 0.5rem;

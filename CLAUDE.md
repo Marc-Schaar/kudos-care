@@ -104,7 +104,12 @@ features/
     Anlegen: `add-assembly-dialog-component` (Gruppe wählen → `assembly-checklist-component`).
     Neues Bike ohne Komponenten → `bike-setup-stepper-component` (ein Schritt je empfohlener
     Baugruppe). Davor liegt **Kudo** (`kudo-intro-component`, Schritt 0): Hersteller +
-    Baujahr → Modellauswahl → Vorbelegung aller Schritte. Der Stepper reicht sie per
+    Baujahr → Modellauswahl → Vorbelegung aller Schritte. Jeder Modellvorschlag zeigt
+    seine `spec` (Serienausstattung in Stichworten) — daran erkennt der Nutzer, ob es
+    wirklich sein Rad ist. Beim Klick geht diese `spec` an Schritt 2 mit
+    (`chooseModel(model, spec)` → `fetchKudoSetup(..., spec)`), damit die
+    Teilevorbelegung an genau dem angeklickten Rad ankert statt den Modellnamen erneut
+    zu interpretieren; freies Eintippen schickt einen Leerstring. Der Stepper reicht sie per
     `prefill`-Input an die `assembly-checklist-component` durch, die daraus ihre Zeilen
     vorbelegt und mit einem Confidence-Badge als Vorschlag markiert. Ablauf und
     Korrigierbarkeit bleiben identisch — Kudo füllt nur Felder vor, überspringen und

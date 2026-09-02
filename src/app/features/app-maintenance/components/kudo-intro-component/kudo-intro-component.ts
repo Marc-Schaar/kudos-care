@@ -1,10 +1,6 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  BikeType,
-  KudoModelCandidate,
-  KudoSetupSuggestion,
-} from '../../models/maintenance.models';
+import { BikeType, KudoModelCandidate, KudoSetupSuggestion } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 
 type Phase = 'ask' | 'models' | 'building';
@@ -100,8 +96,14 @@ export class KudoIntroComponent {
     });
   }
 
-  /** Modell aus der Liste oder frei eingetippt — beides führt hierhin. */
-  chooseModel(model: string) {
+  /**
+   * Modell aus der Liste oder frei eingetippt — beides führt hierhin.
+   *
+   * `spec` gibt es nur beim Klick auf einen Vorschlag: dann kennt Schritt 2 die
+   * Serienausstattung des angeklickten Rads und muss den Modellnamen nicht ein
+   * zweites Mal interpretieren. Beim freien Eintippen bleibt sie leer.
+   */
+  chooseModel(model: string, spec = '') {
     const name = model.trim();
     if (!name) {
       this.error.set('Bitte ein Modell auswählen oder eintippen.');
@@ -112,7 +114,7 @@ export class KudoIntroComponent {
     this.loading.set(true);
     this.phase.set('building');
     this.bikeService
-      .fetchKudoSetup(this.bikeId(), this.manufacturer.trim(), name, this.year)
+      .fetchKudoSetup(this.bikeId(), this.manufacturer.trim(), name, this.year, spec)
       .subscribe({
         next: (res) => {
           this.loading.set(false);

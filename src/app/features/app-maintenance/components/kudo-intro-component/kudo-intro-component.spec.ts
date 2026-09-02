@@ -13,12 +13,17 @@ import { KudoSetupSuggestion } from '../../models/maintenance.models';
 describe('KudoIntroComponent', () => {
   let component: KudoIntroComponent;
   let fixture: ComponentFixture<KudoIntroComponent>;
-  let bikeService: { fetchKudoModels: ReturnType<typeof vi.fn>; fetchKudoSetup: ReturnType<typeof vi.fn> };
+  let bikeService: {
+    fetchKudoModels: ReturnType<typeof vi.fn>;
+    fetchKudoSetup: ReturnType<typeof vi.fn>;
+  };
 
   const suggestion: KudoSetupSuggestion = {
     manufacturer: 'Canyon',
     model: 'Grail CF SL 7',
     year: 2022,
+    spec: { drivetrain: '1x11', electronic_shifting: false },
+    researched: false,
     groups: [],
   };
 
@@ -63,7 +68,13 @@ describe('KudoIntroComponent', () => {
     component.submitAsk();
 
     expect(bikeService.fetchKudoModels).not.toHaveBeenCalled();
-    expect(bikeService.fetchKudoSetup).toHaveBeenCalledWith(42, 'Canyon', 'Grail CF SL 7', 2022);
+    expect(bikeService.fetchKudoSetup).toHaveBeenCalledWith(
+      42,
+      'Canyon',
+      'Grail CF SL 7',
+      2022,
+      '',
+    );
   });
 
   it('emits the suggestion once the direct setup request resolves', () => {
@@ -91,9 +102,37 @@ describe('KudoIntroComponent', () => {
     expect(component.error()).toBeTruthy();
   });
 
+  it('passes the chosen candidate spec on to the setup step', () => {
+    // Damit Schritt 2 an genau dem Rad ankert, das der Nutzer angeklickt hat,
+    // statt den Modellnamen ein zweites Mal zu interpretieren.
+    bikeService.fetchKudoSetup.mockReturnValue(of(suggestion));
+    component.manufacturer = 'Canyon';
+    component.year = 2022;
+
+    component.chooseModel('Grail AL 7', 'Shimano GRX 1x11, hydraulische Scheibenbremsen');
+
+    expect(bikeService.fetchKudoSetup).toHaveBeenCalledWith(
+      42,
+      'Canyon',
+      'Grail AL 7',
+      2022,
+      'Shimano GRX 1x11, hydraulische Scheibenbremsen',
+    );
+  });
+
   it('runs the model search when no model is given', () => {
     bikeService.fetchKudoModels.mockReturnValue(
-      of({ models: [{ model: 'Grail', year_range: '2018-2024', note: '' }] }),
+      of({
+        models: [
+          {
+            model: 'Grail',
+            year_range: '2018-2024',
+            spec: 'Shimano GRX 1x11',
+            confidence: 'high' as const,
+            note: '',
+          },
+        ],
+      }),
     );
     component.manufacturer = 'Canyon';
     component.model = '';
