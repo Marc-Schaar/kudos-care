@@ -8,105 +8,79 @@
       <button class="close-btn" (click)="close.emit()">✕</button>
     </div>
 
-    @if (showCreate()) {
-      <button class="back-btn" (click)="back()">← zurück zur Auswahl</button>
-      <app-assembly-checklist-component
-        [bikeId]="assembly().bike"
-        [group]="assembly().group_detail"
-        [activate]="true"
-        [ungroupedSlots]="ungroupedSlots()"
-        [spareComponents]="spareComponents()"
-        saveLabel="Anlegen und montieren"
-        (created)="onCreated()"
-      />
-    } @else {
-      <p class="current">
-        Aktuell montiert:
-        <strong>{{ assembly().display_name }}</strong>
-        @if (assembly().assembly_km !== null) {
-          <span class="current-km">· {{ assembly().assembly_km }} km</span>
-        }
-      </p>
+    <p class="current">
+      Aktuell montiert:
+      <strong>{{ assembly().display_name }}</strong>
+      @if (assembly().assembly_km !== null) {
+        <span class="current-km">· {{ assembly().assembly_km }} km</span>
+      }
+    </p>
 
-      @if (alternatives().length) {
-        <h3 class="section-title">Vorhandene Sätze</h3>
-        <div class="alt-list">
-          @for (alt of alternatives(); track alt.id) {
-            <div class="alt-row">
-              <div class="alt-info">
-                <span class="alt-name">{{ alt.display_name }}</span>
-                <span class="alt-meta">
-                  @if (alt.assembly_km !== null) {
-                    {{ alt.assembly_km }} km
-                  } @else {
-                    km unbekannt
-                  }
-                  @if (alt.last_used_at) {
-                    · zuletzt {{ alt.last_used_at }}
-                  }
-                </span>
-              </div>
-              <span class="alt-status" [class]="alt.worst_status | warnClass">
-                {{ alt.worst_status | warnLabel }}
+    @if (alternatives().length) {
+      <h3 class="section-title">Vorhandene Sätze</h3>
+      <div class="alt-list">
+        @for (alt of alternatives(); track alt.id) {
+          <div class="alt-row">
+            <div class="alt-info">
+              <span class="alt-name">{{ alt.display_name }}</span>
+              <span class="alt-meta">
+                @if (alt.assembly_km !== null) {
+                  {{ alt.assembly_km }} km
+                } @else {
+                  km unbekannt
+                }
+                @if (alt.last_used_at) {
+                  · zuletzt {{ alt.last_used_at }}
+                }
               </span>
-
-              @if (confirmingDeleteId() === alt.id) {
-                <span class="alt-delete-confirm">
-                  Wirklich löschen?
-                  <button
-                    class="alt-confirm-btn alt-confirm-yes"
-                    [disabled]="deletingId() === alt.id"
-                    (click)="confirmDeleteNow(alt)"
-                  >
-                    Ja
-                  </button>
-                  <button
-                    class="alt-confirm-btn"
-                    [disabled]="deletingId() === alt.id"
-                    (click)="cancelDelete()"
-                  >
-                    Nein
-                  </button>
-                </span>
-              } @else {
-                <button
-                  class="alt-btn"
-                  [disabled]="switching() !== null"
-                  (click)="activate(alt)"
-                >
-                  @if (switching() === alt.id) {
-                    wird montiert…
-                  } @else {
-                    Montieren
-                  }
-                </button>
-                <button
-                  class="alt-delete-btn"
-                  title="Baugruppe löschen"
-                  (click)="requestDelete(alt)"
-                >
-                  🗑
-                </button>
-              }
             </div>
-          }
-        </div>
-      } @else {
-        <p class="hint">
-          Für „{{ groupName }}“ gibt es noch keinen zweiten Satz. Lege einen an, um künftig
-          zwischen beiden wechseln zu können — der aktuelle wird dabei geparkt und behält
-          seinen Kilometerstand.
-        </p>
-      }
+            <span class="alt-status" [class]="alt.worst_status | warnClass">
+              {{ alt.worst_status | warnLabel }}
+            </span>
 
-      <button class="create-tile" (click)="openCreate()">
-        <span class="ct-name">+ Neuen Satz anlegen</span>
-        <span class="ct-meta">wird direkt montiert, der aktuelle wird geparkt</span>
-      </button>
+            @if (confirmingDeleteId() === alt.id) {
+              <span class="alt-delete-confirm">
+                Wirklich löschen?
+                <button
+                  class="alt-confirm-btn alt-confirm-yes"
+                  [disabled]="deletingId() === alt.id"
+                  (click)="confirmDeleteNow(alt)"
+                >
+                  Ja
+                </button>
+                <button
+                  class="alt-confirm-btn"
+                  [disabled]="deletingId() === alt.id"
+                  (click)="cancelDelete()"
+                >
+                  Nein
+                </button>
+              </span>
+            } @else {
+              <button class="alt-btn" [disabled]="switching() !== null" (click)="activate(alt)">
+                @if (switching() === alt.id) {
+                  wird montiert…
+                } @else {
+                  Montieren
+                }
+              </button>
+              <button class="alt-delete-btn" title="Baugruppe löschen" (click)="requestDelete(alt)">
+                🗑
+              </button>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="hint">
+        Für „{{ groupName }}“ gibt es noch keinen zweiten Satz. Leg ihn in der Werkstatt über „+
+        Baugruppe anlegen“ an — er entsteht geparkt und lässt sich dann hier aufziehen. Der aktuelle
+        wird dabei geparkt und behält seinen Kilometerstand.
+      </p>
+    }
 
-      @if (error()) {
-        <div class="error-msg">{{ error() }}</div>
-      }
+    @if (error()) {
+      <div class="error-msg">{{ error() }}</div>
     }
   </div>
 </div>

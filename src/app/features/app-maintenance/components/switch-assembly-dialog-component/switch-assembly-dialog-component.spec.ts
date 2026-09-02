@@ -72,7 +72,12 @@ describe('SwitchAssemblyDialogComponent', () => {
   });
 
   describe('Löschen einer Alternative', () => {
-    const winter = makeAssembly({ id: 2, group: 100, display_name: 'Winter-LRS', is_active: false });
+    const winter = makeAssembly({
+      id: 2,
+      group: 100,
+      display_name: 'Winter-LRS',
+      is_active: false,
+    });
 
     it('zeigt erst nach requestDelete() eine Bestätigung', () => {
       expect(component.confirmingDeleteId()).toBeNull();

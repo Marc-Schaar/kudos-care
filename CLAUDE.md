@@ -106,10 +106,17 @@ features/
     liest `template_detail.position` (`front`/`rear`/leer). Vorher wurde die Seite per
     `display_name.includes('vorne')` erraten — ein umbenannter Slot landete damit auf dem
     Vorderrad, weil das der Fallback war, und die Kassette trug „hinten" nie im Namen.
-    **„Wechseln" und „Teile erneuern" erscheinen nur bei `group_detail.kind === 'assembly'`**
+    **„Teile erneuern" erscheint nur bei `group_detail.kind === 'assembly'`**
     (`assembly-card-component::isSwappableAssembly`). In einem Bereich wie Bremse oder
     Cockpit verschleißen die Teile unabhängig und werden pro Zeile einzeln getauscht; das
-    Backend lehnt activate/swap dort ohnehin mit 400 ab. Das 🗑 heißt jetzt „Gruppierung
+    Backend lehnt `swap` dort mit 400 ab. **„Wechseln" bleibt überall**: zwischen zwei
+    vorhandenen Sätzen zu wechseln ist nicht destruktiv und hat reale Fälle außerhalb der
+    Laufräder (zwei Bremsbelag-Sätze, deren Mischung zum Laufradsatz passen muss).
+    **Angelegt wird nur an einer Stelle**: `AssemblyWizardComponent` (Werkstatt →
+    „+ Baugruppe anlegen"). Der Wechsel-Dialog hatte dafür früher eine zweite, eigene
+    `AssemblyChecklistComponent` — zwei Stellen mit unterschiedlicher Bedienung, an denen
+    dasselbe entsteht. Ein im Assistenten angelegter zweiter Satz entsteht geparkt und
+    lässt sich im Wechsel-Dialog aufziehen. Das 🗑 heißt jetzt „Gruppierung
     auflösen" — die Teile bleiben am Rad.
     **KI-Texte** gibt es an drei Stellen, alle nach demselben Muster: erst auf Klick
     laden (die Generierung kostet einen AI-Call und ist Zugabe, nicht Voraussetzung

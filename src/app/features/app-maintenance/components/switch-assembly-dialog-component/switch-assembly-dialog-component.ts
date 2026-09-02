@@ -1,27 +1,25 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { BikeAssembly, ComponentSlotList, SpareComponent } from '../../models/maintenance.models';
+import { BikeAssembly } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
-import { AssemblyChecklistComponent } from '../assembly-checklist-component/assembly-checklist-component';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
 
 /**
- * "Baugruppe wechseln" — ein Dialog, zwei Wege:
+ * "Baugruppe wechseln": einen **bereits vorhandenen** Satz derselben Gruppe
+ * aufziehen (Winter-LRS aus dem Keller holen). Der aktuell montierte wird dabei
+ * geparkt, nicht ausgemustert — seine Teile bleiben drauf, er sammelt nur keine
+ * km mehr.
  *
- * 1. Einen **bereits vorhandenen** Satz derselben Gruppe aufziehen (Winter-LRS
- *    aus dem Keller holen). Der aktuell montierte wird dabei geparkt, nicht
- *    ausgemustert: seine Teile bleiben drauf, er sammelt nur keine km mehr.
- * 2. Einen **neuen** Satz anlegen und direkt aufziehen — nutzt dieselbe
- *    `AssemblyChecklistComponent` wie der Hinzufügen-Dialog, nur mit
- *    `activate=true`.
- *
- * Damit hat der Wechsel-Dialog endlich etwas vorzuschlagen; der frühere
- * `QuickChangeDialogComponent` bleibt als "Teile erneuern" daneben bestehen.
+ * Anlegen kann man hier bewusst **nicht** mehr. Der Dialog hatte dafür eine
+ * zweite, eigene `AssemblyChecklistComponent` — damit gab es zwei Stellen mit
+ * unterschiedlicher Bedienung, an denen dasselbe entsteht. Angelegt wird nur
+ * noch im `AssemblyWizardComponent` (Werkstatt → "+ Baugruppe anlegen"); ein
+ * dort angelegter zweiter Satz entsteht geparkt und lässt sich hier aufziehen.
  */
 @Component({
   selector: 'app-switch-assembly-dialog-component',
-  imports: [AssemblyChecklistComponent, WarnLabelPipe, WarnClassPipe],
+  imports: [WarnLabelPipe, WarnClassPipe],
   templateUrl: './switch-assembly-dialog-component.html',
   styleUrl: './switch-assembly-dialog-component.css',
 })
@@ -30,11 +28,6 @@ export class SwitchAssemblyDialogComponent {
   assembly = input.required<BikeAssembly>();
   /** Alle geparkten Baugruppen des Bikes — hier auf die Gruppe gefiltert. */
   parked = input<BikeAssembly[]>([]);
-  /** Ungruppierte Slots des Bikes — für den "vorhandene Komponente übernehmen"-Vorschlag. */
-  ungroupedSlots = input<ComponentSlotList[]>([]);
-  /** Ausgebaute Teile des Bikes — für denselben Vorschlag bei nicht montierten Altteilen. */
-  spareComponents = input<SpareComponent[]>([]);
-
   close = output<void>();
   switched = output<void>();
   /** Eine der Alternativen wurde geloescht — Aufrufer muss die Liste neu laden. */
@@ -45,16 +38,13 @@ export class SwitchAssemblyDialogComponent {
 
   switching = signal<number | null>(null);
   error = signal<string | null>(null);
-  showCreate = signal(false);
 
   /** Zwei-Klick-Bestätigung fürs Löschen einer Alternative (hart, cascadiert). */
   confirmingDeleteId = signal<number | null>(null);
   deletingId = signal<number | null>(null);
 
   /** Nur Alternativen derselben Baugruppe — ein Laufrad ersetzt keinen Antrieb. */
-  alternatives = computed(() =>
-    this.parked().filter((a) => a.group === this.assembly().group),
-  );
+  alternatives = computed(() => this.parked().filter((a) => a.group === this.assembly().group));
 
   get groupName(): string {
     return this.assembly().group_detail?.name ?? this.assembly().display_name;
@@ -101,19 +91,6 @@ export class SwitchAssemblyDialogComponent {
         this.notify.show('Löschen fehlgeschlagen.', 'error');
       },
     });
-  }
-
-  openCreate() {
-    this.showCreate.set(true);
-  }
-
-  back() {
-    this.showCreate.set(false);
-  }
-
-  onCreated() {
-    this.notify.show(`Neue Baugruppe für "${this.groupName}" angelegt und montiert.`, 'success');
-    this.switched.emit();
   }
 
   onOverlayClick(event: MouseEvent) {
