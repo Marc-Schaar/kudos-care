@@ -98,6 +98,14 @@ features/
     Karte quetschte — bei sieben Baugruppen sieben davon untereinander. Die Route liegt
     bewusst **unter** `werkstatt/`, damit der Tab in der unteren Navigation aktiv bleibt
     (`routerLinkActive` ohne `exact`).
+    **Einbaudatum für alle Teile** gibt es an zwei Stellen: auf der Werkstatt-Seite fürs
+    ganze Rad, auf der Baugruppen-Detailseite für diese eine Baugruppe (beide über
+    `setInstalledAtForAll()`). Gedacht für den häufigsten Fall — das Rad wird angelegt,
+    nachdem die Fahrten schon in der App sind. Der Client schickt nur das Datum; den
+    km-Stand leitet der Server aus der Fahrt-Historie ab, damit Teile und
+    Nutzungszeitraum dieselbe Zahl sehen. **„+ Element hinzufügen"** auf der
+    Detailseite trägt ein vergessenes Teil oder Verbrauchsmaterial nach
+    (`addAssemblyItem()`); die Auswahl zeigt nur, was in dieser Instanz noch fehlt.
     Die Detailseite hält Umbenennen, die Aktionsreihe (**Wechseln** / **Teile erneuern** /
     **Auflösen**), die `slot-card-component`-Zeilen mit km-/Tage-Balken, die
     `interval-row-component`-Zeilen und die dazugehörigen Dialoge. Sie sucht ihre

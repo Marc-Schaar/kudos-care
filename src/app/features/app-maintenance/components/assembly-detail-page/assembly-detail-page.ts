@@ -132,6 +132,102 @@ export class AssemblyDetailPage implements OnInit {
         ?.mounted_component?.condition_pct ?? null,
   );
 
+  // ── Element nachtragen ──────────────────────────────────────────────────────
+  readonly addingItem = signal(false);
+  readonly savingItem = signal(false);
+  readonly itemError = signal<string | null>(null);
+  newItemTemplateId: number | null = null;
+  newItemBrand = '';
+  newItemInstalledAt = new Date().toISOString().split('T')[0];
+
+  /**
+   * Katalog-Elemente der Gruppe, die in dieser Instanz noch fehlen.
+   *
+   * Ohne diese Liste liess sich eine vergessene Kassette nur nachtragen, indem
+   * man die ganze Baugruppe neu anlegte — der Assistent greift nur beim Anlegen.
+   */
+  readonly addableItems = computed(() => {
+    const asm = this.assembly();
+    if (!asm) return [];
+    const present = new Set([
+      ...asm.slots.map((s) => s.template),
+      ...asm.intervals.map((i) => i.template).filter((t): t is number => t != null),
+    ]);
+    return [...asm.group_detail.parts, ...asm.group_detail.consumables].filter(
+      (t) => !present.has(t.id),
+    );
+  });
+
+  startAddItem() {
+    this.itemError.set(null);
+    this.newItemTemplateId = this.addableItems()[0]?.id ?? null;
+    this.newItemBrand = '';
+    this.newItemInstalledAt =
+      this.assembly()?.installed_at ?? new Date().toISOString().split('T')[0];
+    this.addingItem.set(true);
+  }
+
+  cancelAddItem() {
+    this.addingItem.set(false);
+  }
+
+  saveItem() {
+    const asm = this.assembly();
+    if (!asm || this.newItemTemplateId == null) return;
+    this.savingItem.set(true);
+    this.itemError.set(null);
+    this.bikeService
+      .addAssemblyItem(asm.id, {
+        template_id: this.newItemTemplateId,
+        brand: this.newItemBrand.trim(),
+        installed_at: this.newItemInstalledAt || null,
+      })
+      .subscribe({
+        next: () => {
+          this.savingItem.set(false);
+          this.addingItem.set(false);
+          this.reload();
+        },
+        error: (err) => {
+          this.savingItem.set(false);
+          this.itemError.set(err?.error?.error ?? 'Hinzufügen fehlgeschlagen.');
+        },
+      });
+  }
+
+  // ── Einbaudatum für alle Teile dieser Baugruppe ─────────────────────────────
+  readonly settingDate = signal(false);
+  readonly savingDate = signal(false);
+  bulkInstalledAt = new Date().toISOString().split('T')[0];
+
+  startBulkDate() {
+    this.bulkInstalledAt = this.assembly()?.installed_at ?? new Date().toISOString().split('T')[0];
+    this.settingDate.set(true);
+  }
+
+  cancelBulkDate() {
+    this.settingDate.set(false);
+  }
+
+  saveBulkDate() {
+    const asm = this.assembly();
+    const bikeId = this.bikeId();
+    if (!asm || bikeId === null) return;
+    this.savingDate.set(true);
+    this.bikeService.setInstalledAtForAll(bikeId, this.bulkInstalledAt, asm.id).subscribe({
+      next: (res) => {
+        this.savingDate.set(false);
+        this.settingDate.set(false);
+        this.notify.show(`Einbaudatum für ${res.components_updated} Teile gesetzt.`, 'success');
+        this.reload();
+      },
+      error: (err) => {
+        this.savingDate.set(false);
+        this.notify.show(err?.error?.error ?? 'Setzen fehlgeschlagen.', 'error');
+      },
+    });
+  }
+
   ngOnInit() {
     this.route.params.subscribe((params) => {
       const bikeId = +params['id'];

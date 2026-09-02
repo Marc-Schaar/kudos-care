@@ -3,7 +3,9 @@ import { map, Observable, of, tap } from 'rxjs';
 import { environment } from './../../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import {
+  AddAssemblyItemPayload,
   AssembliesResponse,
+  BulkInstalledAtResult,
   BikeAssembly,
   BikeComponent,
   BikeConditionReport,
@@ -309,6 +311,30 @@ export class BikeService {
       `${this.baseUrl}/maintenance/bikes/${bikeId}/assistant/setup/`,
       { manufacturer, model, year, spec },
     );
+  }
+
+  /**
+   * Setzt das Einbaudatum fuer ALLE montierten Teile auf einmal — ohne
+   * `assemblyId` fuers ganze Bike, sonst nur fuer diese Baugruppe.
+   *
+   * Der km-Stand wird serverseitig aus der Fahrt-Historie zum Stichtag
+   * abgeleitet; der Client schickt bewusst nur das Datum, damit Teile und
+   * Nutzungsperiode dieselbe Zahl bekommen.
+   */
+  setInstalledAtForAll(bikeId: number, installedAt: string, assemblyId?: number) {
+    const body: { installed_at: string; assembly_id?: number } = {
+      installed_at: installedAt,
+    };
+    if (assemblyId != null) body.assembly_id = assemblyId;
+    return this.http.post<BulkInstalledAtResult>(
+      `${this.baseUrl}/maintenance/bikes/${bikeId}/installed-at/`,
+      body,
+    );
+  }
+
+  /** Ergaenzt eine bestehende Baugruppe um ein einzelnes Teil oder Intervall. */
+  addAssemblyItem(assemblyId: number, payload: AddAssemblyItemPayload) {
+    return this.http.post(`${this.baseUrl}/maintenance/assemblies/${assemblyId}/items/`, payload);
   }
 
   fetchGroups(bikeType?: string) {

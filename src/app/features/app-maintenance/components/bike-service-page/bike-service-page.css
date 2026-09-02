@@ -303,3 +303,96 @@
     display: none;
   }
 }
+
+/* ── Einbaudatum für alle Teile ────────────────────────────────────────────
+   Sekundär gegenüber "+ Baugruppe anlegen": derselbe Rahmen, aber ohne
+   Betonung, damit die Primäraktion die auffälligere bleibt. */
+.add-assembly-btn.subtle {
+  margin-top: 0.5rem;
+  border-style: solid;
+  border-color: transparent;
+  font-size: 0.72rem;
+}
+
+.add-assembly-btn.subtle:hover {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.date-panel {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.date-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.date-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+
+.date-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.date-input {
+  flex: 1 1 10rem;
+  box-sizing: border-box;
+  /* 16px verhindert den iOS-Zoom beim Fokus. */
+  font-size: 16px;
+  font-family: 'DM Mono', monospace;
+  padding: 0.6rem 0.7rem;
+  min-height: 2.75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.date-btn {
+  min-height: 2.75rem;
+  padding: 0.6rem 0.9rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.date-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.date-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.date-btn.subtle {
+  border-color: transparent;
+  color: var(--muted);
+}

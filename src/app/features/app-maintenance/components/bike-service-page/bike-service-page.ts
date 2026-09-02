@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { BikeService } from '../../services/bike-service/bike-service';
@@ -35,6 +36,7 @@ import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
     DatePipe,
     DecimalPipe,
     RouterLink,
+    FormsModule,
     SlotCardComponent,
     BikeHeaderComponent,
     AssemblyWizardComponent,
@@ -99,6 +101,43 @@ export class BikeServicePage implements OnInit {
     ...this.assemblies().flatMap((a) => a.slots),
     ...this.ungroupedSlots(),
   ]);
+
+  // ── Einbaudatum für alle Teile des Rads ─────────────────────────────────────
+  /**
+   * Für den häufigsten Fall: das Rad wird angelegt, nachdem die Fahrten schon
+   * in der App sind. Ohne das hier müsste jedes Teil einzeln korrigiert werden —
+   * bei einem Rennrad ein Dutzend Dialoge.
+   */
+  readonly settingDate = signal(false);
+  readonly savingDate = signal(false);
+  bulkInstalledAt = new Date().toISOString().split('T')[0];
+
+  startBulkDate() {
+    this.settingDate.set(true);
+  }
+  cancelBulkDate() {
+    this.settingDate.set(false);
+  }
+  saveBulkDate() {
+    const id = this.bike()?.id;
+    if (!id) return;
+    this.savingDate.set(true);
+    this.bikeService.setInstalledAtForAll(id, this.bulkInstalledAt).subscribe({
+      next: (res) => {
+        this.savingDate.set(false);
+        this.settingDate.set(false);
+        this.notify.show(
+          `Einbaudatum für ${res.components_updated} Teile in ${res.assemblies_updated} Baugruppen gesetzt.`,
+          'success',
+        );
+        this.reload();
+      },
+      error: (err) => {
+        this.savingDate.set(false);
+        this.notify.show(err?.error?.error ?? 'Setzen fehlgeschlagen.', 'error');
+      },
+    });
+  }
 
   ngOnInit() {
     this.route.params.subscribe((params) => {

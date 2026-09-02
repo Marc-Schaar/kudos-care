@@ -52,6 +52,36 @@
         + Baugruppe anlegen
       </button>
 
+      <!-- Ein Datum für alle Teile des Rads. Der Kilometerstand kommt vom
+           Server aus der Fahrt-Historie zum Stichtag. -->
+      @if (settingDate()) {
+        <section class="date-panel" aria-label="Einbaudatum für alle Teile">
+          <h2 class="date-title">Einbaudatum für alle Teile</h2>
+          <p class="date-hint">
+            Setzt das Datum für jedes montierte Teil dieses Rads. Der Kilometerstand wird aus deinen
+            Fahrten bis zu diesem Tag berechnet.
+          </p>
+          <div class="date-row">
+            <input
+              class="date-input"
+              type="date"
+              [(ngModel)]="bulkInstalledAt"
+              name="bulkInstalledAt"
+            />
+            <button class="date-btn" [disabled]="savingDate()" (click)="saveBulkDate()">
+              {{ savingDate() ? 'Wird gesetzt…' : 'Setzen' }}
+            </button>
+            <button class="date-btn subtle" [disabled]="savingDate()" (click)="cancelBulkDate()">
+              Abbrechen
+            </button>
+          </div>
+        </section>
+      } @else {
+        <button class="add-assembly-btn subtle" type="button" (click)="startBulkDate()">
+          Einbaudatum für alle Teile setzen
+        </button>
+      }
+
       @if (ungroupedSlots().length > 0) {
         <section class="ungrouped">
           <h2 class="section-title">Ohne Baugruppe</h2>

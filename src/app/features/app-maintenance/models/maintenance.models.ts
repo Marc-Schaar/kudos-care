@@ -432,6 +432,25 @@ export const BIKE_TYPE_LABELS: Record<BikeType, string> = {
 
 export type KudoConfidence = 'high' | 'medium' | 'low';
 
+/** Antwort von POST bikes/<id>/installed-at/. */
+export interface BulkInstalledAtResult {
+  installed_at: string;
+  distance_at_install: number | null;
+  components_updated: number;
+  assemblies_updated: number;
+}
+
+/** Body fuer POST assemblies/<id>/items/ — Teil ODER Verbrauchsmaterial. */
+export interface AddAssemblyItemPayload {
+  template_id: number;
+  brand?: string;
+  model_name?: string;
+  installed_at?: string | null;
+  custom_warn_km?: number | null;
+  interval_km?: number | null;
+  interval_days?: number | null;
+}
+
 export interface KudoModelCandidate {
   model: string;
   year_range: string;

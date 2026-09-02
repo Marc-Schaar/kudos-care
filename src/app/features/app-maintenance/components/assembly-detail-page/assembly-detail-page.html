@@ -105,9 +105,32 @@
         @if (isSwappableAssembly()) {
           <button class="btn" (click)="openRenew()">Teile erneuern</button>
         }
+        <button class="btn" (click)="startBulkDate()">Einbaudatum</button>
         <button class="btn subtle" (click)="requestDelete()">Auflösen</button>
       }
     </section>
+
+    <!-- Ein Datum für alle Teile: der Normalfall, wenn das Rad später angelegt
+         wurde als die Fahrten. Der km-Stand kommt vom Server aus der
+         Fahrt-Historie, damit Teile und Nutzungszeitraum dieselbe Zahl sehen. -->
+    @if (settingDate()) {
+      <section class="panel" aria-label="Einbaudatum für alle Teile">
+        <h3 class="panel-title">Einbaudatum für alle Teile dieser Baugruppe</h3>
+        <p class="panel-hint">
+          Der Kilometerstand wird aus deinen Fahrten zu diesem Tag berechnet — du musst ihn nicht
+          selbst kennen.
+        </p>
+        <div class="panel-row">
+          <input class="input" type="date" [(ngModel)]="bulkInstalledAt" name="bulkInstalledAt" />
+          <button class="btn" [disabled]="savingDate()" (click)="saveBulkDate()">
+            {{ savingDate() ? 'Wird gesetzt…' : 'Setzen' }}
+          </button>
+          <button class="btn subtle" [disabled]="savingDate()" (click)="cancelBulkDate()">
+            Abbrechen
+          </button>
+        </div>
+      </section>
+    }
 
     @if (asm.slots.length === 0 && asm.intervals.length === 0) {
       <p class="empty">Noch keine Elemente in dieser Baugruppe.</p>
@@ -128,6 +151,56 @@
           }
         </div>
       </section>
+    }
+
+    <!-- Nachtragen, was beim Anlegen gefehlt hat. Der Assistent greift nur beim
+         Anlegen; ohne das hier müsste die ganze Baugruppe neu gebaut werden. -->
+    @if (addingItem()) {
+      <section class="panel" aria-label="Element hinzufügen">
+        <h3 class="panel-title">Element hinzufügen</h3>
+        @if (addableItems().length === 0) {
+          <p class="panel-hint">Alle Elemente dieser Baugruppe sind schon angelegt.</p>
+        } @else {
+          <div class="panel-stack">
+            <select class="input" [(ngModel)]="newItemTemplateId" name="newItemTemplateId">
+              @for (t of addableItems(); track t.id) {
+                <option [ngValue]="t.id">{{ t.name }}</option>
+              }
+            </select>
+            <input
+              class="input"
+              type="text"
+              [(ngModel)]="newItemBrand"
+              name="newItemBrand"
+              placeholder="Hersteller (optional)"
+              autocomplete="off"
+            />
+            <input
+              class="input"
+              type="date"
+              [(ngModel)]="newItemInstalledAt"
+              name="newItemInstalledAt"
+            />
+          </div>
+          @if (itemError()) {
+            <p class="panel-error">{{ itemError() }}</p>
+          }
+        }
+        <div class="panel-row">
+          @if (addableItems().length > 0) {
+            <button class="btn" [disabled]="savingItem()" (click)="saveItem()">
+              {{ savingItem() ? 'Wird angelegt…' : 'Hinzufügen' }}
+            </button>
+          }
+          <button class="btn subtle" [disabled]="savingItem()" (click)="cancelAddItem()">
+            Abbrechen
+          </button>
+        </div>
+      </section>
+    } @else {
+      <button class="add-item-btn" type="button" (click)="startAddItem()">
+        + Element hinzufügen
+      </button>
     }
 
     @if (asm.intervals.length > 0) {
