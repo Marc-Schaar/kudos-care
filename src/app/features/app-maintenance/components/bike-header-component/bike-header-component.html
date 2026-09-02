@@ -1,0 +1,24 @@
+@if (bike(); as bike) {
+  <header class="bike-header">
+    <a class="back-link" routerLink="/maintenance">‹ Alle Bikes</a>
+
+    <div class="title-row">
+      <h1 class="bike-title">{{ bike.name }}</h1>
+      @if (showEdit()) {
+        <button class="edit-btn" type="button" (click)="edit.emit()">Bearbeiten</button>
+      }
+    </div>
+
+    <div class="meta-row">
+      <span class="warn-badge" [class]="bike.warn_status | warnClass">
+        {{ bike.warn_status | warnLabel }}
+      </span>
+      <span class="meta-sep">·</span>
+      <span class="meta">{{ bike.bike_type_display }}</span>
+      @if (bike.total_distance_km != null) {
+        <span class="meta-sep">·</span>
+        <span class="meta">{{ bike.total_distance_km | number: '1.0-0' }} km</span>
+      }
+    </div>
+  </header>
+}

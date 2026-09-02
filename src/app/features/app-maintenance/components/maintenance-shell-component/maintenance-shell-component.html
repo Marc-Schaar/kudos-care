@@ -1,0 +1,44 @@
+<div class="shell">
+  <router-outlet />
+</div>
+
+<nav class="bottom-nav" aria-label="Wartung">
+  <a
+    class="nav-item"
+    routerLink="/maintenance"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    <span class="nav-icon" aria-hidden="true">🚲</span>
+    <span class="nav-label">Bikes</span>
+  </a>
+
+  @if (bikeId(); as id) {
+    <a
+      class="nav-item"
+      [routerLink]="['/maintenance', 'bikes', id]"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span class="nav-icon" aria-hidden="true">◍</span>
+      <span class="nav-label">Zustand</span>
+    </a>
+    <a
+      class="nav-item"
+      [routerLink]="['/maintenance', 'bikes', id, 'werkstatt']"
+      routerLinkActive="active"
+    >
+      <span class="nav-icon" aria-hidden="true">⚙</span>
+      <span class="nav-label">Werkstatt</span>
+    </a>
+  } @else {
+    <span class="nav-item disabled" aria-disabled="true">
+      <span class="nav-icon" aria-hidden="true">◍</span>
+      <span class="nav-label">Zustand</span>
+    </span>
+    <span class="nav-item disabled" aria-disabled="true">
+      <span class="nav-icon" aria-hidden="true">⚙</span>
+      <span class="nav-label">Werkstatt</span>
+    </span>
+  }
+</nav>

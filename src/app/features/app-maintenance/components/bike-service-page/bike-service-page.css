@@ -1,0 +1,198 @@
+/* Mobile first. */
+
+.page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.loading-bar-wrap {
+  padding: 1rem 0;
+}
+
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 1.75rem 0 0.6rem;
+}
+
+.assemblies {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+/* Primaeraktion: volle Breite und grosse Trefferflaeche, damit sie am Handy
+   sicher zu treffen ist. */
+.add-assembly-btn {
+  width: 100%;
+  margin-top: 1rem;
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  padding: 0.9rem 1rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.add-assembly-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Eine Spalte am Handy — 260px-Kacheln nebeneinander wuerden umbrechen. */
+.slots-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.parked-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 0.6rem;
+}
+
+.parked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Am Handy untereinander: Name und drei Aktionen nebeneinander ergaeben
+   Knoepfe, die zu schmal zum Treffen sind. */
+.parked-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+}
+
+.parked-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.parked-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.parked-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.parked-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.confirm-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--critical);
+  margin-right: auto;
+}
+
+.parked-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.8rem;
+  min-height: 2.25rem;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.parked-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.parked-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.parked-btn.secondary {
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.parked-btn.secondary:hover:not(:disabled) {
+  border-color: transparent;
+  color: var(--critical);
+}
+
+.parked-btn.icon-only {
+  padding: 0.5rem 0.6rem;
+  border-color: transparent;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.parked-btn.icon-only:hover {
+  border-color: transparent;
+  color: var(--critical);
+}
+
+.parked-btn.confirm-yes {
+  border-color: var(--critical);
+  color: var(--critical);
+}
+
+.parked-btn.confirm-yes:hover:not(:disabled) {
+  background: var(--critical);
+  color: var(--bg);
+}
+
+@media (min-width: 700px) {
+  .page {
+    padding: 0 1.5rem;
+  }
+
+  .add-assembly-btn {
+    width: auto;
+    min-width: 18rem;
+  }
+
+  .slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  /* Ab hier ist Platz fuer Name und Aktionen in einer Zeile. */
+  .parked-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .parked-info {
+    flex: 1;
+  }
+
+  .parked-btn.icon-only {
+    margin-left: 0;
+  }
+}

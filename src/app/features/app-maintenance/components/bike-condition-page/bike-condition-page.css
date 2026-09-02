@@ -1,0 +1,319 @@
+/* Mobile first: eine Spalte, grosse Trefferflaechen. Breitere Screens bekommen
+   Ausnahmen weiter unten per min-width. */
+
+.page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.loading-bar-wrap {
+  padding: 1rem 0;
+}
+
+.empty {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.6;
+  padding: 1.5rem 0;
+}
+
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 1.5rem 0 0.6rem;
+}
+
+/* ── Statistik ─────────────────────────────────────────────────────────────
+   Zwei Spalten auf dem Handy: vier Kacheln nebeneinander waeren zu schmal fuer
+   die Zahlen. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.8rem 0.9rem;
+  background: var(--surface);
+}
+
+.stat-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--text);
+}
+
+.stat.has-critical .stat-value {
+  color: var(--critical);
+}
+
+.stat.has-warn .stat-value {
+  color: var(--warn);
+}
+
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.diagram-wrap {
+  margin-top: 1rem;
+}
+
+/* ── KI-Zustandsbericht ────────────────────────────────────────────────── */
+.report {
+  margin-top: 1.25rem;
+}
+
+.report-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.report-toggle,
+.report-refresh {
+  background: none;
+  border: none;
+  color: var(--accent);
+  text-decoration: underline;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.4rem 0;
+  cursor: pointer;
+}
+
+.report-refresh {
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.report-refresh:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.report-block {
+  margin-top: 0.4rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.7rem 0.8rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.report-text {
+  margin: 0;
+  color: var(--text);
+  white-space: pre-line;
+}
+
+.report-meta {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+.hint {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.error-msg {
+  color: var(--critical);
+}
+
+/* ── Als naechstes faellig ─────────────────────────────────────────────── */
+.all-good {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--ok);
+  margin: 0 0 0.5rem;
+}
+
+.due-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.due-item {
+  background: var(--surface);
+  padding: 0.7rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.due-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.due-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.warn-badge {
+  flex: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+}
+.warn-badge.status-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+.warn-badge.status-warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+}
+.warn-badge.status-critical {
+  color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 12%, transparent);
+}
+.warn-badge.status-unknown {
+  color: var(--muted);
+  background: var(--border);
+}
+
+.due-bar {
+  height: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.due-bar-fill {
+  height: 100%;
+  background: var(--muted);
+}
+
+.due-bar.status-ok .due-bar-fill {
+  background: var(--ok);
+}
+.due-bar.status-warn .due-bar-fill {
+  background: var(--warn);
+}
+.due-bar.status-critical .due-bar-fill {
+  background: var(--critical);
+}
+
+.due-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.due-detail {
+  text-align: right;
+  flex: none;
+}
+
+.due-more {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin: 0.6rem 0 0;
+}
+
+/* ── Baugruppen-Zusammenfassung ────────────────────────────────────────── */
+.summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+}
+
+.summary-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--muted);
+}
+.summary-dot.status-ok {
+  background: var(--ok);
+}
+.summary-dot.status-warn {
+  background: var(--warn);
+}
+.summary-dot.status-critical {
+  background: var(--critical);
+}
+
+.summary-name {
+  color: var(--text);
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.summary-km {
+  color: var(--muted);
+  font-size: 0.68rem;
+  flex: none;
+}
+
+.parked-note {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin: 0.6rem 0 0;
+}
+
+/* ── Ab Tablet ─────────────────────────────────────────────────────────── */
+@media (min-width: 700px) {
+  .page {
+    padding: 0 1.5rem;
+  }
+
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .due-item {
+    padding: 0.8rem 1rem;
+  }
+}

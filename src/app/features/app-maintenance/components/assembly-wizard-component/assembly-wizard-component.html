@@ -1,0 +1,261 @@
+<div class="wizard" role="dialog" aria-modal="true" aria-label="Baugruppe anlegen">
+  <header class="wz-header">
+    <button class="wz-close" type="button" aria-label="Abbrechen" (click)="close.emit()">✕</button>
+    <span class="wz-title">
+      @if (group(); as g) {
+        {{ g.name }}
+      } @else {
+        Baugruppe anlegen
+      }
+    </span>
+    @if (group() && !onSummary()) {
+      <span class="wz-count">
+        @if (onBasics()) {
+          Start
+        } @else {
+          {{ index() + 1 }} / {{ steps().length }}
+        }
+      </span>
+    } @else {
+      <span class="wz-count"></span>
+    }
+  </header>
+
+  @if (group()) {
+    <div class="wz-progress" aria-hidden="true">
+      <div class="wz-progress-fill" [style.width.%]="progress() * 100"></div>
+    </div>
+  }
+
+  <div class="wz-body">
+    <!-- ── Gruppenauswahl ────────────────────────────────────────────────── -->
+    @if (!group()) {
+      @if (availableGroups().length === 0) {
+        <p class="wz-hint">Für dieses Bike sind bereits alle Baugruppen angelegt.</p>
+      } @else {
+        <p class="wz-lead">Welche Baugruppe möchtest du anlegen?</p>
+        <div class="group-list">
+          @for (g of availableGroups(); track g.id) {
+            <button class="group-tile" type="button" (click)="pickGroup(g)">
+              <span class="gt-name">
+                {{ g.name }}
+                @if (g.has_active_instance) {
+                  <span class="gt-badge">2. Satz</span>
+                }
+              </span>
+              <span class="gt-meta">
+                {{ g.parts.length }} Teile
+                @if (g.consumables.length) {
+                  · {{ g.consumables.length }} Pflege
+                }
+                @if (g.has_active_instance) {
+                  · wird geparkt angelegt
+                }
+              </span>
+            </button>
+          }
+        </div>
+      }
+    }
+
+    <!-- ── Grunddaten ────────────────────────────────────────────────────── -->
+    @if (onBasics()) {
+      <p class="wz-lead">Wann hast du diese Baugruppe montiert?</p>
+      <div class="field">
+        <label class="label" for="wz-date">Einbaudatum</label>
+        <input
+          id="wz-date"
+          class="input"
+          type="date"
+          [(ngModel)]="installedAt"
+          name="installedAt"
+        />
+      </div>
+      <div class="field">
+        <label class="label" for="wz-name">Eigener Name (optional)</label>
+        <input
+          id="wz-name"
+          class="input"
+          type="text"
+          [(ngModel)]="name"
+          name="name"
+          [placeholder]="group()!.name"
+          autocomplete="off"
+        />
+        <span class="field-hint">z.B. „Sommer-LRS", wenn du mehrere Sätze hast.</span>
+      </div>
+    }
+
+    <!-- ── Ein Teil pro Schritt ──────────────────────────────────────────── -->
+    @if (current(); as step) {
+      <div class="step">
+        <span class="step-kind">
+          {{ step.kind === 'part' ? 'Teil' : 'Pflege' }}
+          @if (!step.template.default_in_group) {
+            · Sonderfall
+          }
+        </span>
+        <h2 class="step-name">{{ step.template.name }}</h2>
+        <p class="step-sub">
+          @if (step.template.default_in_group) {
+            An so einem Rad üblich.
+          } @else {
+            Hat nicht jedes Rad.
+          }
+          @if (step.template.warn_km) {
+            Standard {{ step.template.warn_km }} km.
+          } @else if (step.template.warn_days) {
+            Standard {{ step.template.warn_days }} Tage.
+          }
+        </p>
+
+        <div class="choice">
+          <button
+            class="choice-btn"
+            type="button"
+            [class.chosen]="!step.include"
+            (click)="answer(false)"
+          >
+            Nein
+          </button>
+          <button
+            class="choice-btn primary"
+            type="button"
+            [class.chosen]="step.include"
+            (click)="answer(true)"
+          >
+            Ja
+          </button>
+        </div>
+
+        @if (step.include) {
+          <div class="details">
+            @if (step.kind === 'part') {
+              @if (step.existingSlot; as existing) {
+                <label class="reuse">
+                  <input type="checkbox" [(ngModel)]="step.reuseExisting" name="reuseExisting" />
+                  <span>
+                    Vorhandenes Teil übernehmen: <strong>{{ existingLabel(existing) }}</strong>
+                  </span>
+                </label>
+              } @else if (step.spareCandidates.length > 0) {
+                <label class="reuse">
+                  <input type="checkbox" [(ngModel)]="step.reuseSpare" name="reuseSpare" />
+                  <span>Ausgebautes Teil reaktivieren</span>
+                </label>
+                @if (step.reuseSpare && step.spareCandidates.length > 1) {
+                  <select class="input" [(ngModel)]="step.selectedSpareId" name="spare">
+                    @for (spare of step.spareCandidates; track spare.id) {
+                      <option [ngValue]="spare.id">{{ spareOptionLabel(spare) }}</option>
+                    }
+                  </select>
+                } @else if (step.reuseSpare) {
+                  <span class="field-hint">{{ spareOptionLabel(step.spareCandidates[0]) }}</span>
+                }
+              }
+
+              @if (
+                (!step.existingSlot || !step.reuseExisting) &&
+                (step.spareCandidates.length === 0 || !step.reuseSpare)
+              ) {
+                <p class="details-lead">Marke und Modell — optional, kannst du später ergänzen.</p>
+                <input
+                  class="input"
+                  type="text"
+                  [(ngModel)]="step.brand"
+                  name="brand"
+                  placeholder="Hersteller"
+                  autocomplete="off"
+                />
+                <input
+                  class="input"
+                  type="text"
+                  [(ngModel)]="step.modelName"
+                  name="modelName"
+                  placeholder="Modell"
+                  autocomplete="off"
+                />
+                <input
+                  class="input"
+                  type="number"
+                  inputmode="numeric"
+                  [(ngModel)]="step.customWarnKm"
+                  name="customWarnKm"
+                  [placeholder]="
+                    step.template.warn_km
+                      ? 'Lebensdauer (' + step.template.warn_km + ' km)'
+                      : 'Lebensdauer km'
+                  "
+                />
+              }
+            } @else {
+              <p class="details-lead">Wie oft ist das fällig?</p>
+              <input
+                class="input"
+                type="number"
+                inputmode="numeric"
+                [(ngModel)]="step.intervalKm"
+                name="intervalKm"
+                placeholder="alle … km"
+              />
+              <input
+                class="input"
+                type="number"
+                inputmode="numeric"
+                [(ngModel)]="step.intervalDays"
+                name="intervalDays"
+                placeholder="alle … Tage"
+              />
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Zusammenfassung ───────────────────────────────────────────────── -->
+    @if (onSummary()) {
+      <p class="wz-lead">{{ selectedCount() }} von {{ steps().length }} Elementen ausgewählt.</p>
+
+      @if (selectedCount() === 0) {
+        <p class="wz-hint">Nichts ausgewählt — geh zurück und wähle mindestens ein Element.</p>
+      } @else {
+        <ul class="summary">
+          @for (step of selectedSteps(); track step.template.id) {
+            <li class="summary-row">
+              <button class="summary-btn" type="button" (click)="jumpTo(step)">
+                <span class="sr-name">{{ step.template.name }}</span>
+                <span class="sr-detail">{{ summaryDetail(step) }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (error()) {
+        <div class="error-msg">{{ error() }}</div>
+      }
+    }
+  </div>
+
+  <!-- ── Fusszeile: die Navigation liegt unten, in Daumenreichweite. ────── -->
+  @if (group()) {
+    <footer class="wz-footer">
+      <button class="nav-btn" type="button" (click)="back()">Zurück</button>
+
+      @if (onSummary()) {
+        <button
+          class="nav-btn primary"
+          type="button"
+          [disabled]="saving() || selectedCount() === 0"
+          (click)="save()"
+        >
+          {{ saving() ? 'Wird angelegt…' : 'Baugruppe anlegen' }}
+        </button>
+      } @else {
+        <button class="nav-btn primary" type="button" (click)="next()">
+          {{ onBasics() ? 'Los geht’s' : 'Weiter' }}
+        </button>
+      }
+    </footer>
+  }
+</div>

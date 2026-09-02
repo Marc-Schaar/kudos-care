@@ -69,7 +69,27 @@ features/
     services/bike-service, pipes/(km, warn-class, warn-label)
     models/maintenance.models.ts — BikeList/BikeDetail, BikeAssembly, ComponentGroupCatalog,
                                    MaintenanceInterval, ComponentSlot, BikeComponent, ...
-    Ein Bike besteht aus Baugruppen (`BikeAssembly`). `detail-bike-component` lädt
+    **Der Wartungsbereich ist mobile first gebaut**: Basis-CSS gilt für schmale Screens,
+    breitere bekommen Ausnahmen per `min-width` (nicht umgekehrt). Trefferflächen ≥ 44 px,
+    Eingabefelder mit `font-size: 16px`, damit iOS beim Fokus nicht hineinzoomt.
+    Alles liegt in `maintenance-shell-component` — Router-Outlet plus **untere
+    Navigationsleiste** (Bikes / Zustand / Werkstatt), fix am unteren Rand, ab 700px eine
+    schwebende Pille. Die Seiten halten unten `--nav-height` Abstand, sonst verschwindet
+    ihr letztes Element darunter. Zustand/Werkstatt brauchen ein Bike und sind ohne eins
+    deaktiviert statt versteckt (ein Tab, der mal da ist und mal nicht, lässt die Leiste
+    springen); die Bike-Id kommt aus `bikeService.selectedBike`, das den Wechsel zurück
+    zur Liste überlebt.
+    Ein Bike hat **zwei Seiten**, bewusst getrennt nach "ansehen" und "ändern":
+    `bike-condition-page` (`bikes/:id`) zeigt nur den Zustand — Statistik-Kacheln,
+    Diagramm, KI-Zustandsbericht, "Als nächstes fällig" und eine Baugruppen-Übersicht,
+    ohne jede Aktion. Teile und Intervalle werden dort auf **dieselbe Kennzahl** gebracht
+    (verbrauchter Anteil der Lebensdauer), damit "als nächstes fällig" wirklich eine
+    Reihenfolge ist statt zweier Listen, die der Nutzer selbst gegeneinander abwägt;
+    Posten ohne Datenbasis landen am Ende, nicht oben. `bike-service-page`
+    (`bikes/:id/werkstatt`) enthält alles Verändernde: Baugruppen-Karten mit Aktionen,
+    ungruppierte Slots, geparkte Sätze, alle Dialoge. Beide teilen sich
+    `bike-header-component`, damit beim Tab-Wechsel nichts springt.
+    `bike-service-page` lädt
     `GET bikes/<id>/assemblies/` und rendert je Baugruppe eine `assembly-card-component`
     als **Expansion Panel** (mobile first — bei 7-8 Baugruppen wäre alles-immer-offen ein
     endloser Scroll): die Kopfzeile (Name, Setup-km, Gesamt-Status,
@@ -87,7 +107,7 @@ features/
     fürs Rendern), Zustände `loading` / `error` / `text` als Signals, Fehlermeldung aus
     `err.error.error` mit Fallback-Satz. Zwei davon sitzen pro Komponente im
     `slot-card-component` ("Warum?" → `weather-explanation`, "Wie prüfen?" →
-    `check-instructions`), der dritte pro Bike direkt in `detail-bike-component`:
+    `check-instructions`), der dritte pro Bike direkt in `bike-condition-page`:
     **"Zustandsbericht"** (`GET bikes/<id>/condition-report/`) fasst alle montierten
     Komponenten zusammen, zeigt `generated_at` und bietet "Neu generieren"
     (`?refresh=true`). Der Server cacht ihn und erkennt Staleness selbst; die
@@ -99,9 +119,21 @@ features/
     auf Slots/Components/Intervalle/Nutzungsperioden, anders als "Ausmustern" bleibt keine
     Historie übrig. Genauso für geparkte Sätze im Abschnitt **"Geparkte Baugruppen"**
     (`parked_assemblies`: Montieren / Ausmustern / 🗑, Bestätigung analog in
-    `detail-bike-component` selbst statt in einer Kind-Komponente, da dort keine
+    `bike-service-page` selbst statt in einer Kind-Komponente, da dort keine
     Card-pro-Item-Komponente existiert).
-    Anlegen: `add-assembly-dialog-component` (Gruppe wählen → `assembly-checklist-component`).
+    Anlegen: **`assembly-wizard-component`** — Vollbild-Assistent, **ein Teil pro Schritt**
+    (Gruppe wählen → Grunddaten → je ein Schritt je Teil/Pflege → Zusammenfassung). Jeder
+    Schritt stellt genau eine Frage („ist das dran?") mit zwei großen Flächen; Marke,
+    Modell und Lebensdauer stehen optional darunter, wenn die Antwort ja lautet, und die
+    Vorauswahl kommt aus `default_in_group` — Durchtippen ohne Nachdenken ergibt also ein
+    brauchbares Ergebnis. Löst den früheren `add-assembly-dialog-component` ab, der alle
+    Templates gleichzeitig als Zeile mit drei Eingabefeldern zeigte: bei „Laufrad hinten"
+    acht Zeilen mit bis zu 40 Feldern auf einmal, am Handy unbenutzbar. Aus der
+    Zusammenfassung springt man per Tipp zurück in jeden Schritt.
+    **Bewusst nicht** im Setup-Stepper und im Swap-Dialog verwendet: der Stepper läuft
+    bereits eine Baugruppe pro Schritt, ein Teil pro Schritt ergäbe dort bei acht Gruppen
+    über achtzig Schritte für ein neues Rad. Beide nutzen weiter
+    `assembly-checklist-component`.
     Neues Bike ohne Komponenten → `bike-setup-stepper-component` (ein Schritt je empfohlener
     Baugruppe). Davor liegt **Kudo** (`kudo-intro-component`, Schritt 0): Hersteller +
     Baujahr → Modellauswahl → Vorbelegung aller Schritte. Jeder Modellvorschlag zeigt
@@ -127,8 +159,8 @@ features/
     die verschlissenen Teile *dieses* Satzes, der alte wird dabei ausgemustert.
     Einzelteil weiter über `add-component-dialog-component` / `component-swap-dialog-component`.
     **"Vorhandene Komponente übernehmen"**: `assembly-checklist-component` bekommt vom
-    Aufrufer (`detail-bike-component` über `add-assembly-dialog-component` bzw.
-    `switch-assembly-dialog-component`) die ungruppierten Slots des Bikes als
+    Aufrufer (`bike-service-page` über `switch-assembly-dialog-component`, analog im
+    `assembly-wizard-component`) die ungruppierten Slots des Bikes als
     `ungroupedSlots`-Input. Findet sich pro Teile-Zeile ein exakt passendes Template darunter
     (mit montiertem Teil), wird automatisch ein Übernehmen-Vorschlag angeboten ("Vorhandene
     Komponente übernehmen: Marke Modell · X km") statt der Marke/Modell-Felder — abwählbar,
@@ -166,9 +198,13 @@ Konsistenz zu neueren Features halten.
 - `landingpage` → lazy (`loadComponent`), ungeschützt (öffentliche Landing-Page)
 - `dashboard` → eager, `authGuard`
 - `activities`, `activity/:id` → lazy (`loadComponent`), `authGuard`
-- `maintenance` → `loadChildren` → `MAINTENANCE_ROUTES` (`''` = Bike-Liste,
-  `bikes/:id` = Bike-Detail). **Achtung:** Parent-Route selbst ist nicht mit `authGuard`
-  versehen — vor Änderungen an Maintenance-Routing prüfen, ob das beabsichtigt ist.
+- `maintenance` → `loadChildren` → `MAINTENANCE_ROUTES`. Alle Kinder liegen in
+  `maintenance-shell-component`, damit die untere Navigationsleiste beim Seitenwechsel
+  stehen bleibt: `''` = Bike-Liste, `bikes/:id` = **Zustand**, `bikes/:id/werkstatt` =
+  **Werkstatt**. Ein Bike hat also zwei Seiten statt einer — vorher lag beides in einer
+  einzigen `detail-bike-component`. **Achtung:** Parent-Route selbst ist nicht mit
+  `authGuard` versehen — vor Änderungen an Maintenance-Routing prüfen, ob das
+  beabsichtigt ist.
 
 ## API-Kommunikation & Auth
 

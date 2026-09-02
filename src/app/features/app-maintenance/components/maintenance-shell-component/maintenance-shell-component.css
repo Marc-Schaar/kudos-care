@@ -1,0 +1,91 @@
+/* Mobile first: Basiswerte gelten fuer schmale Screens, breitere bekommen
+   Ausnahmen per min-width. */
+
+:host {
+  /* Hoehe der Leiste inkl. Safe-Area — die Seiten halten unten so viel Abstand,
+     damit ihr letztes Element nicht darunter verschwindet. */
+  --nav-height: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  display: block;
+}
+
+.shell {
+  padding-bottom: calc(var(--nav-height) + 0.75rem);
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  /* 3.5rem = 56px Trefferflaeche, knapp ueber der 44px-Empfehlung. */
+  min-height: 3.5rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-item.active {
+  color: var(--accent);
+  /* Der farbige Balken sitzt oben, weil unten auf vielen Geraeten die
+     Gestenleiste des Systems liegt. */
+  box-shadow: inset 0 2px 0 0 var(--accent);
+  background: var(--accent-subtle);
+}
+
+.nav-item.disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.nav-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Ab Tablet steht genug Platz zur Verfuegung, dass die Leiste nicht mehr die
+   ganze Breite einnehmen muss — sie wird zu einer schwebenden Pille mittig. */
+@media (min-width: 700px) {
+  .bottom-nav {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    bottom: 1rem;
+    width: min(28rem, calc(100% - 2rem));
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .nav-item.active {
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-item {
+    transition:
+      color 0.15s ease,
+      background 0.15s ease;
+  }
+}

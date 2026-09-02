@@ -1,100 +1,10 @@
 <div class="page">
-  <nav class="breadcrumb">
-    <a routerLink="/maintenance">Wartung</a>
-    <span class="sep">/</span>
-    <span>{{ bike()?.name ?? '...' }}</span>
-  </nav>
-
-  @if (loading()) {
-    <div class="loading-bar-wrap">
-      <app-skeleton variant="bar" />
-    </div>
+  @if (loading() && !bike()) {
+    <div class="loading-bar-wrap"><app-skeleton variant="bar" /></div>
   }
 
   @if (bike(); as bike) {
-    <header class="bike-header">
-      <div class="header-top">
-        <app-bike-diagram-component
-          class="diagram"
-          [bikeType]="bike.bike_type"
-          [slots]="diagramSlots()"
-          (dotClick)="onDiagramDotClick($event)"
-        />
-
-        <div class="bike-header-left">
-          <div class="type-row">
-            <span class="type-label">{{ bike.bike_type_display }}</span>
-            <button class="edit-bike-btn" (click)="openEditBikeDialog()">Bearbeiten</button>
-          </div>
-          <h1 class="bike-title">{{ bike.name }}</h1>
-          <div class="bike-stats">
-            @if (bike.total_distance_km != null) {
-              <div class="stat">
-                <span class="stat-label">Gesamt</span>
-                <span class="stat-value">{{ bike.total_distance_km | number: '1.0-0' }} km</span>
-              </div>
-            }
-            <div class="stat">
-              <span class="stat-label">Status</span>
-              <span class="warn-badge" [class]="bike.warn_status | warnClass">
-                {{ bike.warn_status | warnLabel }}
-              </span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Baugruppen</span>
-              <span class="stat-value">{{ assemblies().length }}</span>
-            </div>
-          </div>
-
-          @if (criticalCount() > 0) {
-            <div class="alert-banner critical">
-              <span class="alert-icon">⚠</span>
-              <span>{{ criticalCount() }} Komponente(n) überfällig</span>
-            </div>
-          }
-          @if (warnCount() > 0) {
-            <div class="alert-banner warn">
-              <span class="alert-icon">○</span>
-              <span>{{ warnCount() }} Komponente(n) bald fällig</span>
-            </div>
-          }
-        </div>
-      </div>
-    </header>
-
-    @if (!isEmpty()) {
-      <section class="condition-report">
-        <div class="condition-report-row">
-          <button class="report-toggle-btn" (click)="toggleConditionReport()">
-            {{ showConditionReport() ? 'Zustandsbericht ausblenden' : 'Zustandsbericht' }}
-          </button>
-          @if (showConditionReport() && conditionReport(); as report) {
-            <span class="report-meta">
-              Stand {{ report.generated_at | date: 'dd.MM.yyyy HH:mm' }}
-            </span>
-            <button
-              class="report-refresh-btn"
-              [disabled]="conditionReportLoading()"
-              (click)="reloadConditionReport()"
-            >
-              Neu generieren
-            </button>
-          }
-        </div>
-
-        @if (showConditionReport()) {
-          <div class="condition-report-block">
-            @if (conditionReportLoading()) {
-              <span class="field-hint">(wird generiert…)</span>
-            } @else if (conditionReportError()) {
-              <span class="error-msg">{{ conditionReportError() }}</span>
-            } @else if (conditionReport(); as report) {
-              <p class="report-text">{{ report.report }}</p>
-            }
-          </div>
-        }
-      </section>
-    }
+    <app-bike-header-component [bike]="bike" [showEdit]="true" (edit)="openEditBikeDialog()" />
 
     @if (isEmpty() && !loading()) {
       <app-bike-setup-stepper-component
@@ -121,9 +31,15 @@
         }
       </div>
 
+      <!-- Primaeraktion dieser Seite: bewusst direkt unter den Baugruppen und
+           volle Breite, damit sie am Handy mit dem Daumen erreichbar ist. -->
+      <button class="add-assembly-btn" type="button" (click)="openAssemblyWizard()">
+        + Baugruppe anlegen
+      </button>
+
       @if (ungroupedSlots().length > 0) {
         <section class="ungrouped">
-          <h2 class="ungrouped-title">Ohne Baugruppe</h2>
+          <h2 class="section-title">Ohne Baugruppe</h2>
           <div class="slots-grid">
             @for (slot of ungroupedSlots(); track slot.id) {
               <app-slot-card-component
@@ -141,7 +57,7 @@
 
       @if (parkedAssemblies().length > 0) {
         <section class="parked">
-          <h2 class="parked-title">Geparkte Baugruppen</h2>
+          <h2 class="section-title">Geparkt</h2>
           <p class="parked-hint">
             Abgezogen, aber nicht ausgemustert — sie sammeln keine Kilometer, solange sie nicht
             montiert sind.
@@ -161,11 +77,13 @@
                     }
                   </span>
                 </div>
+
                 @if (confirmingDeleteId() === parked.id) {
-                  <span class="parked-delete-confirm">
-                    Wirklich löschen?
+                  <div class="parked-actions">
+                    <span class="confirm-text">Wirklich löschen?</span>
                     <button
                       class="parked-btn confirm-yes"
+                      type="button"
                       [disabled]="deletingAssemblyId() === parked.id"
                       (click)="confirmDeleteParked(parked)"
                     >
@@ -173,51 +91,55 @@
                     </button>
                     <button
                       class="parked-btn secondary"
+                      type="button"
                       [disabled]="deletingAssemblyId() === parked.id"
                       (click)="cancelDeleteParked()"
                     >
                       Nein
                     </button>
-                  </span>
+                  </div>
                 } @else {
-                  <button class="parked-btn" (click)="activateParked(parked)">Montieren</button>
-                  <button
-                    class="parked-btn secondary"
-                    [disabled]="retiringAssemblyId() === parked.id"
-                    (click)="retireParked(parked)"
-                  >
-                    Ausmustern
-                  </button>
-                  <button
-                    class="parked-btn icon-only"
-                    title="Baugruppe löschen"
-                    (click)="requestDeleteParked(parked)"
-                  >
-                    🗑
-                  </button>
+                  <div class="parked-actions">
+                    <button class="parked-btn" type="button" (click)="activateParked(parked)">
+                      Montieren
+                    </button>
+                    <button
+                      class="parked-btn secondary"
+                      type="button"
+                      [disabled]="retiringAssemblyId() === parked.id"
+                      (click)="retireParked(parked)"
+                    >
+                      Ausmustern
+                    </button>
+                    <button
+                      class="parked-btn icon-only"
+                      type="button"
+                      title="Baugruppe löschen"
+                      aria-label="Baugruppe löschen"
+                      (click)="requestDeleteParked(parked)"
+                    >
+                      🗑
+                    </button>
+                  </div>
                 }
               </div>
             }
           </div>
         </section>
       }
-
-      <button class="add-assembly-btn" (click)="openAddAssemblyDialog()">
-        + Baugruppe hinzufügen
-      </button>
     }
   }
 </div>
 
-@if (showAddAssemblyDialog() && bike(); as bike) {
-  <app-add-assembly-dialog-component
+@if (showAssemblyWizard() && bike(); as bike) {
+  <app-assembly-wizard-component
     [bikeId]="bike.id"
     [bikeType]="bike.bike_type"
     [availableGroups]="availableGroups()"
     [ungroupedSlots]="ungroupedSlots()"
     [spareComponents]="spareComponents()"
-    (close)="closeAddAssemblyDialog()"
-    (saved)="onAssemblyAdded()"
+    (close)="closeAssemblyWizard()"
+    (created)="onAssemblyCreated()"
   />
 }
 

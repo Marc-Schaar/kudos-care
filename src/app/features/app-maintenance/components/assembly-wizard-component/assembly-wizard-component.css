@@ -1,0 +1,395 @@
+/* Mobile first: der Assistent nimmt am Handy den ganzen Bildschirm ein — ein
+   Dialog mit Rahmen und Overlay wuerde hier nur Platz kosten. */
+
+.wizard {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* ── Kopf ───────────────────────────────────────────────────────────────── */
+.wz-header {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  border-bottom: 1px solid var(--border);
+}
+
+.wz-close {
+  width: 2.75rem;
+  height: 2.75rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.wz-close:hover {
+  color: var(--text);
+}
+
+.wz-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wz-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  min-width: 3.5rem;
+  text-align: right;
+}
+
+.wz-progress {
+  height: 2px;
+  background: var(--border);
+}
+
+.wz-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+/* ── Inhalt ─────────────────────────────────────────────────────────────── */
+.wz-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.25rem 1rem;
+}
+
+.wz-lead {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0 0 1rem;
+}
+
+.wz-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── Gruppenauswahl ─────────────────────────────────────────────────────── */
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.group-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+  padding: 0.9rem 0.85rem;
+  min-height: 3.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.group-tile:hover {
+  border-color: var(--accent);
+}
+
+.gt-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.gt-badge {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0.05rem 0.3rem;
+  margin-left: 0.4rem;
+}
+
+.gt-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+/* ── Ein Teil pro Schritt ───────────────────────────────────────────────── */
+.step-kind {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.step-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.4rem;
+  line-height: 1.2;
+  color: var(--text);
+  margin: 0.3rem 0 0.4rem;
+  overflow-wrap: anywhere;
+}
+
+.step-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 1.25rem;
+}
+
+/* Zwei grosse Flaechen statt einer Checkbox — die Entscheidung ist der Kern
+   des Schritts und soll ohne Zielen treffbar sein. */
+.choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.choice-btn {
+  min-height: 3.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.choice-btn.chosen {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.choice-btn.primary.chosen {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* ── Details unter der Entscheidung ─────────────────────────────────────── */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.details-lead {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  /* 16px verhindert, dass iOS beim Fokus in das Feld hineinzoomt. */
+  font-size: 16px;
+  font-family: 'DM Mono', monospace;
+  padding: 0.7rem 0.75rem;
+  min-height: 2.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.reuse {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text);
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.reuse input {
+  margin-top: 0.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+/* ── Zusammenfassung ────────────────────────────────────────────────────── */
+.summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.summary-row {
+  background: var(--surface);
+}
+
+.summary-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+  padding: 0.7rem 0.8rem;
+  min-height: 2.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sr-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.sr-detail {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.summary-btn:hover .sr-name {
+  color: var(--accent);
+}
+
+.error-msg {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--critical);
+  margin-top: 0.8rem;
+}
+
+/* ── Fusszeile ──────────────────────────────────────────────────────────── */
+.wz-footer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.nav-btn {
+  min-height: 2.9rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.nav-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sr-only,
+.sr-name:empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* ── Ab Tablet: als zentrierter Dialog statt Vollbild. ──────────────────── */
+@media (min-width: 700px) {
+  .wizard {
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .wz-header,
+  .wz-progress,
+  .wz-body,
+  .wz-footer {
+    width: min(34rem, calc(100vw - 3rem));
+    background: var(--bg);
+  }
+
+  .wz-header {
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding-top: 0.5rem;
+  }
+
+  .wz-body {
+    flex: none;
+    max-height: 60vh;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .wz-footer {
+    border: 1px solid var(--border);
+    border-top: none;
+    padding-bottom: 0.75rem;
+  }
+}

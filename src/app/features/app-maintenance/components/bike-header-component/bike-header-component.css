@@ -1,0 +1,101 @@
+/* Mobile first. */
+
+.bike-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.back-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-decoration: none;
+  /* Eigene Zeile mit Luft — als Rueckweg muss der Link mit dem Daumen
+     treffbar sein, nicht nur mit der Maus. */
+  padding: 0.35rem 0;
+  align-self: flex-start;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bike-title {
+  margin: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--text);
+  /* Lange Modellnamen sollen umbrechen statt die Zeile zu sprengen. */
+  overflow-wrap: anywhere;
+}
+
+.edit-btn {
+  flex: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.meta-sep {
+  opacity: 0.5;
+}
+
+.warn-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+}
+
+.warn-badge.status-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+.warn-badge.status-warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+}
+.warn-badge.status-critical {
+  color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 12%, transparent);
+}
+.warn-badge.status-unknown {
+  color: var(--muted);
+  background: var(--border);
+}
+
+@media (min-width: 700px) {
+  .bike-title {
+    font-size: 1.6rem;
+  }
+}

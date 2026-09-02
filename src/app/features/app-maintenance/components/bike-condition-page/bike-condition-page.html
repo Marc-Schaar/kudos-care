@@ -1,0 +1,128 @@
+<div class="page">
+  @if (loading() && !bike()) {
+    <div class="loading-bar-wrap"><app-skeleton variant="bar" /></div>
+  }
+
+  @if (bike(); as bike) {
+    <app-bike-header-component [bike]="bike" />
+
+    @if (isEmpty() && !loading()) {
+      <p class="empty">
+        Für dieses Bike sind noch keine Baugruppen angelegt. Leg sie in der Werkstatt an — danach
+        steht hier der Zustand.
+      </p>
+    } @else {
+      <!-- Statistik: die vier Zahlen, die den Zustand zusammenfassen. -->
+      <section class="stats" aria-label="Statistik">
+        <div class="stat">
+          <span class="stat-value">{{ bike.total_distance_km | number: '1.0-0' }}</span>
+          <span class="stat-label">km gesamt</span>
+        </div>
+        <div class="stat" [class.has-critical]="criticalCount() > 0">
+          <span class="stat-value">{{ criticalCount() }}</span>
+          <span class="stat-label">überfällig</span>
+        </div>
+        <div class="stat" [class.has-warn]="warnCount() > 0">
+          <span class="stat-value">{{ warnCount() }}</span>
+          <span class="stat-label">bald fällig</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ trackedCount() }}</span>
+          <span class="stat-label">im Blick</span>
+        </div>
+      </section>
+
+      <section class="diagram-wrap" aria-label="Bike-Diagramm">
+        <app-bike-diagram-component [bikeType]="bike.bike_type" [slots]="diagramSlots()" />
+      </section>
+
+      <!-- KI-Zustandsbericht: kostet einen Aufruf, daher erst auf Tipp. -->
+      <section class="report">
+        <div class="report-row">
+          <button class="report-toggle" type="button" (click)="toggleReport()">
+            {{ showReport() ? 'Zustandsbericht ausblenden' : 'Zustandsbericht' }}
+          </button>
+          @if (showReport() && report(); as r) {
+            <button
+              class="report-refresh"
+              type="button"
+              [disabled]="reportLoading()"
+              (click)="reloadReport()"
+            >
+              Neu
+            </button>
+          }
+        </div>
+        @if (showReport()) {
+          <div class="report-block">
+            @if (reportLoading()) {
+              <span class="hint">(wird generiert…)</span>
+            } @else if (reportError()) {
+              <span class="error-msg">{{ reportError() }}</span>
+            } @else if (report(); as r) {
+              <p class="report-text">{{ r.report }}</p>
+              <span class="report-meta">Stand {{ r.generated_at | date: 'dd.MM.yyyy HH:mm' }}</span>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="due" aria-label="Als nächstes fällig">
+        <h2 class="section-title">Als nächstes fällig</h2>
+
+        @if (dueSoon().length === 0) {
+          <p class="all-good">
+            Nichts fällig — alle {{ trackedCount() }} Posten im grünen Bereich.
+          </p>
+        }
+
+        <ul class="due-list">
+          @for (entry of dueSoon().length ? dueSoon() : dueList().slice(0, 5); track entry.id) {
+            <li class="due-item">
+              <div class="due-head">
+                <span class="due-label">{{ entry.label }}</span>
+                <span class="warn-badge" [class]="entry.status | warnClass">
+                  {{ entry.status | warnLabel }}
+                </span>
+              </div>
+              <div class="due-bar" [class]="entry.status | warnClass" aria-hidden="true">
+                <div class="due-bar-fill" [style.width.%]="barWidth(entry.ratio)"></div>
+              </div>
+              <div class="due-meta">
+                <span class="due-context">{{ entry.context }}</span>
+                <span class="due-detail">{{ entry.detail }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+
+        @if (dueSoon().length === 0 && dueList().length > 5) {
+          <p class="due-more">
+            Die {{ dueList().length }} Posten insgesamt siehst du in der Werkstatt.
+          </p>
+        }
+      </section>
+
+      <section class="assembly-summary" aria-label="Baugruppen">
+        <h2 class="section-title">Baugruppen</h2>
+        <ul class="summary-list">
+          @for (assembly of assemblies(); track assembly.id) {
+            <li class="summary-item">
+              <span class="summary-dot" [class]="assembly.worst_status | warnClass"></span>
+              <span class="summary-name">{{ assembly.display_name }}</span>
+              @if (assembly.assembly_km !== null) {
+                <span class="summary-km">{{ assembly.assembly_km | number: '1.0-0' }} km</span>
+              }
+            </li>
+          }
+        </ul>
+        @if (parkedCount() > 0) {
+          <p class="parked-note">
+            {{ parkedCount() }} geparkte {{ parkedCount() === 1 ? 'Baugruppe' : 'Baugruppen' }} —
+            sammeln keine Kilometer.
+          </p>
+        }
+      </section>
+    }
+  }
+</div>
