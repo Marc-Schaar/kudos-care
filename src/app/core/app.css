@@ -1,0 +1,8 @@
+/* Platz für die fixe Navigationsleiste (shared/components/main-nav).
+   Ohne diesen Abstand verschwindet das letzte Element jeder Seite darunter.
+   Steht hier statt in jeder Seite, weil die Leiste global ist. */
+:host {
+  --nav-height: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  display: block;
+  padding-bottom: calc(var(--nav-height) + 0.75rem);
+}

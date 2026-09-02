@@ -72,13 +72,8 @@ features/
     **Der Wartungsbereich ist mobile first gebaut**: Basis-CSS gilt für schmale Screens,
     breitere bekommen Ausnahmen per `min-width` (nicht umgekehrt). Trefferflächen ≥ 44 px,
     Eingabefelder mit `font-size: 16px`, damit iOS beim Fokus nicht hineinzoomt.
-    Alles liegt in `maintenance-shell-component` — Router-Outlet plus **untere
-    Navigationsleiste** (Bikes / Zustand / Werkstatt), fix am unteren Rand, ab 700px eine
-    schwebende Pille. Die Seiten halten unten `--nav-height` Abstand, sonst verschwindet
-    ihr letztes Element darunter. Zustand/Werkstatt brauchen ein Bike und sind ohne eins
-    deaktiviert statt versteckt (ein Tab, der mal da ist und mal nicht, lässt die Leiste
-    springen); die Bike-Id kommt aus `bikeService.selectedBike`, das den Wechsel zurück
-    zur Liste überlebt.
+    Die Navigationsleiste liegt **nicht** hier, sondern global in der App-Shell (siehe
+    `shared/components/main-nav`).
     Ein Bike hat **zwei Seiten**, bewusst getrennt nach "ansehen" und "ändern":
     `bike-condition-page` (`bikes/:id`) zeigt nur den Zustand — Statistik-Kacheln,
     Diagramm, KI-Zustandsbericht, "Als nächstes fällig" und eine Baugruppen-Übersicht,
@@ -199,6 +194,24 @@ features/
 
 shared/
   components/notification-component — Toast-UI (liest NotificationService-Signal)
+  components/main-nav                — **zentrale Navigationsleiste**, fix am unteren
+                                       Rand, ab 760px eine schwebende Pille. Fünf Ziele:
+                                       Start · Fahrten · Bikes · Zustand · Werkstatt.
+                                       Liegt in der App-Shell (`core/app.html`), nicht im
+                                       Wartungsbereich — sobald sie auf Fahrten und Start
+                                       verweist, muss sie auch dort stehen bleiben, sonst
+                                       führt der Weg aus der Wartung heraus in eine Seite
+                                       ohne Rückweg. **Sichtbarkeit hängt an der Route,
+                                       nicht am angemeldeten Nutzer**: `StravaService.user`
+                                       wird erst befüllt, wenn eine Seite es anstößt, und
+                                       die Wartungsseiten tun das nicht — die Leiste war
+                                       dort beim Direktaufruf verschwunden. Ausgeblendet
+                                       auf `/login`, `/landingpage`, `/strava-callback`.
+                                       „Zustand" und „Werkstatt" brauchen ein Bike und sind
+                                       ohne eins deaktiviert statt versteckt (eine Leiste,
+                                       die ihre Anzahl ändert, springt); die Id kommt aus
+                                       `bikeService.selectedBike`. Den Abstand nach unten
+                                       setzt `core/app.css` global über `--nav-height`.
   components/user-menu               — E-Mail ändern, Benachrichtigungen an/aus, Abmelden,
                                        **Konto löschen** (`deleteAccount()` → `DELETE
                                        strava/me/?confirm=true`). Zwei Schritte statt
@@ -234,13 +247,15 @@ Konsistenz zu neueren Features halten.
 - `landingpage` → lazy (`loadComponent`), ungeschützt (öffentliche Landing-Page)
 - `dashboard` → eager, `authGuard`
 - `activities`, `activity/:id` → lazy (`loadComponent`), `authGuard`
-- `maintenance` → `loadChildren` → `MAINTENANCE_ROUTES`. Alle Kinder liegen in
-  `maintenance-shell-component`, damit die untere Navigationsleiste beim Seitenwechsel
-  stehen bleibt: `''` = Bike-Liste, `bikes/:id` = **Zustand**, `bikes/:id/werkstatt` =
-  **Werkstatt**. Ein Bike hat also zwei Seiten statt einer — vorher lag beides in einer
-  einzigen `detail-bike-component`. **Achtung:** Parent-Route selbst ist nicht mit
-  `authGuard` versehen — vor Änderungen an Maintenance-Routing prüfen, ob das
-  beabsichtigt ist.
+- `maintenance` → `loadChildren` → `MAINTENANCE_ROUTES`, flach: `''` = Bike-Liste,
+  `bikes/:id` = **Zustand**, `bikes/:id/werkstatt` = **Werkstatt**,
+  `bikes/:id/werkstatt/:assemblyId` = **Baugruppen-Detail**. Ein Bike hat also zwei
+  Seiten statt einer — vorher lag beides in einer einzigen `detail-bike-component`. Die
+  Baugruppen-Detailseite liegt bewusst unter `werkstatt/`, damit der Tab in der
+  Navigation aktiv bleibt (`routerLinkActive` ohne `exact`). Ein Shell-Wrapper existiert
+  hier **nicht** mehr: die Navigationsleiste liegt global in `core/app.html`.
+  **Achtung:** Parent-Route selbst ist nicht mit `authGuard` versehen — vor Änderungen
+  an Maintenance-Routing prüfen, ob das beabsichtigt ist.
 
 ## API-Kommunikation & Auth
 

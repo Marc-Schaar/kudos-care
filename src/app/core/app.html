@@ -3,3 +3,8 @@
      der Shell, damit er unabhängig von der Landing-Route erscheint. -->
 <app-email-prompt-dialog></app-email-prompt-dialog>
 <router-outlet></router-outlet>
+
+<!-- Zentrale Navigation, fix am unteren Rand. Liegt hier und nicht im
+     Wartungsbereich, damit sie beim Wechsel auf Fahrten oder Start stehen
+     bleibt; sie blendet sich selbst aus, solange niemand angemeldet ist. -->
+<app-main-nav />
