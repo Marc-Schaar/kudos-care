@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { StravaService } from '../../../../shared/services/strava-service/strava-service';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 @Component({
   selector: 'app-login',
@@ -12,15 +13,15 @@ import { StravaService } from '../../../../shared/services/strava-service/strava
 export class Login implements OnInit {
   private clientId = environment.clientID;
   private redirectUri = environment.redirectUrl + '/strava-callback';
+  readonly nav = inject(NavigationService);
   private readonly stravaService = inject(StravaService);
-  private readonly router = inject(Router);
 
   checking = signal(true);
   devLoginEnabled = environment.devLoginEnabled;
 
   ngOnInit() {
     this.stravaService.fetchUser().subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => this.nav.goTo(this.nav.to.dashboard()),
       error: () => this.checking.set(false),
     });
   }
@@ -38,7 +39,7 @@ export class Login implements OnInit {
 
   devLogin() {
     this.stravaService.devLogin().subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => this.nav.goTo(this.nav.to.dashboard()),
       error: (err) => console.error('Dev-Login fehlgeschlagen', err),
     });
   }

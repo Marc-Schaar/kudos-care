@@ -194,6 +194,19 @@ features/
 
 shared/
   components/notification-component — Toast-UI (liest NotificationService-Signal)
+  services/navigation-service        — **alle Wege durch die App an einem Ort**.
+                                       `nav.to.*()` liefert die Segmente für
+                                       `[routerLink]`, `nav.goTo(...)` navigiert im Code;
+                                       beide teilen dieselbe Definition. Vorher standen
+                                       die Pfade als Literale verstreut und waren bereits
+                                       auseinandergelaufen — dieselbe Bike-Seite hieß an
+                                       einer Stelle `['/maintenance/bikes', id]`, an
+                                       anderer `['/maintenance', 'bikes', id]`. Es gibt
+                                       **keine** hartkodierten Routen mehr in Templates
+                                       oder Komponenten; einzige Ausnahme ist
+                                       `auth-guard`, der `createUrlTree` braucht (ein
+                                       Guard gibt ein Ziel zurück, er springt nicht) —
+                                       den Pfad holt auch er aus dem Service.
   components/main-nav                — **zentrale Navigationsleiste**, fix am unteren
                                        Rand, ab 760px eine schwebende Pille. Fünf Ziele:
                                        Start · Fahrten · Bikes · Zustand · Werkstatt.

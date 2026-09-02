@@ -212,7 +212,11 @@ export class AssemblyChecklistComponent implements OnInit {
   buildPayload(): CreateAssemblyPayload {
     const parts: AssemblyPartItem[] = this.partRows.map((r) => {
       if (r.existingSlot && r.reuseExisting) {
-        return { template_id: r.template.id, include: r.include, existing_slot_id: r.existingSlot.id };
+        return {
+          template_id: r.template.id,
+          include: r.include,
+          existing_slot_id: r.existingSlot.id,
+        };
       }
       if (r.spareCandidates.length > 0 && r.reuseSpare && r.selectedSpareId != null) {
         return {

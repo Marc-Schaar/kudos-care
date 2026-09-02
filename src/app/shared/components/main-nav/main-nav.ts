@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { BikeService } from '../../../features/app-maintenance/services/bike-service/bike-service';
+import { NavigationService } from '../../../shared/services/navigation-service/navigation-service';
 
 /**
  * Die zentrale Navigationsleiste der App — fix am unteren Rand.
@@ -28,6 +29,7 @@ import { BikeService } from '../../../features/app-maintenance/services/bike-ser
   styleUrl: './main-nav.css',
 })
 export class MainNav {
+  readonly nav = inject(NavigationService);
   private readonly bikeService = inject(BikeService);
   private readonly router = inject(Router);
 

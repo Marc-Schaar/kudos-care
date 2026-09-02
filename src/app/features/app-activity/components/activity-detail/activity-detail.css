@@ -243,11 +243,7 @@
 }
 
 .legend-gradient-ok {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--ok) 20%, var(--muted)),
-    var(--ok)
-  );
+  background: linear-gradient(to right, color-mix(in srgb, var(--ok) 20%, var(--muted)), var(--ok));
 }
 
 .legend-gradient-rain {

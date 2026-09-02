@@ -1,7 +1,7 @@
 <div class="page">
   <div class="breadcrumb-row">
     <nav class="breadcrumb">
-      <a routerLink="/dashboard">Dashboard</a>
+      <a [routerLink]="nav.to.dashboard()">Dashboard</a>
       <span class="sep">/</span>
       <span>{{ activityService.activityData()?.name ?? '...' }}</span>
     </nav>
@@ -49,7 +49,9 @@
         }
         @if (data.weather_timeline.avg_headwind != null) {
           <div class="stat">
-            <span class="stat-label">Ø {{ data.weather_timeline.avg_headwind | headwindLabel }}</span>
+            <span class="stat-label"
+              >Ø {{ data.weather_timeline.avg_headwind | headwindLabel }}</span
+            >
             <span
               class="warn-badge"
               [class]="'status-' + windStatus(data.weather_timeline.avg_headwind)"
@@ -306,8 +308,7 @@
               </p>
             } @else if (windSource() === 'none') {
               <p class="legend-hint legend-hint-warn">
-                Für diese Fahrt liegen keine Winddaten vor — die Strecke wird neutral
-                dargestellt.
+                Für diese Fahrt liegen keine Winddaten vor — die Strecke wird neutral dargestellt.
               </p>
             }
           </div>

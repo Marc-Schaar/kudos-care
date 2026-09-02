@@ -19,10 +19,7 @@
       <ul class="assembly-list">
         @for (assembly of assemblies(); track assembly.id) {
           <li>
-            <a
-              class="assembly-row"
-              [routerLink]="['/maintenance', 'bikes', bike.id, 'werkstatt', assembly.id]"
-            >
+            <a class="assembly-row" [routerLink]="nav.to.assembly(bike.id, assembly.id)">
               <span class="ar-dot" [class]="assembly.worst_status | warnClass"></span>
               <span class="ar-body">
                 <span class="ar-name">{{ assembly.display_name }}</span>

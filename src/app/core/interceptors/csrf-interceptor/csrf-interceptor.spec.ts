@@ -21,7 +21,11 @@ describe('csrfInterceptor', () => {
 
   it('setzt den X-CSRFToken-Header aus dem Cookie, auch fuer eine andere Origin', async () => {
     document.cookie = 'csrftoken=abc123';
-    const req = new HttpRequest('POST', 'http://localhost:8000/api/maintenance/bikes/1/assemblies/', {});
+    const req = new HttpRequest(
+      'POST',
+      'http://localhost:8000/api/maintenance/bikes/1/assemblies/',
+      {},
+    );
 
     let seenHeader: string | null = null;
     await firstValueFrom(

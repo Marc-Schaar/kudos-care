@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { environment } from './../../../../environments/environment';
 import { interval, switchMap, takeWhile, tap } from 'rxjs';
 import { NotificationService } from '../notification-service/notification-service';
+import { NavigationService } from '../../../shared/services/navigation-service/navigation-service';
 
 export interface Activity {
   id: number;
@@ -53,9 +53,9 @@ export interface UserSettingsPatch {
   providedIn: 'root',
 })
 export class StravaService {
+  readonly nav = inject(NavigationService);
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.apiUrl;
-  private readonly router = inject(Router);
   private readonly notificationService: NotificationService = inject(NotificationService);
 
   private readonly displayNameStorageKey = 'kudos_care_display_name';
@@ -215,7 +215,7 @@ export class StravaService {
         localStorage.removeItem(this.displayNameStorageKey);
         this.user.set(null);
         this.activities.set([]);
-        this.router.navigate(['/login']);
+        this.nav.goTo(this.nav.to.login());
       },
       error: (err) => {
         console.error('Logout failed', err);

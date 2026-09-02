@@ -7,16 +7,12 @@
     <p class="empty">
       Diese Baugruppe gibt es nicht mehr — sie wurde ausgemustert, aufgelöst oder erneuert.
     </p>
-    <a class="back-link" [routerLink]="['/maintenance', 'bikes', bikeId(), 'werkstatt']">
-      ‹ Zurück zur Werkstatt
-    </a>
+    <a class="back-link" [routerLink]="nav.to.workshop(bikeId()!)"> ‹ Zurück zur Werkstatt </a>
   }
 
   @if (assembly(); as asm) {
     <header class="head">
-      <a class="back-link" [routerLink]="['/maintenance', 'bikes', bikeId(), 'werkstatt']">
-        ‹ Werkstatt
-      </a>
+      <a class="back-link" [routerLink]="nav.to.workshop(bikeId()!)"> ‹ Werkstatt </a>
 
       <div class="title-row">
         @if (editingName()) {

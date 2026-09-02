@@ -1,6 +1,6 @@
 @if (bike(); as bike) {
   <header class="bike-header">
-    <a class="back-link" routerLink="/maintenance">‹ Alle Bikes</a>
+    <a class="back-link" [routerLink]="nav.to.bikes()">‹ Alle Bikes</a>
 
     <div class="title-row">
       <h1 class="bike-title">{{ bike.name }}</h1>
@@ -10,9 +10,21 @@
     </div>
 
     <div class="meta-row">
-      <span class="warn-badge" [class]="bike.warn_status | warnClass">
-        {{ bike.warn_status | warnLabel }}
-      </span>
+      @if (statusClickable()) {
+        <button
+          type="button"
+          class="warn-badge clickable"
+          [class]="bike.warn_status | warnClass"
+          (click)="statusClick.emit()"
+        >
+          {{ bike.warn_status | warnLabel }}
+          <span class="badge-arrow" aria-hidden="true">↓</span>
+        </button>
+      } @else {
+        <span class="warn-badge" [class]="bike.warn_status | warnClass">
+          {{ bike.warn_status | warnLabel }}
+        </span>
+      }
       <span class="meta-sep">·</span>
       <span class="meta">{{ bike.bike_type_display }}</span>
       @if (bike.total_distance_km != null) {

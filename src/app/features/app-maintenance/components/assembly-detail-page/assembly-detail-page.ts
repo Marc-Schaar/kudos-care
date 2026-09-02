@@ -21,6 +21,7 @@ import { ComponentSwapDialogComponent } from '../component-swap-dialog-component
 import { QuickChangeDialogComponent } from '../quick-change-dialog-component/quick-change-dialog-component';
 import { SwitchAssemblyDialogComponent } from '../switch-assembly-dialog-component/switch-assembly-dialog-component';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 /**
  * Detailseite einer Baugruppe — loest das Expansion Panel der
@@ -58,8 +59,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
   styleUrl: './assembly-detail-page.css',
 })
 export class AssemblyDetailPage implements OnInit {
+  readonly nav = inject(NavigationService);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
   readonly bikeService = inject(BikeService);
 
@@ -251,7 +252,7 @@ export class AssemblyDetailPage implements OnInit {
   }
 
   private backToWorkshop() {
-    this.router.navigate(['/maintenance', 'bikes', this.bikeId(), 'werkstatt']);
+    this.nav.goTo(this.nav.to.workshop(this.bikeId()!));
   }
 
   // ── Umbenennen ──────────────────────────────────────────────────────────────

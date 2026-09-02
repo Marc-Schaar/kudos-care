@@ -1,18 +1,18 @@
 @if (visible()) {
   <nav class="bottom-nav" aria-label="Hauptnavigation">
-    <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">
+    <a class="nav-item" [routerLink]="nav.to.dashboard()" routerLinkActive="active">
       <span class="nav-icon" aria-hidden="true">◆</span>
       <span class="nav-label">Start</span>
     </a>
 
-    <a class="nav-item" routerLink="/activities" routerLinkActive="active">
+    <a class="nav-item" [routerLink]="nav.to.activities()" routerLinkActive="active">
       <span class="nav-icon" aria-hidden="true">↗</span>
       <span class="nav-label">Fahrten</span>
     </a>
 
     <a
       class="nav-item"
-      routerLink="/maintenance"
+      [routerLink]="nav.to.bikes()"
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
     >
@@ -23,18 +23,14 @@
     @if (bikeId(); as id) {
       <a
         class="nav-item"
-        [routerLink]="['/maintenance', 'bikes', id]"
+        [routerLink]="nav.to.bikeCondition(id)"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
       >
         <span class="nav-icon" aria-hidden="true">◍</span>
         <span class="nav-label">Zustand</span>
       </a>
-      <a
-        class="nav-item"
-        [routerLink]="['/maintenance', 'bikes', id, 'werkstatt']"
-        routerLinkActive="active"
-      >
+      <a class="nav-item" [routerLink]="nav.to.workshop(id)" routerLinkActive="active">
         <span class="nav-icon" aria-hidden="true">⚙</span>
         <span class="nav-label">Werkstatt</span>
       </a>

@@ -78,7 +78,7 @@
   <div class="section-divider">
     <span class="divider-label">Meine Räder</span>
     <div class="divider-line"></div>
-    <a class="section-link" routerLink="/maintenance">Alle Räder →</a>
+    <a class="section-link" [routerLink]="nav.to.bikes()">Alle Räder →</a>
   </div>
 
   @if (loading()) {
@@ -88,11 +88,7 @@
   } @else {
     <div class="bikes-grid">
       @for (bike of activeBikes(); track bike.id) {
-        <a
-          class="bike-card"
-          [class]="cardClass(bike)"
-          [routerLink]="['/maintenance/bikes', bike.id]"
-        >
+        <a class="bike-card" [class]="cardClass(bike)" [routerLink]="nav.to.bikeCondition(bike.id)">
           <div class="card-top">
             <span class="type-badge">{{ bike.bike_type_display }}</span>
             <span class="status-pill" [class]="bike.warn_status | warnClass">
@@ -119,7 +115,7 @@
   <div class="section-divider" style="margin-top: 2.5rem">
     <span class="divider-label">Letzte Aktivitäten</span>
     <div class="divider-line"></div>
-    <a class="section-link" routerLink="/activities">Alle Aktivitäten →</a>
+    <a class="section-link" [routerLink]="nav.to.activities()">Alle Aktivitäten →</a>
   </div>
 
   @if (loading()) {
@@ -129,7 +125,7 @@
   } @else {
     <div class="activity-list">
       @for (activity of recentActivities(); track activity.id) {
-        <a class="activity-row" [routerLink]="['/activity', activity.id]">
+        <a class="activity-row" [routerLink]="nav.to.activity(activity.id)">
           <div class="activity-main">
             <span class="activity-name">{{ activity.name }}</span>
             @if (activity.start_date) {

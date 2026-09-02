@@ -33,6 +33,10 @@
     --muted: #8a8fa0;
     --accent: #5a8f00;
     --accent-subtle: rgba(90, 143, 0, 0.05);
+    /* Fehlte hier — dadurch blieb die zweite Fläche im hellen Modus dunkel
+       (#1c1f25 aus dem Dark-Block) und Elemente wie Hover-Zeilen, Eingabefelder
+       und der KI-Berichtskasten standen schwarz auf heller Seite. */
+    --surface2: #eef0f4;
   }
 }
 

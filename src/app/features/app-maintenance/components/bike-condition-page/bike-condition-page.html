@@ -4,7 +4,11 @@
   }
 
   @if (bike(); as bike) {
-    <app-bike-header-component [bike]="bike" />
+    <app-bike-header-component
+      [bike]="bike"
+      [statusClickable]="dueSoon().length > 0"
+      (statusClick)="scrollToDue()"
+    />
 
     @if (isEmpty() && !loading()) {
       <p class="empty">
@@ -67,7 +71,7 @@
         }
       </section>
 
-      <section class="due" aria-label="Als nächstes fällig">
+      <section class="due" id="due-section" aria-label="Als nächstes fällig">
         <h2 class="section-title">Als nächstes fällig</h2>
 
         @if (dueSoon().length === 0) {
@@ -78,20 +82,43 @@
 
         <ul class="due-list">
           @for (entry of dueSoon().length ? dueSoon() : dueList().slice(0, 5); track entry.id) {
-            <li class="due-item">
-              <div class="due-head">
-                <span class="due-label">{{ entry.label }}</span>
-                <span class="warn-badge" [class]="entry.status | warnClass">
-                  {{ entry.status | warnLabel }}
-                </span>
-              </div>
-              <div class="due-bar" [class]="entry.status | warnClass" aria-hidden="true">
-                <div class="due-bar-fill" [style.width.%]="barWidth(entry.ratio)"></div>
-              </div>
-              <div class="due-meta">
-                <span class="due-context">{{ entry.context }}</span>
-                <span class="due-detail">{{ entry.detail }}</span>
-              </div>
+            <li>
+              <!-- Ganze Zeile als Link zur Baugruppe, wie in der Werkstatt.
+                   Ungruppierte Alt-Teile haben keine Detailseite und bleiben
+                   deshalb reine Anzeige. -->
+              @if (entry.assemblyId; as assemblyId) {
+                <a class="due-item is-link" [routerLink]="nav.to.assembly(bike.id, assemblyId)">
+                  <div class="due-head">
+                    <span class="due-label">{{ entry.label }}</span>
+                    <span class="warn-badge" [class]="entry.status | warnClass">
+                      {{ entry.status | warnLabel }}
+                    </span>
+                  </div>
+                  <div class="due-bar" [class]="entry.status | warnClass" aria-hidden="true">
+                    <div class="due-bar-fill" [style.width.%]="barWidth(entry.ratio)"></div>
+                  </div>
+                  <div class="due-meta">
+                    <span class="due-context">{{ entry.context }} ›</span>
+                    <span class="due-detail">{{ entry.detail }}</span>
+                  </div>
+                </a>
+              } @else {
+                <div class="due-item">
+                  <div class="due-head">
+                    <span class="due-label">{{ entry.label }}</span>
+                    <span class="warn-badge" [class]="entry.status | warnClass">
+                      {{ entry.status | warnLabel }}
+                    </span>
+                  </div>
+                  <div class="due-bar" [class]="entry.status | warnClass" aria-hidden="true">
+                    <div class="due-bar-fill" [style.width.%]="barWidth(entry.ratio)"></div>
+                  </div>
+                  <div class="due-meta">
+                    <span class="due-context">{{ entry.context }}</span>
+                    <span class="due-detail">{{ entry.detail }}</span>
+                  </div>
+                </div>
+              }
             </li>
           }
         </ul>
@@ -107,12 +134,15 @@
         <h2 class="section-title">Baugruppen</h2>
         <ul class="summary-list">
           @for (assembly of assemblies(); track assembly.id) {
-            <li class="summary-item">
-              <span class="summary-dot" [class]="assembly.worst_status | warnClass"></span>
-              <span class="summary-name">{{ assembly.display_name }}</span>
-              @if (assembly.assembly_km !== null) {
-                <span class="summary-km">{{ assembly.assembly_km | number: '1.0-0' }} km</span>
-              }
+            <li>
+              <a class="summary-item" [routerLink]="nav.to.assembly(bike.id, assembly.id)">
+                <span class="summary-dot" [class]="assembly.worst_status | warnClass"></span>
+                <span class="summary-name">{{ assembly.display_name }}</span>
+                @if (assembly.assembly_km !== null) {
+                  <span class="summary-km">{{ assembly.assembly_km | number: '1.0-0' }} km</span>
+                }
+                <span class="summary-chevron" aria-hidden="true">›</span>
+              </a>
             </li>
           }
         </ul>

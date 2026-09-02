@@ -8,6 +8,7 @@ import { WarnLabelPipe } from '../../../app-maintenance/pipes/warn-label/warn-la
 import { BikeList, WarnStatus } from '../../../app-maintenance/models/maintenance.models';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,9 +17,9 @@ import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
+  readonly nav = inject(NavigationService);
   private stravaService = inject(StravaService);
   private bikeService = inject(BikeService);
-  private router = inject(Router);
 
   public user = this.stravaService.user;
   public bikes = this.bikeService.bikes;
@@ -96,11 +97,11 @@ export class Dashboard implements OnInit {
   }
 
   public goToActivity(activityId: number) {
-    this.router.navigate(['/activity', activityId]);
+    this.nav.goTo(this.nav.to.activity(activityId));
   }
 
   public goToMaintenance() {
-    this.router.navigate(['/maintenance']);
+    this.nav.goTo(this.nav.to.bikes());
   }
 
   public logout() {

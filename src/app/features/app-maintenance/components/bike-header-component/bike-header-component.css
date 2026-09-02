@@ -99,3 +99,35 @@
     font-size: 1.6rem;
   }
 }
+
+/* Antippbare Ampel (nur Zustandsseite): führt zu dem, was den Status
+   verursacht. Sieht aus wie der statische Badge, nur mit Pfeil und
+   Trefferfläche — sonst läse sich der Unterschied als zwei Zustände
+   derselben Sache. */
+button.warn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+  /* Etwas mehr Höhe als der Text braucht, damit der Daumen trifft. */
+  min-height: 1.9rem;
+  padding-inline: 0.55rem;
+}
+
+button.warn-badge:hover .badge-arrow,
+button.warn-badge:focus-visible .badge-arrow {
+  transform: translateY(2px);
+}
+
+.badge-arrow {
+  font-size: 0.75em;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .badge-arrow {
+    transition: transform 0.15s ease;
+  }
+}

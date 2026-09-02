@@ -7,6 +7,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 @Component({
   selector: 'app-maintenace-page-component',
@@ -15,6 +16,7 @@ import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
   styleUrl: './maintenace-page-component.css',
 })
 export class MaintenacePageComponent {
+  readonly nav = inject(NavigationService);
   private bikeService = inject(BikeService);
 
   public loading = signal(false);

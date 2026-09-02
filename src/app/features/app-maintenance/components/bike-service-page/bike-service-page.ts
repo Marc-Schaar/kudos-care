@@ -22,6 +22,7 @@ import { BikeSetupStepperComponent } from '../bike-setup-stepper-component/bike-
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 /**
  * Werkstatt-Seite: alles, was etwas veraendert.
@@ -53,6 +54,7 @@ import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
   styleUrl: './bike-service-page.css',
 })
 export class BikeServicePage implements OnInit {
+  readonly nav = inject(NavigationService);
   private readonly route = inject(ActivatedRoute);
   private readonly notify = inject(NotificationService);
   readonly bikeService = inject(BikeService);

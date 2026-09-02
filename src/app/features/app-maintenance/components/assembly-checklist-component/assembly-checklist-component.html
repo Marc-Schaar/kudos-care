@@ -72,10 +72,14 @@
                     Ausgebautes Teil reaktivieren:
                     <strong>{{ spareLabel(row.spareCandidates[0]) }}</strong>
                     @if (row.spareCandidates[0].prior_wear_km != null) {
-                      <span class="reuse-meta"> · {{ row.spareCandidates[0].prior_wear_km }} km</span>
+                      <span class="reuse-meta">
+                        · {{ row.spareCandidates[0].prior_wear_km }} km</span
+                      >
                     }
                     @if (row.spareCandidates[0].retired_at) {
-                      <span class="reuse-meta"> · ausgebaut {{ row.spareCandidates[0].retired_at }}</span>
+                      <span class="reuse-meta">
+                        · ausgebaut {{ row.spareCandidates[0].retired_at }}</span
+                      >
                     }
                   </span>
                 </label>
@@ -102,7 +106,10 @@
                   </select>
                 </div>
               }
-              @if ((!row.existingSlot || !row.reuseExisting) && (row.spareCandidates.length === 0 || !row.reuseSpare)) {
+              @if (
+                (!row.existingSlot || !row.reuseExisting) &&
+                (row.spareCandidates.length === 0 || !row.reuseSpare)
+              ) {
                 <div class="row-fields" (click)="$event.stopPropagation()">
                   <input
                     class="input"

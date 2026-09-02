@@ -1,6 +1,6 @@
 <div class="page">
   <nav class="breadcrumb">
-    <a routerLink="/dashboard">Dashboard</a>
+    <a [routerLink]="nav.to.dashboard()">Dashboard</a>
     <span class="sep">/</span>
     <span>Alle Aktivitäten</span>
   </nav>
@@ -17,7 +17,7 @@
   } @else {
     <div class="activity-list">
       @for (activity of activities(); track activity.id) {
-        <a class="activity-row" [routerLink]="['/activity', activity.id]">
+        <a class="activity-row" [routerLink]="nav.to.activity(activity.id)">
           <div class="activity-main">
             <span class="activity-name">{{ activity.name }}</span>
             @if (activity.start_date) {
@@ -33,7 +33,9 @@
         <div class="empty-state">
           <div class="empty-icon">⬡</div>
           <p class="empty-title">Noch keine Aktivitäten</p>
-          <p class="empty-sub">Synchronisiere dein Strava-Profil im Dashboard, um Fahrten zu laden.</p>
+          <p class="empty-sub">
+            Synchronisiere dein Strava-Profil im Dashboard, um Fahrten zu laden.
+          </p>
         </div>
       }
     </div>

@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 /**
  * Öffentliche Landing-Page (`/landingpage`, ohne authGuard).
@@ -30,6 +31,7 @@ import { RouterLink } from '@angular/router';
   styleUrl: './landingpage.css',
 })
 export class Landingpage implements AfterViewInit, OnDestroy {
+  readonly nav = inject(NavigationService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   /** 0..1 – Scroll-Fortschritt über die gesamte Seite. */

@@ -10,7 +10,7 @@
 
   <header class="lp-nav">
     <span class="lp-logo">KUDOS<span>CARE</span></span>
-    <a class="abtn abtn--sm" routerLink="/login">App öffnen</a>
+    <a class="abtn abtn--sm" [routerLink]="nav.to.login()">App öffnen</a>
   </header>
 
   <section class="lp-hero">
@@ -20,12 +20,12 @@
       <span class="glow">zählt mit.</span>
     </h1>
     <p class="lp-lead" data-reveal>
-      Kudos Care verfolgt den Verschleiß deiner Bike-Komponenten — Kilometer, Betriebsstunden
-      und Tage seit Montage, wettergewichtet nach Regen, Hitze, Kälte und Gegenwind. Direkt
-      aus Strava. Automatisch.
+      Kudos Care verfolgt den Verschleiß deiner Bike-Komponenten — Kilometer, Betriebsstunden und
+      Tage seit Montage, wettergewichtet nach Regen, Hitze, Kälte und Gegenwind. Direkt aus Strava.
+      Automatisch.
     </p>
     <div class="lp-cta" data-reveal>
-      <a class="abtn" routerLink="/login">Mit Strava verbinden</a>
+      <a class="abtn" [routerLink]="nav.to.login()">Mit Strava verbinden</a>
       <button class="abtn abtn--ghost" type="button" (click)="scrollToId('how')">
         So funktioniert's
       </button>
@@ -107,9 +107,9 @@
         <p class="lp-kicker" data-reveal>Der Antrieb</p>
         <h2 class="glow" data-reveal>Physik statt Bauchgefühl</h2>
         <p data-reveal>
-          Polyline-Track, Höhenprofil und historische Open-Meteo-Wetterdaten pro Ride ergeben
-          einen Verschleiß-Multiplikator. Kette, Reifen und Bremsbeläge altern im Regen
-          messbar schneller — Kudos Care rechnet das mit, nicht du.
+          Polyline-Track, Höhenprofil und historische Open-Meteo-Wetterdaten pro Ride ergeben einen
+          Verschleiß-Multiplikator. Kette, Reifen und Bremsbeläge altern im Regen messbar schneller
+          — Kudos Care rechnet das mit, nicht du.
         </p>
       </div>
     </div>
@@ -128,16 +128,16 @@
       <div class="lp-card-no">02</div>
       <h3>Tracken</h3>
       <p>
-        Jede Komponente sitzt in einem Slot. km, Betriebsstunden und Tage seit Montage laufen
-        live mit — wettergewichtet pro Fahrt.
+        Jede Komponente sitzt in einem Slot. km, Betriebsstunden und Tage seit Montage laufen live
+        mit — wettergewichtet pro Fahrt.
       </p>
     </article>
     <article class="lp-card" data-reveal>
       <div class="lp-card-no">03</div>
       <h3>Wissen</h3>
       <p>
-        Status ok / warn / kritisch. E-Mail, sobald ein Teil fällig wird — auch vorausschauend
-        auf deine nächste voraussichtliche Fahrt.
+        Status ok / warn / kritisch. E-Mail, sobald ein Teil fällig wird — auch vorausschauend auf
+        deine nächste voraussichtliche Fahrt.
       </p>
     </article>
   </section>
@@ -150,7 +150,9 @@
 
   <section class="lp-final">
     <h2 class="glow" data-reveal>Bereit, deinem Bike zuzuhören?</h2>
-    <a class="abtn abtn--lg" routerLink="/login" data-reveal>Jetzt mit Strava verbinden</a>
+    <a class="abtn abtn--lg" [routerLink]="nav.to.login()" data-reveal
+      >Jetzt mit Strava verbinden</a
+    >
     <p class="lp-foot">Kudos Care · Wartungs-Tracking für Rad &amp; Motorrad</p>
   </section>
 </div>

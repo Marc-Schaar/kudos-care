@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from './../../../../../environments/environment';
 import { StravaService } from '../../../../shared/services/strava-service/strava-service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 @Component({
   selector: 'app-strava-callback',
@@ -12,8 +13,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
   styleUrl: './strava-callback.css',
 })
 export class StravaCallback {
+  readonly nav = inject(NavigationService);
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private http = inject(HttpClient);
   private stravaService = inject(StravaService);
   private baseUrl = environment.apiUrl;
@@ -52,7 +53,7 @@ export class StravaCallback {
         if (res?.athlete) {
           this.stravaService.setLoggedInUser(res.athlete.id, res.athlete.firstname);
         }
-        setTimeout(() => this.router.navigate(['/dashboard']), 2000);
+        setTimeout(() => this.nav.goTo(this.nav.to.dashboard()), 2000);
       },
       error: (err) => {
         this.status.set('error');
@@ -68,6 +69,6 @@ export class StravaCallback {
   }
 
   retry() {
-    this.router.navigate(['/login']);
+    this.nav.goTo(this.nav.to.login());
   }
 }

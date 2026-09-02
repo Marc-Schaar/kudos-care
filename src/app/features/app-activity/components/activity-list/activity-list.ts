@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { StravaService } from '../../../../shared/services/strava-service/strava-service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 @Component({
   selector: 'app-activity-list',
@@ -11,6 +12,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
   styleUrl: './activity-list.css',
 })
 export class ActivityList implements OnInit {
+  readonly nav = inject(NavigationService);
   private stravaService = inject(StravaService);
 
   public loading = signal(true);

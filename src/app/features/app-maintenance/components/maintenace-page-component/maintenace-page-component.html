@@ -57,11 +57,7 @@
 
     <div class="bikes-grid">
       @for (bike of activeBikes(); track bike.id) {
-        <a
-          class="bike-card"
-          [class]="cardClass(bike)"
-          [routerLink]="['/maintenance/bikes', bike.id]"
-        >
+        <a class="bike-card" [class]="cardClass(bike)" [routerLink]="nav.to.bikeCondition(bike.id)">
           <div class="card-top">
             <span class="type-badge">{{ bike.bike_type_display }}</span>
             <span class="status-pill" [class]="bike.warn_status | warnClass">
@@ -99,7 +95,7 @@
 
     <div class="bikes-grid">
       @for (bike of retiredBikes(); track bike.id) {
-        <a class="bike-card retired" [routerLink]="['/maintenance/bikes', bike.id]">
+        <a class="bike-card retired" [routerLink]="nav.to.bikeCondition(bike.id)">
           <div class="card-top">
             <span class="type-badge">{{ bike.bike_type_display }}</span>
             <span class="retired-badge">Pensioniert</span>

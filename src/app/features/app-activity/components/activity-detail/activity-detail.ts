@@ -34,6 +34,7 @@ import { AbsPipe } from '../../../../shared/pipes/abs/abs-pipe';
 import { HeadwindLabelPipe } from '../../pipes/headwind-label/headwind-label-pipe';
 import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 Chart.register(
   LineController,
@@ -61,6 +62,7 @@ type ClimateMode = 'temperature' | 'rain';
   styleUrl: './activity-detail.css',
 })
 export class ActivityDetail implements OnInit {
+  readonly nav = inject(NavigationService);
   private route = inject(ActivatedRoute);
   private injector = inject(Injector);
   private datePipe = inject(DatePipe);
@@ -125,9 +127,7 @@ export class ActivityDetail implements OnInit {
   private readonly critical = getComputedStyle(document.documentElement)
     .getPropertyValue('--critical')
     .trim();
-  private readonly ok = getComputedStyle(document.documentElement)
-    .getPropertyValue('--ok')
-    .trim();
+  private readonly ok = getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
   private readonly rain =
     getComputedStyle(document.documentElement).getPropertyValue('--rain').trim() || '#38bdf8';
 

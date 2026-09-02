@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { BikeService } from '../../services/bike-service/bike-service';
 import {
@@ -15,6 +15,7 @@ import { BikeHeaderComponent } from '../bike-header-component/bike-header-compon
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
+import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 /** Eine Zeile in "Als naechstes faellig" — Teil oder Intervall, vereinheitlicht. */
 export interface DueEntry {
@@ -25,6 +26,12 @@ export interface DueEntry {
   /** 0..1+ — verbrauchter Anteil der Lebensdauer. >= 1 heisst ueberfaellig. */
   ratio: number | null;
   detail: string;
+  /**
+   * Baugruppe, zu der dieser Posten gehoert — Ziel beim Antippen. `null` bei
+   * ungruppierten Alt-Slots: die haben keine Detailseite, dort fuehrt der Weg
+   * ueber die Werkstatt.
+   */
+  assemblyId: number | null;
 }
 
 /**
@@ -39,6 +46,7 @@ export interface DueEntry {
   imports: [
     DatePipe,
     DecimalPipe,
+    RouterLink,
     BikeDiagramComponent,
     BikeHeaderComponent,
     Skeleton,
@@ -49,6 +57,7 @@ export interface DueEntry {
   styleUrl: './bike-condition-page.css',
 })
 export class BikeConditionPage implements OnInit {
+  readonly nav = inject(NavigationService);
   private readonly route = inject(ActivatedRoute);
   readonly bikeService = inject(BikeService);
 
@@ -107,14 +116,14 @@ export class BikeConditionPage implements OnInit {
 
     for (const assembly of this.assemblies()) {
       for (const slot of assembly.slots) {
-        entries.push(this.slotEntry(slot, assembly.display_name));
+        entries.push(this.slotEntry(slot, assembly.display_name, assembly.id));
       }
       for (const interval of assembly.intervals) {
-        entries.push(this.intervalEntry(interval, assembly.display_name));
+        entries.push(this.intervalEntry(interval, assembly.display_name, assembly.id));
       }
     }
     for (const slot of this.ungroupedSlots()) {
-      entries.push(this.slotEntry(slot, 'Ohne Baugruppe'));
+      entries.push(this.slotEntry(slot, 'Ohne Baugruppe', null));
     }
 
     return entries.sort((a, b) => (b.ratio ?? -1) - (a.ratio ?? -1));
@@ -125,7 +134,7 @@ export class BikeConditionPage implements OnInit {
     this.dueList().filter((e) => e.status === 'critical' || e.status === 'warn'),
   );
 
-  private slotEntry(slot: ComponentSlotList, context: string): DueEntry {
+  private slotEntry(slot: ComponentSlotList, context: string, assemblyId: number | null): DueEntry {
     const comp = slot.mounted_component;
     const ratios: number[] = [];
     const detail: string[] = [];
@@ -146,10 +155,15 @@ export class BikeConditionPage implements OnInit {
       status: slot.warn_status,
       ratio: ratios.length ? Math.max(...ratios) : null,
       detail: comp ? detail.join(' · ') : 'kein Teil montiert',
+      assemblyId,
     };
   }
 
-  private intervalEntry(interval: MaintenanceInterval, context: string): DueEntry {
+  private intervalEntry(
+    interval: MaintenanceInterval,
+    context: string,
+    assemblyId: number | null,
+  ): DueEntry {
     const ratios: number[] = [];
     const detail: string[] = [];
 
@@ -169,6 +183,7 @@ export class BikeConditionPage implements OnInit {
       status: interval.status,
       ratio: ratios.length ? Math.max(...ratios) : null,
       detail: detail.join(' · ') || 'kein Intervall hinterlegt',
+      assemblyId,
     };
   }
 
@@ -176,6 +191,20 @@ export class BikeConditionPage implements OnInit {
   barWidth(ratio: number | null): number {
     if (ratio === null) return 0;
     return Math.min(100, Math.round(ratio * 100));
+  }
+
+  /**
+   * Springt vom Status im Kopf zu dem, was den Status verursacht.
+   *
+   * Die Ampel oben sagt nur "kritisch" — die Antwort auf "warum?" steht weiter
+   * unten in der Faellig-Liste. Ohne den Sprung muss man an Diagramm und
+   * Bericht vorbeiscrollen, um sie zu finden.
+   */
+  scrollToDue() {
+    document.getElementById('due-section')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
   }
 
   ngOnInit() {

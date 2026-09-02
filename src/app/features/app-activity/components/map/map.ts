@@ -225,7 +225,7 @@ export class Map implements AfterViewInit, OnDestroy {
 
   private compass(degrees: number): string {
     const points = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
-    return points[Math.round(((degrees % 360) / 45)) % 8];
+    return points[Math.round((degrees % 360) / 45) % 8];
   }
 
   private fitBoundsToSegments(data: WindSegmentCollection): void {
