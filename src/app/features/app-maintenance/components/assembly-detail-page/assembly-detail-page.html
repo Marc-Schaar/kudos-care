@@ -1,0 +1,191 @@
+<div class="page">
+  @if (loading() && !assembly()) {
+    <div class="loading-bar-wrap"><app-skeleton variant="bar" /></div>
+  }
+
+  @if (notFound()) {
+    <p class="empty">
+      Diese Baugruppe gibt es nicht mehr — sie wurde ausgemustert, aufgelöst oder erneuert.
+    </p>
+    <a class="back-link" [routerLink]="['/maintenance', 'bikes', bikeId(), 'werkstatt']">
+      ‹ Zurück zur Werkstatt
+    </a>
+  }
+
+  @if (assembly(); as asm) {
+    <header class="head">
+      <a class="back-link" [routerLink]="['/maintenance', 'bikes', bikeId(), 'werkstatt']">
+        ‹ Werkstatt
+      </a>
+
+      <div class="title-row">
+        @if (editingName()) {
+          <input
+            class="name-input"
+            [ngModel]="nameDraft()"
+            (ngModelChange)="nameDraft.set($event)"
+            (keyup.enter)="saveRename()"
+            (keyup.escape)="cancelRename()"
+            autocomplete="off"
+            aria-label="Name der Baugruppe"
+          />
+          <button class="icon-btn" [disabled]="savingName()" (click)="saveRename()">✓</button>
+          <button class="icon-btn" (click)="cancelRename()">✕</button>
+        } @else {
+          <h1 class="title">{{ asm.display_name }}</h1>
+          <button class="icon-btn" title="Umbenennen" (click)="startRename()">✎</button>
+        }
+      </div>
+
+      <div class="meta-row">
+        <span class="status-badge" [class]="asm.worst_status | warnClass">
+          {{ asm.worst_status | warnLabel }}
+        </span>
+        <span class="meta">{{ asm.group_detail.name }}</span>
+        @if (asm.is_parked) {
+          <span class="parked-tag">geparkt</span>
+        }
+      </div>
+    </header>
+
+    <section class="stats" aria-label="Kennzahlen">
+      <div class="stat">
+        <span class="stat-value">
+          @if (asm.assembly_km != null) {
+            {{ asm.assembly_km | number: '1.0-0' }}
+          } @else {
+            –
+          }
+        </span>
+        <span class="stat-label">km gefahren</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">
+          @if (asm.installed_at) {
+            {{ asm.installed_at | date: 'dd.MM.yy' }}
+          } @else {
+            –
+          }
+        </span>
+        <span class="stat-label">montiert seit</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ asm.slots.length }}</span>
+        <span class="stat-label">Teile</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ asm.intervals.length }}</span>
+        <span class="stat-label">Pflege</span>
+      </div>
+    </section>
+
+    <section class="actions" aria-label="Aktionen">
+      @if (confirmingDelete()) {
+        <div class="confirm">
+          <span class="confirm-text">
+            Gruppierung auflösen? Die Teile bleiben am Rad und erscheinen unter „Ohne Baugruppe“.
+          </span>
+          <div class="confirm-buttons">
+            <button class="btn danger" [disabled]="deleting()" (click)="confirmDeleteNow()">
+              {{ deleting() ? 'Wird aufgelöst…' : 'Auflösen' }}
+            </button>
+            <button class="btn" [disabled]="deleting()" (click)="cancelDelete()">Abbrechen</button>
+          </div>
+        </div>
+      } @else {
+        <!-- "Wechseln" gibt es überall, wo es einen zweiten Satz geben kann —
+             das ist nicht destruktiv. "Teile erneuern" nur bei einer echten
+             Baugruppe: in einem Bereich verschleißen die Teile unabhängig. -->
+        <button class="btn" (click)="openSwitch()">
+          Wechseln
+          @if (alternativeCount() > 0) {
+            <span class="badge">{{ alternativeCount() }}</span>
+          }
+        </button>
+        @if (isSwappableAssembly()) {
+          <button class="btn" (click)="openRenew()">Teile erneuern</button>
+        }
+        <button class="btn subtle" (click)="requestDelete()">Auflösen</button>
+      }
+    </section>
+
+    @if (asm.slots.length === 0 && asm.intervals.length === 0) {
+      <p class="empty">Noch keine Elemente in dieser Baugruppe.</p>
+    }
+
+    @if (asm.slots.length > 0) {
+      <section aria-label="Teile">
+        <h2 class="section-title">Teile</h2>
+        <div class="slots">
+          @for (slot of sortedSlots(); track slot.id) {
+            <app-slot-card-component
+              [slot]="slot"
+              [bikeDistanceKm]="bikeDistanceKm()"
+              (editComponent)="openEditComponent($event)"
+              (swapComponent)="openSwapComponent($event)"
+              (checkComponent)="openCheck($event)"
+            />
+          }
+        </div>
+      </section>
+    }
+
+    @if (asm.intervals.length > 0) {
+      <section aria-label="Pflege und Verbrauchsmaterial">
+        <h2 class="section-title">Pflege &amp; Verbrauchsmaterial</h2>
+        @for (interval of asm.intervals; track interval.id) {
+          <app-interval-row-component [interval]="interval" (logged)="onIntervalLogged()" />
+        }
+      </section>
+    }
+  }
+</div>
+
+@if (showSwitch() && assembly(); as asm) {
+  <app-switch-assembly-dialog-component
+    [assembly]="asm"
+    [parked]="parkedAssemblies()"
+    (close)="closeSwitch()"
+    (switched)="onSwitched()"
+    (deleted)="onSwitched()"
+  />
+}
+
+@if (showRenew() && assembly(); as asm) {
+  <app-quick-change-dialog-component
+    [assembly]="asm"
+    (close)="closeRenew()"
+    (saved)="onRenewed()"
+  />
+}
+
+@if (dialogSlotId() != null) {
+  <app-add-component-dialog-component
+    [slotId]="dialogSlotId()!"
+    [bikeId]="bikeId()"
+    [bikeDistanceKm]="bikeDistanceKm()"
+    [template]="dialogSlotTemplate()"
+    [editComponent]="editingComponent()"
+    (close)="closeComponentDialog()"
+    (saved)="onComponentSaved()"
+  />
+}
+
+@if (swapSlotId() != null) {
+  <app-component-swap-dialog-component
+    [slotId]="swapSlotId()!"
+    (close)="closeSwapComponent()"
+    (mounted)="onComponentMounted()"
+    (createNew)="onCreateNewFromSwap($event)"
+  />
+}
+
+@if (checkComponentId() != null) {
+  <app-component-check-dialog-component
+    [componentId]="checkComponentId()!"
+    [template]="checkComponentTemplate()"
+    [currentConditionPct]="checkComponentConditionPct()"
+    (close)="closeCheck()"
+    (saved)="onCheckSaved()"
+  />
+}

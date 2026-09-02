@@ -89,19 +89,24 @@ features/
     (`bikes/:id/werkstatt`) enthält alles Verändernde: Baugruppen-Karten mit Aktionen,
     ungruppierte Slots, geparkte Sätze, alle Dialoge. Beide teilen sich
     `bike-header-component`, damit beim Tab-Wechsel nichts springt.
-    `bike-service-page` lädt
-    `GET bikes/<id>/assemblies/` und rendert je Baugruppe eine `assembly-card-component`
-    als **Expansion Panel** (mobile first — bei 7-8 Baugruppen wäre alles-immer-offen ein
-    endloser Scroll): die Kopfzeile (Name, Setup-km, Gesamt-Status,
-    **"Wechseln"** / **"Teile erneuern"** / 🗑) ist selbst der Auf-/Zuklapp-Trigger
-    (`role="button"`, tastaturbedienbar), CSS-Grid-Trick (`grid-template-rows: 0fr → 1fr`)
-    animiert den Body ohne JS-Höhenmessung. Default-Zustand kommt aus `worst_status`:
-    warn/critical startet offen, ok/unknown startet zu — ein manueller Klick überschreibt
-    das für die Sitzung; ein per Bike-Diagramm hervorgehobener Slot
-    (`highlightedSlotId`, siehe `onDiagramDotClick`/`scrollIntoView`) klappt IMMER auf,
-    auch gegen einen manuellen Zuklapp-Override, sonst liefe der Scroll ins Leere.
-    Body = `slot-card-component`-Elementzeilen mit echtem km-/Tage-Balken +
-    `interval-row-component` für Verbrauchsmaterial mit "Erledigt"-Button.
+    `bike-service-page` lädt `GET bikes/<id>/assemblies/` und listet die Baugruppen als
+    **kompakte Zeilen** (Punkt, Name, Teile/Pflege/km, Chevron), die ganze Zeile ist der
+    Link. Jede Baugruppe hat eine **eigene Seite**: `assembly-detail-page` unter
+    `bikes/:id/werkstatt/:assemblyId`. Vorher war das ein **Expansion Panel**
+    (`assembly-card-component`, entfernt), das Kopfzeile, Statistik, Aktionsreihe,
+    Umbenennen, Lösch-Bestätigung, alle Teile und alle Intervalle in eine aufklappbare
+    Karte quetschte — bei sieben Baugruppen sieben davon untereinander. Die Route liegt
+    bewusst **unter** `werkstatt/`, damit der Tab in der unteren Navigation aktiv bleibt
+    (`routerLinkActive` ohne `exact`).
+    Die Detailseite hält Umbenennen, die Aktionsreihe (**Wechseln** / **Teile erneuern** /
+    **Auflösen**), die `slot-card-component`-Zeilen mit km-/Tage-Balken, die
+    `interval-row-component`-Zeilen und die dazugehörigen Dialoge. Sie sucht ihre
+    Baugruppe aus der `assemblies/`-Antwort statt sie einzeln zu laden — die liefert
+    nebenbei die geparkten Alternativen, die der Wechsel-Dialog braucht. Nach
+    **Wechseln** und **Teile erneuern** wird zur Werkstatt zurücknavigiert: in beiden
+    Fällen ist die aufgerufene Instanz danach nicht mehr die aktive (geparkt bzw.
+    ausgemustert). `notFound()` fängt den Fall ab, dass die Id nach so einer Aktion oder
+    einem Auflösen nicht mehr in der Antwort steht.
     **Vorne/hinten kommt aus dem Feld, nicht aus dem Namen**: `bike-diagram-component`
     liest `template_detail.position` (`front`/`rear`/leer). Vorher wurde die Seite per
     `display_name.includes('vorne')` erraten — ein umbenannter Slot landete damit auf dem

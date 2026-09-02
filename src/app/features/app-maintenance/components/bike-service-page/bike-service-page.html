@@ -13,23 +13,38 @@
         (done)="onStepperDone()"
       />
     } @else {
-      <div class="assemblies">
+      <!-- Kompakte Zeilen statt Expansion Panels: jede Baugruppe hat jetzt eine
+           eigene Detailseite. Vorher stapelten sich hier bis zu acht aufklappbare
+           Karten mit allen Teilen darin. -->
+      <ul class="assembly-list">
         @for (assembly of assemblies(); track assembly.id) {
-          <app-assembly-card-component
-            [assembly]="assembly"
-            [bikeDistanceKm]="bike.total_distance_km"
-            [highlightedSlotId]="highlightedSlotId()"
-            [parkedAssemblies]="parkedAssemblies()"
-            (switchAssembly)="openSwitchAssembly($event)"
-            (swapAssembly)="openSwapAssembly($event)"
-            (editComponent)="openEditComponentDialog($event)"
-            (swapComponent)="openSwapDialog($event)"
-            (checkComponent)="openCheckDialog($event)"
-            (changed)="onAssemblyChanged()"
-            (deleted)="onAssemblyChanged()"
-          />
+          <li>
+            <a
+              class="assembly-row"
+              [routerLink]="['/maintenance', 'bikes', bike.id, 'werkstatt', assembly.id]"
+            >
+              <span class="ar-dot" [class]="assembly.worst_status | warnClass"></span>
+              <span class="ar-body">
+                <span class="ar-name">{{ assembly.display_name }}</span>
+                <span class="ar-meta">
+                  {{ assembly.slots.length }}
+                  {{ assembly.slots.length === 1 ? 'Teil' : 'Teile' }}
+                  @if (assembly.intervals.length) {
+                    · {{ assembly.intervals.length }} Pflege
+                  }
+                  @if (assembly.assembly_km != null) {
+                    · {{ assembly.assembly_km | number: '1.0-0' }} km
+                  }
+                </span>
+              </span>
+              <span class="ar-status" [class]="assembly.worst_status | warnClass">
+                {{ assembly.worst_status | warnLabel }}
+              </span>
+              <span class="ar-chevron" aria-hidden="true">›</span>
+            </a>
+          </li>
         }
-      </div>
+      </ul>
 
       <!-- Primaeraktion dieser Seite: bewusst direkt unter den Baugruppen und
            volle Breite, damit sie am Handy mit dem Daumen erreichbar ist. -->
@@ -45,7 +60,6 @@
               <app-slot-card-component
                 [slot]="slot"
                 [bikeDistanceKm]="bike.total_distance_km"
-                [highlighted]="highlightedSlotId() === slot.id"
                 (editComponent)="openEditComponentDialog($event)"
                 (swapComponent)="openSwapDialog($event)"
                 (checkComponent)="openCheckDialog($event)"
@@ -140,24 +154,6 @@
     [spareComponents]="spareComponents()"
     (close)="closeAssemblyWizard()"
     (created)="onAssemblyCreated()"
-  />
-}
-
-@if (switchAssembly(); as assembly) {
-  <app-switch-assembly-dialog-component
-    [assembly]="assembly"
-    [parked]="parkedAssemblies()"
-    (close)="closeSwitchAssembly()"
-    (switched)="onAssemblySwitched()"
-    (deleted)="onAssemblyChanged()"
-  />
-}
-
-@if (swapAssembly(); as assembly) {
-  <app-quick-change-dialog-component
-    [assembly]="assembly"
-    (close)="closeSwapAssembly()"
-    (saved)="onAssemblySwapped()"
   />
 }
 

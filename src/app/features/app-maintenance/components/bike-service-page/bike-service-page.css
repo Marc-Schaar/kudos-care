@@ -196,3 +196,110 @@
     margin-left: 0;
   }
 }
+
+/* ── Baugruppen-Liste ──────────────────────────────────────────────────────
+   Kompakte Zeilen statt Expansion Panels — die Details liegen auf einer
+   eigenen Seite. */
+.assembly-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.assembly-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  /* Die ganze Zeile ist der Link — grosse Trefferflaeche fuer den Daumen. */
+  min-height: 3.5rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.assembly-row:hover {
+  background: var(--surface2);
+}
+
+.ar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--muted);
+}
+.ar-dot.status-ok {
+  background: var(--ok);
+}
+.ar-dot.status-warn {
+  background: var(--warn);
+}
+.ar-dot.status-critical {
+  background: var(--critical);
+}
+
+.ar-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ar-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.ar-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.ar-status {
+  flex: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+}
+.ar-status.status-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+.ar-status.status-warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+}
+.ar-status.status-critical {
+  color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 12%, transparent);
+}
+.ar-status.status-unknown {
+  color: var(--muted);
+  background: var(--border);
+}
+
+.ar-chevron {
+  flex: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Auf dem Handy ist neben Name und Chevron kein Platz fuer das Status-Wort —
+   der farbige Punkt links traegt die Information bereits. */
+@media (max-width: 400px) {
+  .ar-status {
+    display: none;
+  }
+}

@@ -1,0 +1,283 @@
+/* Mobile first. */
+
+.page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.loading-bar-wrap {
+  padding: 1rem 0;
+}
+
+.empty {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.6;
+  padding: 1.5rem 0;
+}
+
+/* ── Kopf ───────────────────────────────────────────────────────────────── */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.back-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.35rem 0;
+  align-self: flex-start;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.name-input {
+  flex: 1;
+  min-width: 0;
+  /* 16px verhindert, dass iOS beim Fokus hineinzoomt. */
+  font-size: 16px;
+  font-family: 'DM Mono', monospace;
+  padding: 0.5rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--text);
+}
+
+.icon-btn {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  color: var(--accent);
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.status-badge {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+}
+.status-badge.status-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+.status-badge.status-warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+}
+.status-badge.status-critical {
+  color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 12%, transparent);
+}
+.status-badge.status-unknown {
+  color: var(--muted);
+  background: var(--border);
+}
+
+.parked-tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  padding: 0.15rem 0.4rem;
+}
+
+/* ── Kennzahlen ─────────────────────────────────────────────────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--surface);
+}
+
+.stat-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text);
+}
+
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Aktionen ───────────────────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  flex: 1 1 auto;
+  /* Grosse Trefferflaeche — das sind die Aktionen, wegen derer man hier ist. */
+  min-height: 2.75rem;
+  padding: 0.6rem 0.9rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.subtle {
+  flex: 0 0 auto;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.btn.subtle:hover {
+  border-color: transparent;
+  color: var(--critical);
+}
+
+.btn.danger {
+  border-color: var(--critical);
+  color: var(--critical);
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: var(--critical);
+  color: var(--bg);
+}
+
+.badge {
+  margin-left: 0.35rem;
+  font-size: 0.6rem;
+  color: var(--accent);
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--critical);
+  background: color-mix(in srgb, var(--critical) 6%, transparent);
+}
+
+.confirm-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── Listen ─────────────────────────────────────────────────────────────── */
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 1.75rem 0 0.6rem;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 700px) {
+  .page {
+    padding: 0 1.5rem;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .btn {
+    flex: 0 0 auto;
+    min-width: 10rem;
+  }
+
+  .slots {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}

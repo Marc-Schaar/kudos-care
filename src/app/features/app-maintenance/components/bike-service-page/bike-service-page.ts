@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { BikeService } from '../../services/bike-service/bike-service';
 import {
@@ -10,7 +10,6 @@ import {
   ComponentTemplate,
 } from '../../models/maintenance.models';
 import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
-import { AssemblyCardComponent } from '../assembly-card-component/assembly-card-component';
 import { SlotCardComponent } from '../slot-card-component/slot-card-component';
 import { BikeHeaderComponent } from '../bike-header-component/bike-header-component';
 import { AssemblyWizardComponent } from '../assembly-wizard-component/assembly-wizard-component';
@@ -18,10 +17,10 @@ import { AddComponentDialogComponent } from '../add-component-dialog-component/a
 import { ComponentCheckDialogComponent } from '../component-check-dialog-component/component-check-dialog-component';
 import { ComponentSwapDialogComponent } from '../component-swap-dialog-component/component-swap-dialog-component';
 import { EditBikeDialogComponent } from '../edit-bike-dialog-component/edit-bike-dialog-component';
-import { QuickChangeDialogComponent } from '../quick-change-dialog-component/quick-change-dialog-component';
-import { SwitchAssemblyDialogComponent } from '../switch-assembly-dialog-component/switch-assembly-dialog-component';
 import { BikeSetupStepperComponent } from '../bike-setup-stepper-component/bike-setup-stepper-component';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
+import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 
 /**
  * Werkstatt-Seite: alles, was etwas veraendert.
@@ -35,7 +34,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
   imports: [
     DatePipe,
     DecimalPipe,
-    AssemblyCardComponent,
+    RouterLink,
     SlotCardComponent,
     BikeHeaderComponent,
     AssemblyWizardComponent,
@@ -43,10 +42,10 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
     ComponentCheckDialogComponent,
     ComponentSwapDialogComponent,
     EditBikeDialogComponent,
-    QuickChangeDialogComponent,
-    SwitchAssemblyDialogComponent,
     BikeSetupStepperComponent,
     Skeleton,
+    WarnClassPipe,
+    WarnLabelPipe,
   ],
   templateUrl: './bike-service-page.html',
   styleUrl: './bike-service-page.css',
@@ -62,13 +61,10 @@ export class BikeServicePage implements OnInit {
 
   readonly dialogSlotId = signal<number | null>(null);
   readonly checkComponentId = signal<number | null>(null);
-  readonly highlightedSlotId = signal<number | null>(null);
   readonly showEditBikeDialog = signal(false);
   readonly showAssemblyWizard = signal(false);
   readonly editingComponent = signal<BikeComponentModel | null>(null);
   readonly swapSlotId = signal<number | null>(null);
-  readonly swapAssembly = signal<BikeAssembly | null>(null);
-  readonly switchAssembly = signal<BikeAssembly | null>(null);
   readonly retiringAssemblyId = signal<number | null>(null);
   readonly deletingAssemblyId = signal<number | null>(null);
   /** Zwei-Klick-Bestätigung fürs Löschen einer geparkten Baugruppe (hart, cascadiert). */
@@ -135,30 +131,6 @@ export class BikeServicePage implements OnInit {
   }
   onAssemblyCreated() {
     this.showAssemblyWizard.set(false);
-    this.reload();
-  }
-
-  // ── Baugruppe wechseln (anderer Satz) ───────────────────────────────────────
-  openSwitchAssembly(assemblyId: number) {
-    this.switchAssembly.set(this.assemblies().find((a) => a.id === assemblyId) ?? null);
-  }
-  closeSwitchAssembly() {
-    this.switchAssembly.set(null);
-  }
-  onAssemblySwitched() {
-    this.switchAssembly.set(null);
-    this.reload();
-  }
-
-  // ── Teile dieser Baugruppe erneuern ─────────────────────────────────────────
-  openSwapAssembly(assemblyId: number) {
-    this.swapAssembly.set(this.assemblies().find((a) => a.id === assemblyId) ?? null);
-  }
-  closeSwapAssembly() {
-    this.swapAssembly.set(null);
-  }
-  onAssemblySwapped() {
-    this.swapAssembly.set(null);
     this.reload();
   }
 
