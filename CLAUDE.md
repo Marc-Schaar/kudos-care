@@ -102,6 +102,15 @@ features/
     auch gegen einen manuellen Zuklapp-Override, sonst liefe der Scroll ins Leere.
     Body = `slot-card-component`-Elementzeilen mit echtem km-/Tage-Balken +
     `interval-row-component` für Verbrauchsmaterial mit "Erledigt"-Button.
+    **Vorne/hinten kommt aus dem Feld, nicht aus dem Namen**: `bike-diagram-component`
+    liest `template_detail.position` (`front`/`rear`/leer). Vorher wurde die Seite per
+    `display_name.includes('vorne')` erraten — ein umbenannter Slot landete damit auf dem
+    Vorderrad, weil das der Fallback war, und die Kassette trug „hinten" nie im Namen.
+    **„Wechseln" und „Teile erneuern" erscheinen nur bei `group_detail.kind === 'assembly'`**
+    (`assembly-card-component::isSwappableAssembly`). In einem Bereich wie Bremse oder
+    Cockpit verschleißen die Teile unabhängig und werden pro Zeile einzeln getauscht; das
+    Backend lehnt activate/swap dort ohnehin mit 400 ab. Das 🗑 heißt jetzt „Gruppierung
+    auflösen" — die Teile bleiben am Rad.
     **KI-Texte** gibt es an drei Stellen, alle nach demselben Muster: erst auf Klick
     laden (die Generierung kostet einen AI-Call und ist Zugabe, nicht Voraussetzung
     fürs Rendern), Zustände `loading` / `error` / `text` als Signals, Fehlermeldung aus

@@ -84,6 +84,16 @@ export class AssemblyCardComponent {
     ),
   );
 
+  /**
+   * Ob diese Instanz am Stück gewechselt/erneuert werden kann.
+   *
+   * Nur bei einer echten Baugruppe (Laufradsatz). Ein Bereich wie Bremse oder
+   * Cockpit bündelt Teile, die unabhängig verschleißen — Beläge nach 3.000 km,
+   * Scheibe nach 15.000 — und wird pro Zeile einzeln getauscht. Das Backend
+   * lehnt activate/swap dort ohnehin mit 400 ab (siehe GroupKind).
+   */
+  isSwappableAssembly = computed(() => this.assembly().group_detail.kind === 'assembly');
+
   /** Wie viele geparkte Sätze derselben Gruppe zur Auswahl stehen. */
   alternativeCount = computed(
     () => this.parkedAssemblies().filter((a) => a.group === this.assembly().group).length,

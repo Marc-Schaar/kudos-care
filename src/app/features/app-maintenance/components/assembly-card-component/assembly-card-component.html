@@ -83,23 +83,29 @@
             </button>
           </span>
         } @else {
-          <button class="ah-swap-btn" (click)="switchAssembly.emit(assembly().id)">
-            Wechseln
-            @if (alternativeCount() > 0) {
-              <span class="ah-alt-count">{{ alternativeCount() }}</span>
-            }
-          </button>
-          <button
-            class="ah-renew-btn"
-            (click)="swapAssembly.emit(assembly().id)"
-            title="Verschlissene Teile dieser Baugruppe durch neue ersetzen"
-          >
-            Teile erneuern
-          </button>
+          <!-- "Wechseln" und "Teile erneuern" betreffen die Baugruppe als Ganzes
+               und ergeben nur bei einer echten Baugruppe Sinn (Laufradsatz). In
+               einem Bereich wie Bremse oder Cockpit verschleißen die Teile
+               unabhängig — dort wird pro Zeile einzeln getauscht. -->
+          @if (isSwappableAssembly()) {
+            <button class="ah-swap-btn" (click)="switchAssembly.emit(assembly().id)">
+              Wechseln
+              @if (alternativeCount() > 0) {
+                <span class="ah-alt-count">{{ alternativeCount() }}</span>
+              }
+            </button>
+            <button
+              class="ah-renew-btn"
+              (click)="swapAssembly.emit(assembly().id)"
+              title="Verschlissene Teile dieser Baugruppe durch neue ersetzen"
+            >
+              Teile erneuern
+            </button>
+          }
           <button
             class="ah-icon-btn ah-delete-btn"
             (click)="requestDelete()"
-            title="Baugruppe löschen"
+            title="Gruppierung auflösen — die Teile bleiben am Rad"
           >
             🗑
           </button>

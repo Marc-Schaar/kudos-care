@@ -3,7 +3,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { AssemblyChecklistComponent } from './assembly-checklist-component';
-import { ComponentGroupCatalog, ComponentSlotList, ComponentTemplate } from '../../models/maintenance.models';
+import {
+  ComponentGroupCatalog,
+  ComponentSlotList,
+  ComponentTemplate,
+} from '../../models/maintenance.models';
 
 function makeTemplate(overrides: Partial<ComponentTemplate> = {}): ComponentTemplate {
   return {
@@ -39,11 +43,16 @@ function makeGroup(parts: ComponentTemplate[]): ComponentGroupCatalog {
     is_system: true,
     parts,
     consumables: [],
+    kind: 'assembly' as const,
+    position: 'front' as const,
     has_active_instance: false,
   } as ComponentGroupCatalog;
 }
 
-function makeUngroupedSlot(templateId: number, overrides: Partial<ComponentSlotList> = {}): ComponentSlotList {
+function makeUngroupedSlot(
+  templateId: number,
+  overrides: Partial<ComponentSlotList> = {},
+): ComponentSlotList {
   return {
     id: 99,
     bike: 1,

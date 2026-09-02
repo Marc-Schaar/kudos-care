@@ -147,9 +147,13 @@ export class BikeDiagramComponent {
   }
 
   private positionFor(slot: ComponentSlotList, geo: DiagramGeometry): Point {
-    const name = slot.display_name.toLowerCase();
-    const front = name.includes('vorne') || name.includes('front');
-    const rear = name.includes('hinten') || name.includes('rück');
+    const name = slot.template_detail.name.toLowerCase();
+    // Die Seite kommt aus dem Katalog-Feld, nicht aus dem Anzeigenamen: der ist
+    // frei umbenennbar (`custom_name`), und ein umbenannter Slot landete vorher
+    // auf dem Vorderrad, weil das der Fallback war. Die Kassette trug "hinten"
+    // ausserdem nie im Namen. Siehe Backend `MountPosition`.
+    const front = slot.template_detail.position === 'front';
+    const rear = slot.template_detail.position === 'rear';
 
     switch (slot.category) {
       case 'wheels':

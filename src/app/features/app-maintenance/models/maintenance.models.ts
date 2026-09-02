@@ -37,9 +37,21 @@ export type MaintenanceIntervalKind =
 
 // ── ComponentTemplate ─────────────────────────────────────────────────────────
 
+/** Seite am Rad — ein Feld, kein Wort im Namen (Backend: MountPosition). */
+export type MountPosition = 'front' | 'rear' | '';
+
+/**
+ * `assembly` = physische Einheit, am Stück wechselbar (Laufradsatz).
+ * `area` = Teile am selben Ort, die unabhängig verschleißen (Bremse, Cockpit) —
+ * dort gibt es kein "Wechseln"/"Teile erneuern", nur Einzeltausch.
+ */
+export type GroupKind = 'assembly' | 'area';
+
 export interface ComponentTemplate {
   id: number;
   name: string;
+  /** Seite am Rad. Leer = ohne Seite. Das Diagramm liest das statt des Namens. */
+  position: MountPosition;
   category: ComponentCategory;
   category_display: string;
   applicable_bike_types: BikeType[];
@@ -233,6 +245,9 @@ export interface ComponentGroupCatalog {
   sort_order: number;
   recommended: boolean;
   is_system: boolean;
+  /** Steuert, ob "Wechseln"/"Teile erneuern" überhaupt angeboten werden. */
+  kind: GroupKind;
+  position: MountPosition;
   parts: ComponentTemplate[];
   consumables: ComponentTemplate[];
   /** True, wenn das Bike bereits eine aufgezogene Instanz dieser Gruppe hat. */

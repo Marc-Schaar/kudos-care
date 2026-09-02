@@ -167,7 +167,9 @@ describe('AssemblyCardComponent', () => {
       component.deleted.subscribe((id) => (deletedId = id));
 
       component.confirmDeleteNow();
-      const req = httpMock.expectOne((r) => r.method === 'DELETE' && r.url.includes('/assemblies/7/'));
+      const req = httpMock.expectOne(
+        (r) => r.method === 'DELETE' && r.url.includes('/assemblies/7/'),
+      );
       req.flush(null);
 
       expect(deletedId).toBe(7);
