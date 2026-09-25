@@ -34,7 +34,7 @@ export class MainNav {
   private readonly router = inject(Router);
 
   /** Routen ohne Navigation — alles davor liegt vor dem Login. */
-  private static readonly PUBLIC_ROUTES = ['/login', '/landingpage', '/strava-callback'];
+  private static readonly PUBLIC_ROUTES = ['/app/login', '/app/strava-callback'];
 
   private readonly url = signal(this.router.url);
 

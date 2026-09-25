@@ -5,36 +5,43 @@ import { StravaCallback } from '../features/app-login/components/strava-callback
 import { authGuard } from '../features/app-login/guard/auth-guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: Login },
   {
-    path: 'landingpage',
+    path: '',
     loadComponent: () =>
       import('../features/app-landing/components/landingpage/landingpage').then(
         (m) => m.Landingpage,
       ),
   },
-  { path: 'strava-callback', component: StravaCallback },
-  { path: 'dashboard', canActivate: [authGuard], component: Dashboard },
+  // Alte Landing-Page-Url — leitet auf die jetzige Startseite weiter, falls noch irgendwo
+  // (Lesezeichen, extern) darauf verlinkt wird.
+  { path: 'landingpage', redirectTo: '', pathMatch: 'full' },
   {
-    path: 'activities',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('../features/app-activity/components/activity-list/activity-list').then(
-        (m) => m.ActivityList,
-      ),
-  },
-  {
-    path: 'activity/:id',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('../features/app-activity/components/activity-detail/activity-detail').then(
-        (m) => m.ActivityDetail,
-      ),
-  },
-
-  {
-    path: 'maintenance',
-    loadChildren: () => import('./maintenances.routes').then((m) => m.MAINTENANCE_ROUTES),
+    path: 'app',
+    children: [
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
+      { path: 'login', component: Login },
+      { path: 'strava-callback', component: StravaCallback },
+      { path: 'dashboard', canActivate: [authGuard], component: Dashboard },
+      {
+        path: 'activities',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('../features/app-activity/components/activity-list/activity-list').then(
+            (m) => m.ActivityList,
+          ),
+      },
+      {
+        path: 'activity/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('../features/app-activity/components/activity-detail/activity-detail').then(
+            (m) => m.ActivityDetail,
+          ),
+      },
+      {
+        path: 'maintenance',
+        loadChildren: () => import('./maintenances.routes').then((m) => m.MAINTENANCE_ROUTES),
+      },
+    ],
   },
 ];

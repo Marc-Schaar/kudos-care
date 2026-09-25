@@ -29,22 +29,28 @@ export class NavigationService {
    * zusammensetzt.
    */
   readonly to = {
-    landing: (): RouteCommands => ['/landingpage'],
-    login: (): RouteCommands => ['/login'],
-    dashboard: (): RouteCommands => ['/dashboard'],
+    /** Öffentliche Marketing-Startseite — bewusst außerhalb von `/app`. */
+    landing: (): RouteCommands => ['/'],
+    login: (): RouteCommands => ['/app/login'],
+    dashboard: (): RouteCommands => ['/app/dashboard'],
 
-    activities: (): RouteCommands => ['/activities'],
-    activity: (activityId: number): RouteCommands => ['/activity', activityId],
+    activities: (): RouteCommands => ['/app/activities'],
+    activity: (activityId: number): RouteCommands => ['/app/activity', activityId],
 
     /** Bike-Liste im Wartungsbereich. */
-    bikes: (): RouteCommands => ['/maintenance'],
+    bikes: (): RouteCommands => ['/app/maintenance'],
     /** Zustandsseite eines Bikes — nur lesen. */
-    bikeCondition: (bikeId: number): RouteCommands => ['/maintenance', 'bikes', bikeId],
+    bikeCondition: (bikeId: number): RouteCommands => ['/app/maintenance', 'bikes', bikeId],
     /** Werkstatt eines Bikes — alles, was etwas verändert. */
-    workshop: (bikeId: number): RouteCommands => ['/maintenance', 'bikes', bikeId, 'werkstatt'],
+    workshop: (bikeId: number): RouteCommands => [
+      '/app/maintenance',
+      'bikes',
+      bikeId,
+      'werkstatt',
+    ],
     /** Detailseite einer einzelnen Baugruppe. */
     assembly: (bikeId: number, assemblyId: number): RouteCommands => [
-      '/maintenance',
+      '/app/maintenance',
       'bikes',
       bikeId,
       'werkstatt',

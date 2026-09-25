@@ -12,7 +12,7 @@ import { NavigationService } from '../../../../shared/services/navigation-servic
 })
 export class Login implements OnInit {
   private clientId = environment.clientID;
-  private redirectUri = environment.redirectUrl + '/strava-callback';
+  private redirectUri = environment.redirectUrl + '/app/strava-callback';
   readonly nav = inject(NavigationService);
   private readonly stravaService = inject(StravaService);
 

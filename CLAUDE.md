@@ -48,11 +48,11 @@ core/                          — Shell, Bootstrapping, Routing, Interceptors
     error-interceptor/         — globaler HTTP-Error-Handler → NotificationService-Toast
 
 features/
-  app-landing/                  — Öffentliche Marketing-Landing-Page (`/landingpage`, lazy,
-    kein authGuard). Scroll-gekoppelte CSS-Animation (drehende Kurbel + Kette, 3D-Tilt)
-    über ein Signal + rAF-Scroll-Listener, Einblendungen via IntersectionObserver.
-  app-login/                   — Login, Strava-OAuth-Callback, authGuard.
-    login.html verlinkt auf `/landingpage`.
+  app-landing/                  — Öffentliche Marketing-Landing-Page (`/`, die Startseite,
+    lazy, kein authGuard). Scroll-gekoppelte CSS-Animation (drehende Kurbel + Kette,
+    3D-Tilt) über ein Signal + rAF-Scroll-Listener, Einblendungen via IntersectionObserver.
+  app-login/                   — Login (`/app/login`), Strava-OAuth-Callback
+    (`/app/strava-callback`), authGuard. login.html verlinkt auf `/` (Landing-Page).
   app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)
   app-activity/                 — Strava Activity List/Detail, Map, Wetter-Overlay
     pipes/headwind-label, services/activity-service
@@ -219,7 +219,9 @@ shared/
                                        wird erst befüllt, wenn eine Seite es anstößt, und
                                        die Wartungsseiten tun das nicht — die Leiste war
                                        dort beim Direktaufruf verschwunden. Ausgeblendet
-                                       auf `/login`, `/landingpage`, `/strava-callback`.
+                                       auf `/` (Landing-Page, per Sonderfall
+                                       `url === '/'`), `/app/login`,
+                                       `/app/strava-callback`.
                                        „Zustand" und „Werkstatt" brauchen ein Bike und sind
                                        ohne eins deaktiviert statt versteckt (eine Leiste,
                                        die ihre Anzahl ändert, springt); die Id kommt aus
@@ -255,12 +257,20 @@ Konsistenz zu neueren Features halten.
 
 ## Routing (`core/app.routes.ts`, `maintenances.routes.ts`)
 
-- `''` → redirect `login`
-- `login`, `strava-callback` → eager, ungeschützt
-- `landingpage` → lazy (`loadComponent`), ungeschützt (öffentliche Landing-Page)
-- `dashboard` → eager, `authGuard`
-- `activities`, `activity/:id` → lazy (`loadComponent`), `authGuard`
-- `maintenance` → `loadChildren` → `MAINTENANCE_ROUTES`, flach: `''` = Bike-Liste,
+- `''` → die öffentliche Landing-Page (lazy, `loadComponent`, ungeschützt) — das ist die
+  Startseite von `kudoscare.marc-schaar.com`. `landingpage` bleibt als reiner
+  Redirect auf `''` bestehen (alte Url).
+- Die eigentliche App liegt komplett unter **`app/`** (eigene Zeile in
+  `app.routes.ts`, `children:`): `''` → redirect `login`, `login`/`strava-callback` →
+  eager, ungeschützt, `dashboard` → eager, `authGuard`, `activities`/`activity/:id` →
+  lazy (`loadComponent`), `authGuard`, `maintenance` → `loadChildren` →
+  `MAINTENANCE_ROUTES`. Kein Template/keine Komponente baut diese Pfade selbst
+  zusammen — `shared/services/navigation-service` liefert sie bereits mit dem
+  `app/`-Präfix, das ist die einzige Stelle, die eine Änderung hier kennen muss
+  (Ausnahme: `login.ts` baut die Strava-`redirect_uri` clientseitig aus
+  `environment.redirectUrl + '/app/strava-callback'`, weil das kein Router-Pfad ist).
+- `maintenance` → `loadChildren` → `MAINTENANCE_ROUTES`, flach (Pfade relativ zu
+  `app/maintenance/`): `''` = Bike-Liste,
   `bikes/:id` = **Zustand**, `bikes/:id/werkstatt` = **Werkstatt**,
   `bikes/:id/werkstatt/:assemblyId` = **Baugruppen-Detail**. Ein Bike hat also zwei
   Seiten statt einer — vorher lag beides in einer einzigen `detail-bike-component`. Die
@@ -294,10 +304,11 @@ Konsistenz zu neueren Features halten.
   API-Testskripte gegen `django.test.Client`/`requests` hatten das nie bemerkt, weil sie
   Angulars HttpClient/Interceptor-Kette gar nicht durchlaufen. **Bei "funktioniert lokal
   nicht, in Produktion schon"-Berichten zu POST/PATCH/DELETE zuerst hier nachsehen.**
-- Login: `Login`-Component baut Strava-Authorize-URL client-seitig und redirected per
-  `window.location.href`. `StravaCallback` liest `code`/`scope`/`error` aus Query-Params,
-  postet an `${apiUrl}/strava/auth/`, setzt `StravaService.user`-Signal, navigiert nach
-  2s Delay zu `/dashboard`.
+- Login: `Login`-Component (`/app/login`) baut Strava-Authorize-URL client-seitig
+  (`redirect_uri` = `environment.redirectUrl + '/app/strava-callback'`) und redirected
+  per `window.location.href`. `StravaCallback` (`/app/strava-callback`) liest
+  `code`/`scope`/`error` aus Query-Params, postet an `${apiUrl}/strava/auth/`, setzt
+  `StravaService.user`-Signal, navigiert nach 2s Delay zu `/app/dashboard`.
 - `StravaService.user` traegt seit dem Usermenue auch `email`,
   `email_notifications_enabled` und `needs_email` (aus `GET /strava/me/`);
   `updateSettings()` schreibt sie per `PATCH /strava/me/` zurueck. `firstname` kommt
