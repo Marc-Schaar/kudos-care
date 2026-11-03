@@ -12,6 +12,8 @@
     </label>
     <button type="submit" class="g-btn" [disabled]="busy()">Speichern</button>
 
+    <button type="button" class="g-btn ghost" (click)="addPart.emit()">Weiteres Teil eintragen</button>
+
     <div class="g-danger-zone">
       @if (confirmingDelete()) {
         <p class="g-text">

@@ -11,10 +11,8 @@
 }
 
 .label {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--muted);
 }
 
@@ -22,8 +20,8 @@
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 0.85rem;
+  font-family: var(--font-text);
+  font-size: var(--t-sm);
   padding: 0.5rem 0.75rem;
   outline: none;
   transition: border-color 0.15s;
@@ -88,7 +86,7 @@
 }
 
 .row-name {
-  font-size: 0.85rem;
+  font-size: var(--t-sm);
   color: var(--text);
 }
 
@@ -112,7 +110,7 @@
 }
 
 .reuse-text {
-  font-size: 0.78rem;
+  font-size: var(--t-xs);
   color: var(--text);
 }
 .reuse-text strong {
@@ -120,8 +118,8 @@
 }
 
 .reuse-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--muted);
 }
 
@@ -140,7 +138,7 @@
 }
 
 .reuse-select {
-  font-size: 0.75rem;
+  font-size: var(--t-xs);
 }
 
 .row-fields {
@@ -150,7 +148,7 @@
   flex-wrap: wrap;
 }
 .row-fields .input {
-  font-size: 0.78rem;
+  font-size: var(--t-xs);
   padding: 0.4rem 0.6rem;
 }
 .row-fields .input:disabled {
@@ -159,8 +157,8 @@
 }
 
 .error-msg {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--critical);
   background: color-mix(in srgb, var(--critical) 10%, transparent);
   padding: 0.5rem 0.75rem;
@@ -176,14 +174,14 @@
 
 .btn-cancel,
 .btn-save {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   padding: 0.5rem 1.25rem;
   cursor: pointer;
   border: 1px solid var(--border);
-  transition: all 0.15s;
+  transition:
+    color 0.12s var(--ease-out),
+    border-color 0.12s var(--ease-out);
 }
 .btn-cancel {
   background: none;
@@ -213,8 +211,8 @@
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   line-height: 1.5;
   color: var(--muted);
   background: color-mix(in srgb, var(--accent) 6%, transparent);
@@ -224,10 +222,8 @@
 }
 
 .kudo-badge {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   padding: 0.1rem 0.4rem;
   border: 1px solid var(--accent);
   color: var(--accent);

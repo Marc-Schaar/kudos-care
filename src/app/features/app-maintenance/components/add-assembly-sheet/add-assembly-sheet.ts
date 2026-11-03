@@ -6,6 +6,7 @@ import {
   ComponentGroupCatalog,
 } from '../../models/maintenance.models';
 import { AssemblyChecklistComponent } from '../assembly-checklist-component/assembly-checklist-component';
+import { Icon } from '../../../../shared/components/icon/icon';
 import { BottomSheet } from '../bottom-sheet/bottom-sheet';
 
 /**
@@ -14,7 +15,7 @@ import { BottomSheet } from '../bottom-sheet/bottom-sheet';
  */
 @Component({
   selector: 'app-add-assembly-sheet',
-  imports: [AssemblyChecklistComponent, BottomSheet],
+  imports: [AssemblyChecklistComponent, BottomSheet, Icon],
   templateUrl: './add-assembly-sheet.html',
 })
 export class AddAssemblySheet {

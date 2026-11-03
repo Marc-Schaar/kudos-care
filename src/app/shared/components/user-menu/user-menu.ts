@@ -1,18 +1,18 @@
 import { Component, computed, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Icon } from '../icon/icon';
 import { NotificationService } from '../../services/notification-service/notification-service';
 import { StravaService } from '../../services/strava-service/strava-service';
 
 /**
  * Usermenü: E-Mail anzeigen/ändern, Benachrichtigungen abschalten, Abmelden.
  *
- * Bewusst eine Shared-Komponente, die in die bestehenden Seiten-Header eingehängt
- * wird (Dashboard, Wartung, Aktivität), statt einer globalen Topbar — so bleibt das
- * Layout aller Seiten unangetastet.
+ * Liegt im Chrome der App (`main-nav`) und nicht in den Seiten-Headern: dort fehlte es auf den
+ * Fahrten und auf jeder Rad-Seite.
  */
 @Component({
   selector: 'app-user-menu',
-  imports: [FormsModule],
+  imports: [FormsModule, Icon],
   templateUrl: './user-menu.html',
   styleUrl: './user-menu.css',
 })

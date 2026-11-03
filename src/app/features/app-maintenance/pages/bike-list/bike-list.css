@@ -1,51 +1,67 @@
 .head {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
 }
 
+.garage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 760px) {
+  .garage {
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  }
+}
+
 .bike {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-height: 5rem;
-  padding: 0.75rem 0.85rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 1rem;
   color: var(--text);
   text-decoration: none;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  transition: border-color 0.12s var(--ease-out);
 }
 
 .bike:hover {
-  border-color: var(--muted);
+  border-color: var(--border-strong);
 }
 
-.bike.retired {
-  opacity: 0.65;
+.bike:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .bike-art {
-  flex: none;
-  width: 4.25rem;
+  grid-column: 1 / -1;
+  width: min(100%, 26rem);
   height: auto;
-  opacity: 0.85;
+  margin: 0 auto;
+}
+
+.bike-text {
+  min-width: 0;
 }
 
 .bike-name {
   display: block;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1.35rem;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
   font-weight: 600;
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
 
-.add {
-  margin-top: 0.75rem;
-}
-
-@media (min-width: 760px) {
-  .bike-art {
-    width: 6rem;
-  }
+.retired-title {
+  margin-bottom: 0.75rem;
 }

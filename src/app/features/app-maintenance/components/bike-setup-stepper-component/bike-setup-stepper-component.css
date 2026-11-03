@@ -25,10 +25,8 @@
 }
 
 .step-count {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--muted);
   white-space: nowrap;
 }
@@ -41,8 +39,8 @@
 }
 
 .step-note {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--muted);
   margin: 0 0 1rem;
 }
@@ -76,8 +74,8 @@
 }
 
 .done-sub {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--muted);
   max-width: 34rem;
   line-height: 1.5;
@@ -86,10 +84,8 @@
 
 .done-btn {
   margin-top: 0.5rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   padding: 0.55rem 1.5rem;
   background: var(--accent);
   border: 1px solid var(--accent);

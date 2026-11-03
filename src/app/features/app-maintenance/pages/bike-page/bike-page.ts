@@ -3,17 +3,20 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { Icon } from '../../../../shared/components/icon/icon';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
 import { AddAssemblySheet } from '../../components/add-assembly-sheet/add-assembly-sheet';
+import { BikeBlueprint } from '../../components/bike-blueprint/bike-blueprint';
 import { BikeFormSheet } from '../../components/bike-form-sheet/bike-form-sheet';
 import { BikeSetupStepperComponent } from '../../components/bike-setup-stepper-component/bike-setup-stepper-component';
+import { DueRow } from '../../components/due-row/due-row';
 import { IntervalSheet } from '../../components/interval-sheet/interval-sheet';
 import { LinksSheet } from '../../components/links-sheet/links-sheet';
 import { PartSheet } from '../../components/part-sheet/part-sheet';
 import { SwitchSheet } from '../../components/switch-sheet/switch-sheet';
-import { WearMeter } from '../../components/wear-meter/wear-meter';
+import { WearLegend } from '../../components/wear-meter/wear-meter';
 import { WheelsetSheet } from '../../components/wheelset-sheet/wheelset-sheet';
 import {
   AssembliesResponse,
@@ -30,6 +33,7 @@ import {
   buildWheelSets,
   DueItem,
   partsLabel,
+  relevantDue,
   WheelSet,
 } from '../../shared/utils/utils';
 
@@ -46,18 +50,21 @@ interface OpenPart {
 }
 
 /**
- * Ein Rad auf einer Seite: was als Nächstes ansteht, die Laufradsätze mit dem Wechsel, und
- * die übrigen Baugruppen. Eine Baugruppe hat ihre eigene Seite; alles andere geht direkt
- * hier in einem Blatt auf.
+ * Ein Rad auf einer Seite: die Zeichnung, was als Nächstes ansteht, die Laufradsätze mit dem
+ * Wechsel und die übrigen Baugruppen. Eine Baugruppe hat ihre eigene Seite; alles andere geht
+ * direkt hier in einem Blatt auf.
  */
 @Component({
   selector: 'app-bike-page',
   imports: [
     AddAssemblySheet,
+    BikeBlueprint,
     BikeFormSheet,
     BikeSetupStepperComponent,
     DatePipe,
     DecimalPipe,
+    DueRow,
+    Icon,
     IntervalSheet,
     LinksSheet,
     PartSheet,
@@ -66,7 +73,7 @@ interface OpenPart {
     SwitchSheet,
     WarnClassPipe,
     WarnLabelPipe,
-    WearMeter,
+    WearLegend,
     WheelsetSheet,
   ],
   templateUrl: './bike-page.html',
@@ -127,11 +134,7 @@ export class BikePage {
   /** Was am Rad ist, nach verbrauchter Lebensdauer. */
   private allDue = computed(() => buildDueList(this.garage()?.assemblies ?? []));
 
-  private relevantDue = computed(() =>
-    this.allDue().filter(
-      (item) => (item.ratio ?? 0) >= 0.5 || item.status === 'warn' || item.status === 'critical',
-    ),
-  );
+  private relevantDue = computed(() => relevantDue(this.allDue()));
 
   due = computed(() =>
     this.showAllDue() ? this.relevantDue() : this.relevantDue().slice(0, DUE_LIMIT),

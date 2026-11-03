@@ -12,6 +12,13 @@ export interface Activity {
   start_date: string | null;
   elapsed_time: number | null;
   bike: number | null;
+  /** WKT aus PostGIS, `SRID=4326;LINESTRING (lng lat, ...)`. Null ohne GPS. */
+  track?: string | null;
+  /** Null, solange keine Wetter-Einwilligung vorliegt oder die Fahrt nicht nachgerechnet ist. */
+  weather_data?: {
+    precipitation?: (number | null)[];
+    temperature_2m?: (number | null)[];
+  } | null;
 }
 
 export interface SyncStatusResponse {

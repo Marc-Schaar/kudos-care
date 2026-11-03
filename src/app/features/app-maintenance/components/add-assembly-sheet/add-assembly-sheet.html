@@ -1,6 +1,6 @@
 <app-bottom-sheet [title]="title()" (closed)="closed.emit()">
   @if (picked(); as group) {
-    <button type="button" class="g-link-btn" (click)="picked.set(null)">‹ Andere Baugruppe</button>
+    <button type="button" class="g-link-btn" (click)="picked.set(null)">Andere Baugruppe wählen</button>
     <app-assembly-checklist-component
       [bikeId]="bikeId()"
       [group]="group"
@@ -20,7 +20,7 @@
               {{ group.parts.length }} Teile · {{ group.consumables.length }} Pflege
             </span>
           </span>
-          <span class="g-chevron" aria-hidden="true">›</span>
+          <app-icon class="g-chevron" name="chevron-right" [size]="18" />
         </button>
       } @empty {
         <p class="g-empty">Alle Baugruppen sind schon angelegt.</p>

@@ -3,15 +3,17 @@
      der Shell, damit er unabhängig von der Landing-Route erscheint. -->
 <app-email-prompt-dialog></app-email-prompt-dialog>
 <app-ai-consent-dialog />
-<router-outlet></router-outlet>
 
-<!-- Impressum und Datenschutz müssen von jeder Seite aus erreichbar sein, das Strava-Logo gehört
-     dorthin, wo Strava-Daten zu sehen sind. Die Landing-Page bringt ihre Links selbst mit. -->
-@if (showFooter()) {
-  <app-legal-links class="shell-footer" [attribution]="true" />
-}
-
-<!-- Zentrale Navigation, fix am unteren Rand. Liegt hier und nicht im
-     Wartungsbereich, damit sie beim Wechsel auf Fahrten oder Start stehen
-     bleibt; sie blendet sich selbst aus, solange niemand angemeldet ist. -->
+<!-- Liegt in der Shell und nicht im Wartungsbereich, damit sie beim Wechsel auf Fahrten oder Start
+     stehen bleibt. Sie blendet sich selbst aus, solange die Route nicht zur App gehört. -->
 <app-main-nav />
+
+<div [class.in-app]="inApp()">
+  <router-outlet></router-outlet>
+
+  <!-- Impressum und Datenschutz müssen von jeder Seite aus erreichbar sein, das Strava-Logo gehört
+       dorthin, wo Strava-Daten zu sehen sind. Die Landing-Page bringt ihre Links selbst mit. -->
+  @if (showFooter()) {
+    <app-legal-links class="shell-footer" [attribution]="true" />
+  }
+</div>

@@ -1,27 +1,24 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { DatePipe, DecimalPipe } from '@angular/common';
-import { StravaService } from '../../../../shared/services/strava-service/strava-service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
+import { StravaService } from '../../../../shared/services/strava-service/strava-service';
+import { groupByMonth } from '../../models/ride-insights';
+import { RideRow } from '../ride-row/ride-row';
+import { RideTally } from '../ride-tally/ride-tally';
 
+/** Alle Fahrten: oben die Strichliste der letzten Monate, darunter nach Monaten gegliedert. */
 @Component({
   selector: 'app-activity-list',
-  imports: [RouterLink, DatePipe, DecimalPipe, Skeleton],
+  imports: [DecimalPipe, RideRow, RideTally, Skeleton],
   templateUrl: './activity-list.html',
   styleUrl: './activity-list.css',
 })
 export class ActivityList implements OnInit {
-  readonly nav = inject(NavigationService);
   private stravaService = inject(StravaService);
 
   public loading = signal(true);
-
-  public activities = computed(() =>
-    [...this.stravaService.activities()].sort(
-      (a, b) => Date.parse(b.start_date ?? '') - Date.parse(a.start_date ?? ''),
-    ),
-  );
+  public activities = this.stravaService.activities;
+  public months = computed(() => groupByMonth(this.activities()));
 
   ngOnInit() {
     this.loading.set(true);
@@ -29,13 +26,5 @@ export class ActivityList implements OnInit {
       complete: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
-  }
-
-  public formatDuration(seconds: number | null): string {
-    if (!seconds) return '–';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.round((seconds % 3600) / 60);
-    if (h === 0) return `${m} min`;
-    return `${h} h ${m.toString().padStart(2, '0')} min`;
   }
 }

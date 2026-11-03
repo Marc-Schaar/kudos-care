@@ -13,6 +13,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ActivityService } from '../../services/activity-service/activity-service';
 import {
   Chart,
+  ChartOptions,
   LineController,
   LineElement,
   BarController,
@@ -32,7 +33,8 @@ import { WeatherTimeline } from '../../models/weather-timeline';
 import { Map } from '../map/map';
 import { AbsPipe } from '../../../../shared/pipes/abs/abs-pipe';
 import { HeadwindLabelPipe } from '../../pipes/headwind-label/headwind-label-pipe';
-import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
+import { Icon } from '../../../../shared/components/icon/icon';
+import { formatDuration, mean } from '../../models/ride-insights';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
@@ -50,13 +52,12 @@ Chart.register(
   Filler,
 );
 
-type WindStatus = 'ok' | 'warn' | 'critical';
 type MapMode = 'wind' | 'rain';
 type ClimateMode = 'temperature' | 'rain';
 
 @Component({
   selector: 'app-activity-detail',
-  imports: [Map, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, RouterLink, UserMenu],
+  imports: [Map, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, Icon, RouterLink],
   providers: [DatePipe],
   templateUrl: './activity-detail.html',
   styleUrl: './activity-detail.css',
@@ -99,6 +100,15 @@ export class ActivityDetail implements OnInit {
     ),
   );
 
+  /** Das Wetter der Fahrt als zwei Zahlen für die Kopfzeile. */
+  public climate = computed(() => {
+    const weather = this.activityService.activityData()?.weather_timeline;
+    return {
+      temperature: mean(weather?.temperature_2m),
+      precipitation: mean(weather?.precipitation),
+    };
+  });
+
   private activityId: number | null = null;
   public rideSummary = signal<RideSummary | null>(null);
   public rideSummaryLoading = signal(false);
@@ -121,8 +131,8 @@ export class ActivityDetail implements OnInit {
   private readonly text = getComputedStyle(document.documentElement)
     .getPropertyValue('--text')
     .trim();
-  private readonly accent = getComputedStyle(document.documentElement)
-    .getPropertyValue('--accent')
+  private readonly surface2 = getComputedStyle(document.documentElement)
+    .getPropertyValue('--surface2')
     .trim();
   private readonly critical = getComputedStyle(document.documentElement)
     .getPropertyValue('--critical')
@@ -256,10 +266,11 @@ export class ActivityDetail implements OnInit {
         labels: this.timeLabels(weatherData.time),
         datasets: [
           {
-            label: 'Wind (m/s)',
+            label: 'Wind (km/h)',
             data: weatherData.wind_speed_10m ?? [],
-            borderColor: this.text,
-            backgroundColor: this.text,
+            borderColor: this.muted,
+            backgroundColor: this.muted,
+            borderWidth: 1.5,
             pointRadius: 0,
             tension: 0.2,
           },
@@ -267,7 +278,7 @@ export class ActivityDetail implements OnInit {
             label: 'Gegenwind (km/h)',
             data: headwindValues,
             borderColor: this.critical,
-            borderWidth: 2.5,
+            borderWidth: 2,
             segment: {
               borderColor: (ctx) => this.windSegmentColor(ctx.p1.parsed.y, maxAbsHeadwind),
               backgroundColor: (ctx) => this.windSegmentFill(ctx.p1.parsed.y, maxAbsHeadwind),
@@ -278,17 +289,7 @@ export class ActivityDetail implements OnInit {
           },
         ],
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: { grid: { color: this.border }, ticks: { color: this.muted } },
-          y: { grid: { color: this.border }, ticks: { color: this.muted } },
-        },
-        plugins: {
-          legend: { labels: { color: this.muted, boxWidth: 12 } },
-        },
-      },
+      options: this.chartOptions({ legend: true }),
     });
   }
 
@@ -310,7 +311,7 @@ export class ActivityDetail implements OnInit {
             label: 'Niederschlag (mm)',
             data: precipitationValues,
             borderColor: this.rain,
-            borderWidth: 2.5,
+            borderWidth: 2,
             segment: {
               borderColor: (ctx) => this.rainSegmentColor(ctx.p1.parsed.y, maxPrecipitation),
               backgroundColor: (ctx) => this.rainSegmentFill(ctx.p1.parsed.y, maxPrecipitation),
@@ -321,17 +322,7 @@ export class ActivityDetail implements OnInit {
           },
         ],
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: { grid: { color: this.border }, ticks: { color: this.muted } },
-          y: { grid: { color: this.border }, ticks: { color: this.muted }, beginAtZero: true },
-        },
-        plugins: {
-          legend: { labels: { color: this.muted, boxWidth: 12 } },
-        },
-      },
+      options: this.chartOptions({ fromZero: true }),
     });
   }
 
@@ -346,35 +337,59 @@ export class ActivityDetail implements OnInit {
           {
             label: 'Temperatur (°C)',
             data: weatherData.temperature_2m ?? [],
-            borderColor: this.accent,
-            backgroundColor: this.accent,
+            borderColor: this.text,
+            backgroundColor: this.text,
+            borderWidth: 2,
             pointRadius: 0,
             tension: 0.2,
           },
         ],
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: { grid: { color: this.border }, ticks: { color: this.muted } },
-          y: {
-            grid: { color: this.border },
-            ticks: { color: this.muted },
-            beginAtZero: true,
-          },
-        },
-        plugins: {
-          legend: { labels: { color: this.muted, boxWidth: 12 } },
-        },
-      },
+      options: this.chartOptions(),
     });
   }
 
-  public windStatus(val: number | undefined | null): WindStatus {
-    if (val == null || val < 0) return 'ok';
-    if (val < 5) return 'warn';
-    return 'critical';
+  /**
+   * Gemeinsame Optik der Diagramme: dünne Linien, waagerechtes Raster im Hintergrund, Fadenkreuz
+   * mit Tooltip über die volle Höhe. Eine Legende nur bei zwei Reihen, sonst sagt es die Überschrift.
+   */
+  private chartOptions(options: { legend?: boolean; fromZero?: boolean } = {}): ChartOptions<'line'> {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 240 },
+      scales: {
+        x: {
+          grid: { display: false },
+          border: { color: this.border },
+          ticks: { color: this.muted, maxTicksLimit: 6 },
+        },
+        y: {
+          beginAtZero: options.fromZero ?? false,
+          grid: { color: this.border },
+          border: { display: false },
+          ticks: { color: this.muted, maxTicksLimit: 5 },
+        },
+      },
+      plugins: {
+        legend: {
+          display: options.legend ?? false,
+          align: 'start',
+          labels: { color: this.muted, boxWidth: 12, boxHeight: 2 },
+        },
+        tooltip: {
+          backgroundColor: this.surface2,
+          titleColor: this.text,
+          bodyColor: this.text,
+          borderColor: this.border,
+          borderWidth: 1,
+          cornerRadius: 4,
+          padding: 8,
+          displayColors: false,
+        },
+      },
+    };
   }
 
   /** Farbintensität relativ zum stärksten Wert dieser Fahrt statt fixer Schwellenwerte. */
@@ -413,11 +428,5 @@ export class ActivityDetail implements OnInit {
     return `color-mix(in srgb, ${this.rain} ${alphaPercent}%, transparent)`;
   }
 
-  public formatDuration(seconds: number | null): string {
-    if (!seconds) return '–';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.round((seconds % 3600) / 60);
-    if (h === 0) return `${m} min`;
-    return `${h} h ${m.toString().padStart(2, '0')} min`;
-  }
+  public formatDuration = formatDuration;
 }

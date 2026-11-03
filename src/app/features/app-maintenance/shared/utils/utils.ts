@@ -105,10 +105,65 @@ export interface DueItem {
   title: string;
   where: string;
   detail: string;
+  /** "noch 709 km" bzw. "863 km drüber": die Zahl, nach der man handelt. */
+  remaining: string;
   assembly: BikeAssembly;
   slot?: ComponentSlot;
   component?: BikeComponent;
   interval?: MaintenanceInterval;
+}
+
+const formatCount = (value: number): string => Math.round(value).toLocaleString('de-DE');
+
+/** Abstand zur Grenze in Worten. Über der Grenze zählt die Zahl weiter, statt bei 100 % zu enden. */
+function distanceToLimit(used: number, limit: number, unit: 'km' | 'days'): string {
+  const left = Math.round(limit - used);
+  const label = (count: number): string =>
+    unit === 'km' ? `${formatCount(count)} km` : `${formatCount(count)} ${count === 1 ? 'Tag' : 'Tage'}`;
+  if (left === 0) return 'jetzt fällig';
+  return left > 0 ? `noch ${label(left)}` : `${label(-left)} drüber`;
+}
+
+/**
+ * Wie weit ist das Teil, gerechnet über die Achse, die am weitesten ist? Dieselbe Regel wie
+ * `wear_ratio` im Backend: km inklusive Wetter-Aufschlag gegen die Tage.
+ */
+export function partRemaining(component: BikeComponent): string {
+  const usedKm = Math.max(component.wear_km ?? 0, component.weather_wear_km ?? 0);
+  const kmRatio = component.effective_warn_km ? usedKm / component.effective_warn_km : null;
+  const daysRatio =
+    component.effective_warn_days && component.wear_days != null
+      ? component.wear_days / component.effective_warn_days
+      : null;
+  if (kmRatio === null && daysRatio === null) return '';
+  if (kmRatio !== null && (daysRatio === null || kmRatio >= daysRatio)) {
+    return distanceToLimit(usedKm, component.effective_warn_km!, 'km');
+  }
+  return distanceToLimit(component.wear_days!, component.effective_warn_days!, 'days');
+}
+
+function intervalRemaining(interval: MaintenanceInterval): string {
+  const kmRatio = interval.interval_km ? interval.km_since / interval.interval_km : null;
+  const daysRatio =
+    interval.interval_days && interval.days_since != null
+      ? interval.days_since / interval.interval_days
+      : null;
+  if (kmRatio === null && daysRatio === null) return '';
+  if (kmRatio !== null && (daysRatio === null || kmRatio >= daysRatio)) {
+    return distanceToLimit(interval.km_since, interval.interval_km!, 'km');
+  }
+  return distanceToLimit(interval.days_since!, interval.interval_days!, 'days');
+}
+
+/**
+ * Was das Wetter auf die Kilometer aufschlägt, null wenn es nichts Sichtbares ist. Unter 1 %
+ * wäre der Unterschied nur Rundungsrauschen und die zweite Zahl eine Ablenkung.
+ */
+export function weatherSurplusKm(component: BikeComponent): number | null {
+  const weather = component.weather_wear_km;
+  if (weather == null || !component.wear_km) return null;
+  const surplus = weather - component.wear_km;
+  return surplus >= component.wear_km * 0.01 ? surplus : null;
 }
 
 function partDetail(component: BikeComponent): string {
@@ -145,6 +200,7 @@ export function buildDueList(assemblies: BikeAssembly[]): DueItem[] {
         title: slot.display_name,
         where: assembly.display_name,
         detail: partDetail(component),
+        remaining: partRemaining(component),
         assembly,
         slot,
         component,
@@ -158,12 +214,20 @@ export function buildDueList(assemblies: BikeAssembly[]): DueItem[] {
         title: interval.label,
         where: assembly.display_name,
         detail: intervalDetail(interval),
+        remaining: intervalRemaining(interval),
         assembly,
         interval,
       });
     }
   }
   return items.sort((a, b) => (b.ratio ?? -1) - (a.ratio ?? -1));
+}
+
+/** Was es wert ist, oben zu stehen: über die Hälfte der Lebensdauer, oder schon mit Ampel. */
+export function relevantDue(items: DueItem[]): DueItem[] {
+  return items.filter(
+    (item) => (item.ratio ?? 0) >= 0.5 || item.status === 'warn' || item.status === 'critical',
+  );
 }
 
 // ── Wohin ein Teil passt ─────────────────────────────────────────────────────

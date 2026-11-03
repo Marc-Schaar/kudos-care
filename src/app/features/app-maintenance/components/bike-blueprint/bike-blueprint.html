@@ -1,0 +1,135 @@
+<ng-template #measures let-dim let-tachoTop="tachoTop" let-weatherTop="weatherTop">
+  @if (gap(); as measured) {
+    <div
+      class="dim"
+      [style.left.%]="dim.left"
+      [style.width.%]="dim.width"
+      [style.top.%]="tachoTop"
+    >
+      <span class="dim-text g-num">Tacho {{ measured.km | number: '1.0-0' }} km</span>
+    </div>
+    <div
+      class="dim weather"
+      [style.left.%]="dim.left"
+      [style.width.%]="dim.stretched"
+      [style.top.%]="weatherTop"
+    >
+      <span class="dim-text g-num"
+        >{{ measured.partName }} mit Wetter {{ measured.weatherKm | number: '1.0-0' }} km</span
+      >
+    </div>
+  }
+</ng-template>
+
+<figure class="bp">
+  <!-- Breit: Beschriftung neben dem Rad, Hinweislinien bis an die Stelle. -->
+  <div class="stage stage-wide">
+    <img
+      class="art"
+      alt=""
+      [src]="image()"
+      [style.left.%]="wideArt.left"
+      [style.top.%]="wideArt.top"
+      [style.width.%]="wideArt.width"
+    />
+
+    <svg
+      class="leaders"
+      aria-hidden="true"
+      preserveAspectRatio="none"
+      [attr.viewBox]="'0 0 ' + wide.w + ' ' + wide.h"
+    >
+      @for (callout of placed(); track callout.id; let i = $index) {
+        <svg:path
+          class="leader"
+          pathLength="1"
+          [class]="callout.status | warnClass"
+          [class.on]="hot() === callout.id"
+          [style.--i]="i"
+          [attr.d]="callout.leader"
+        />
+        <svg:circle
+          class="anchor"
+          r="4"
+          [class]="callout.status | warnClass"
+          [class.on]="hot() === callout.id"
+          [style.--i]="i"
+          [attr.cx]="callout.anchorWide!.x"
+          [attr.cy]="callout.anchorWide!.y"
+        />
+      }
+    </svg>
+
+    @for (callout of callouts(); track callout.id; let i = $index) {
+      <a
+        class="label"
+        [class.left]="callout.side === 'left'"
+        [class.right]="callout.side === 'right'"
+        [style.top.%]="percentOf(callout.labelY, wide.h)"
+        [style.--i]="i"
+        [routerLink]="nav.to.assembly(bikeId(), callout.id)"
+        (mouseenter)="hot.set(callout.id)"
+        (mouseleave)="hot.set(null)"
+        (focus)="hot.set(callout.id)"
+        (blur)="hot.set(null)"
+      >
+        <span class="label-name">
+          <span class="g-dot" [class]="callout.status | warnClass"></span>
+          <span class="truncate">{{ callout.name }}</span>
+        </span>
+        <span class="label-note" [title]="callout.note">{{ callout.note }}</span>
+      </a>
+    }
+
+    <ng-container
+      [ngTemplateOutlet]="measures"
+      [ngTemplateOutletContext]="{ $implicit: wideDim(), tachoTop: 85, weatherTop: 93 }"
+    />
+  </div>
+
+  <!-- Schmal: Nummern am Rad, die Beschriftung steht darunter. -->
+  <div class="stage stage-narrow">
+    <img class="art" alt="" [src]="image()" style="left: 0; top: 0; width: 100%" />
+
+    @for (callout of placed(); track callout.id) {
+      <span
+        class="balloon"
+        aria-hidden="true"
+        [class]="callout.status | warnClass"
+        [style.left.%]="percentOf(callout.anchorNarrow!.x, narrow.w)"
+        [style.top.%]="percentOf(callout.anchorNarrow!.y, narrow.h)"
+        >{{ callout.number }}</span
+      >
+    }
+
+    <ng-container
+      [ngTemplateOutlet]="measures"
+      [ngTemplateOutletContext]="{ $implicit: narrowDim(), tachoTop: 85, weatherTop: 95 }"
+    />
+  </div>
+
+  <ol class="legend">
+    @for (callout of legendRows(); track callout.id) {
+      <li>
+        <a class="legend-row" [routerLink]="nav.to.assembly(bikeId(), callout.id)">
+          <span class="legend-number g-num" aria-hidden="true">{{ callout.number ?? '·' }}</span>
+          <span class="legend-text">
+            <span class="legend-name">
+              <span class="g-dot" [class]="callout.status | warnClass"></span>
+              {{ callout.name }}
+            </span>
+            <span class="legend-note" [title]="callout.note">{{ callout.note }}</span>
+          </span>
+          <app-icon class="g-chevron" name="chevron-right" [size]="16" />
+        </a>
+      </li>
+    }
+  </ol>
+  @if (quietCount() > 0) {
+    <div class="legend-toggle">
+      <button type="button" class="g-link-btn quiet" (click)="showAll.set(!showAll())">
+        {{ showAll() ? 'Nur Auffälliges zeigen' : quietCount() + ' weitere in Ordnung' }}
+      </button>
+    </div>
+  }
+</figure>

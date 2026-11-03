@@ -3,13 +3,24 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem 1rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
 }
 nav {
   display: flex;
   gap: 0.75rem;
 }
+/* Auf Graphit wäre "Powered by" unsichtbar. Das Logo bleibt unverändert, es bekommt einen hellen
+   Grund, bis die weiße Fassung aus Stravas Brand-Paket im Repo liegt. */
+@media (prefers-color-scheme: dark) {
+  .strava {
+    box-sizing: content-box;
+    padding: 0.25rem 0.5rem;
+    background: #e4e6e3;
+    border-radius: var(--r-s);
+  }
+}
+
 a {
   color: inherit;
   padding-block: 0.35rem;

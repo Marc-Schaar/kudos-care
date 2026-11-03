@@ -1,43 +1,31 @@
-<div class="page">
-  <nav class="breadcrumb">
-    <a [routerLink]="nav.to.dashboard()">Dashboard</a>
-    <span class="sep">/</span>
-    <span>Alle Aktivitäten</span>
-  </nav>
-
-  <header class="page-header">
-    <div class="header-eyebrow">KudosCare · Aktivitäten</div>
-    <h1 class="page-title">Alle <span class="title-accent">Aktivitäten</span></h1>
-  </header>
+<div class="g-page">
+  <h1 class="g-title">Fahrten</h1>
 
   @if (loading()) {
-    <div class="activity-list">
-      <app-skeleton variant="row" [count]="6" height="56px" />
-    </div>
-  } @else {
-    <div class="activity-list">
-      @for (activity of activities(); track activity.id) {
-        <a class="activity-row" [routerLink]="nav.to.activity(activity.id)">
-          <div class="activity-main">
-            <span class="activity-name">{{ activity.name }}</span>
-            @if (activity.start_date) {
-              <span class="activity-date">{{ activity.start_date | date: 'dd.MM.yyyy' }}</span>
-            }
-          </div>
-          <div class="activity-metrics">
-            <span>{{ (activity.distance ?? 0) / 1000 | number: '1.0-1' }} km</span>
-            <span>{{ formatDuration(activity.elapsed_time) }}</span>
-          </div>
-        </a>
-      } @empty {
-        <div class="empty-state">
-          <div class="empty-icon">⬡</div>
-          <p class="empty-title">Noch keine Aktivitäten</p>
-          <p class="empty-sub">
-            Synchronisiere dein Strava-Profil im Dashboard, um Fahrten zu laden.
-          </p>
+    <app-skeleton class="tally" height="5rem" />
+    <app-skeleton variant="row" [count]="6" height="3.25rem" />
+  } @else if (activities().length > 0) {
+    <app-ride-tally class="tally" [activities]="activities()" />
+
+    @for (month of months(); track month.key) {
+      <section class="month">
+        <div class="month-head">
+          <h2 class="g-section-title">{{ month.label }}</h2>
+          <span class="g-num month-sum">
+            {{ month.rides.length }} {{ month.rides.length === 1 ? 'Fahrt' : 'Fahrten' }} ·
+            {{ month.km | number: '1.0-0' }} km
+          </span>
         </div>
-      }
-    </div>
+        <div class="g-card g-rows">
+          @for (ride of month.rides; track ride.id) {
+            <app-ride-row [ride]="ride" />
+          }
+        </div>
+      </section>
+    }
+  } @else {
+    <p class="g-empty empty">
+      Noch keine Fahrten. Auf der Startseite holt "Mit Strava abgleichen" sie dazu.
+    </p>
   }
 </div>

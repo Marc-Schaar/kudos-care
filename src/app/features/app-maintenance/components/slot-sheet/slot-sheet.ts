@@ -17,6 +17,8 @@ export class SlotSheet implements OnInit {
 
   closed = output<void>();
   changed = output<void>();
+  /** Ein weiteres Teil für diesen Platz, zum Beispiel zweite Bremsbeläge fürs Regal. */
+  addPart = output<void>();
 
   private readonly bikeService = inject(BikeService);
   private readonly notifications = inject(NotificationService);

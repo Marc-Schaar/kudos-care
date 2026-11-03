@@ -25,32 +25,62 @@
   margin-top: 1rem;
 }
 
-.slot-head {
+/* Ein Platz ist eine Zeile: was verbaut ist, wie weit es ist, und ein Menü für den Platz. */
+.slot-main {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.2rem 0.25rem 0 0.85rem;
+  align-items: flex-start;
 }
 
-.slot-name {
-  font-size: 0.72rem;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  overflow-wrap: anywhere;
+.slot-main > .g-icon-btn {
+  margin: 0.25rem 0.25rem 0 0;
 }
 
-.part-meter {
-  display: block;
-  margin-top: 0.4rem;
+.part {
+  flex: 1;
+  min-width: 0;
+  align-items: flex-start;
+  padding-right: 0.25rem;
 }
 
 .empty-slot {
-  padding: 0.4rem 0.85rem 0.6rem;
-  font-size: 0.875rem;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  cursor: default;
+}
+
+.dot {
+  margin-top: 0.35rem;
+}
+
+.empty-slot .dot {
+  margin-top: 0;
+}
+
+.part-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 0.75rem;
+}
+
+.left {
+  flex: none;
+  font-size: var(--t-sm);
   color: var(--muted);
+}
+
+.left.soon {
+  color: var(--warn);
+}
+
+.left.over {
+  color: var(--critical);
+}
+
+.part-meter {
+  margin-top: 0.4rem;
 }
 
 .spare,
@@ -58,34 +88,57 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  padding-right: 0.6rem;
+  padding-right: 0.75rem;
 }
 
 .spare {
   border-top: 1px solid var(--border);
 }
 
-.spare .g-row,
-.interval .g-row {
+.spare .g-row {
   flex: 1;
   min-width: 0;
+}
+
+/* Am Handy steht der Knopf unter der Zeile, sonst bricht der Titel im Wort. */
+.interval {
+  flex-wrap: wrap;
+  padding-right: 0;
+}
+
+.interval .g-row {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.interval .mount {
+  margin: -0.25rem 0 0.7rem 2.3rem;
+}
+
+@media (min-width: 640px) {
+  .interval {
+    flex-wrap: nowrap;
+    padding-right: 0.75rem;
+  }
+
+  .interval .g-row {
+    flex: 1 1 auto;
+  }
+
+  .interval .mount {
+    margin: 0;
+  }
 }
 
 .mount {
   flex: none;
 }
 
-.slot-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.1rem 0.85rem 0.3rem;
+.retired-toggle {
+  display: block;
+  padding: 0 0.9rem;
   border-top: 1px solid var(--border);
-}
-
-.muted {
-  color: var(--muted);
+  width: 100%;
 }
 
 .old {
@@ -93,10 +146,10 @@
   opacity: 0.7;
 }
 
-.g-rows > * + * {
-  border-top: 1px solid var(--border);
+.legend {
+  margin-top: 0.6rem;
 }
 
-.add-care {
-  margin-top: 0.5rem;
+.add {
+  margin-top: 0.75rem;
 }

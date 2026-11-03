@@ -1,18 +1,18 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Icon } from '../../../../shared/components/icon/icon';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 import { BikeFormSheet } from '../../components/bike-form-sheet/bike-form-sheet';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 import { BikeService } from '../../services/bike-service/bike-service';
 
-/** Die oberste Ebene: alle Räder, das dringendste zuerst sichtbar an der Ampel. */
+/** Die Garage: jedes Rad mit seiner Zeichnung, das dringendste sichtbar an der Ampel. */
 @Component({
   selector: 'app-bike-list',
-  imports: [BikeFormSheet, DecimalPipe, RouterLink, Skeleton, UserMenu, WarnClassPipe, WarnLabelPipe],
+  imports: [BikeFormSheet, DecimalPipe, Icon, RouterLink, Skeleton, WarnClassPipe, WarnLabelPipe],
   templateUrl: './bike-list.html',
   styleUrl: './bike-list.css',
 })

@@ -12,3 +12,14 @@
   padding: 1rem 1.25rem 0;
   color: var(--muted);
 }
+
+/* Ab 960 px steht die Navigation links statt unten. */
+@media (min-width: 960px) {
+  :host {
+    --nav-height: 0px;
+  }
+
+  .in-app {
+    padding-left: var(--rail);
+  }
+}

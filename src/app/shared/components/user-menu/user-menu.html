@@ -9,7 +9,14 @@
       aria-label="Benutzermenü"
       (click)="toggle()"
     >
-      <span class="avatar-initial">{{ initial() }}</span>
+      <span class="avatar-circle">
+        @if (currentUser.firstname?.trim()) {
+          <span class="avatar-initial">{{ initial() }}</span>
+        } @else {
+          <app-icon name="user" [size]="18" />
+        }
+      </span>
+      <span class="avatar-name">{{ currentUser.firstname?.trim() || 'Konto' }}</span>
       @if (currentUser.needs_email) {
         <span class="avatar-dot" aria-hidden="true"></span>
       }

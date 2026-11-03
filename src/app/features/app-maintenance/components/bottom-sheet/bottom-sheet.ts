@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, input, output, viewChild } from '@angular/core';
+import { Icon } from '../../../../shared/components/icon/icon';
 
 /**
  * Der eine Rahmen für alles, was über einer Seite aufgeht: auf dem Handy ein Blatt von
@@ -9,6 +10,7 @@ import { AfterViewInit, Component, ElementRef, input, output, viewChild } from '
  */
 @Component({
   selector: 'app-bottom-sheet',
+  imports: [Icon],
   templateUrl: './bottom-sheet.html',
   styleUrl: './bottom-sheet.css',
 })

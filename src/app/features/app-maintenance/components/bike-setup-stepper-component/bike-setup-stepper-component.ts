@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
+import { Icon } from '../../../../shared/components/icon/icon';
 import {
   BikeType,
   ComponentGroupCatalog,
@@ -21,7 +22,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-bike-setup-stepper-component',
-  imports: [AssemblyChecklistComponent, KudoIntroComponent, Skeleton],
+  imports: [AssemblyChecklistComponent, Icon, KudoIntroComponent, Skeleton],
   templateUrl: './bike-setup-stepper-component.html',
   styleUrl: './bike-setup-stepper-component.css',
 })

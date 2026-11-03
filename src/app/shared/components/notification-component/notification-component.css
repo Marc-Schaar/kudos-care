@@ -5,9 +5,8 @@
   inset: auto 1rem 4.5rem auto;
   margin: 0;
   z-index: 2000;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.8rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-text);
+  font-size: var(--t-sm);
   padding: 0.75rem 1.1rem;
   background: var(--surface);
   border: 1px solid var(--border);

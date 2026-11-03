@@ -1,148 +1,160 @@
-<div class="page">
-  <header class="page-header">
-    <div class="header-eyebrow">KudosCare · Übersicht</div>
-    <div class="header-row">
-      <h1 class="page-title">
-        Hallo, <span class="title-accent">{{ user()?.firstname ?? 'Athlet' }}</span>
-      </h1>
-      <app-user-menu></app-user-menu>
+<div class="g-page">
+  <header class="hero">
+    <div class="hero-text">
+      <p class="g-eyebrow">
+        @if (user()?.firstname; as name) {
+          Hallo {{ name }} ·
+        }
+        {{ today | date: 'EEEE, d. MMMM' }}
+      </p>
+      @if (loading()) {
+        <app-skeleton height="3.25rem" width="min(30rem, 100%)" />
+        <app-skeleton variant="bar" height="1.25rem" width="min(22rem, 80%)" />
+      } @else {
+        <h1 class="g-verdict">{{ verdict().headline }}</h1>
+        <p class="g-lead">{{ verdict().lead }}</p>
+      }
+    </div>
+
+    <div class="sync">
+      @if (syncing()) {
+        <button type="button" class="g-btn ghost" (click)="cancelSync()">Abbrechen</button>
+      }
+      <button
+        type="button"
+        class="g-btn"
+        [class.primary]="!loading() && activeBikes().length === 0"
+        [disabled]="syncing()"
+        (click)="syncNow()"
+      >
+        <app-icon name="refresh-cw" [size]="16" [class.spin]="syncing()" />
+        {{ syncing() ? 'Synchronisiere…' : 'Mit Strava abgleichen' }}
+      </button>
     </div>
   </header>
 
-  <!-- Summary Bar -->
-  <div class="summary-bar">
-    <div class="sum-item">
-      <span class="sum-label">Räder</span>
-      <span class="sum-val">{{ activeBikes().length }}</span>
-    </div>
-    <div class="sum-div"></div>
-    <div class="sum-item">
-      <span class="sum-label">Gesamt-KM</span>
-      <span class="sum-val">{{ totalDistanceKm() | number: '1.0-0' }} km</span>
-    </div>
-    <div class="sum-div"></div>
-    <div class="sum-item">
-      <span class="sum-label">Handlungsbedarf</span>
-      <div class="sum-pills">
-        @if (criticalCount() > 0) {
-          <span class="status-pill critical">
-            <span class="dot dot-crit"></span>
-            {{ criticalCount() }} überfällig
-          </span>
-        }
-        @if (warnCount() > 0) {
-          <span class="status-pill warn">
-            <span class="dot dot-warn"></span>
-            {{ warnCount() }} bald fällig
-          </span>
-        }
-        @if (criticalCount() === 0 && warnCount() === 0) {
-          <span class="status-pill ok">Alles in Ordnung</span>
-        }
-      </div>
-    </div>
-    <div class="sum-spacer"></div>
-    <button class="sync-btn" (click)="syncNow()" [disabled]="syncing()" type="button">
-      @if (syncing()) {
-        Synchronisiere…
-      } @else {
-        ↻ Jetzt synchronisieren
-      }
-    </button>
-    @if (syncing()) {
-      <button class="sync-cancel-btn" (click)="cancelSync()" type="button">Abbrechen</button>
-    }
-  </div>
-
-  @if (syncing() && syncProgress()) {
-    <div class="sync-progress">
-      @if (syncProgress()!.total) {
-        <div class="sync-progress-bar">
-          <div
-            class="sync-progress-fill"
-            [style.width.%]="(syncProgress()!.current / syncProgress()!.total!) * 100"
-          ></div>
+  @if (syncing() && syncProgress(); as progress) {
+    <div class="progress" role="status">
+      @if (progress.total) {
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="(progress.current / progress.total) * 100"></div>
         </div>
-        <span class="sync-progress-label">
-          {{ syncProgress()!.current }} / {{ syncProgress()!.total }} neue Aktivitäten
-        </span>
+        <span class="g-num progress-label">{{ progress.current }} / {{ progress.total }} neue Fahrten</span>
       } @else {
-        <span class="sync-progress-label">
-          {{ syncProgress()!.current }} neue Aktivitäten synchronisiert…
-        </span>
+        <span class="g-num progress-label">{{ progress.current }} neue Fahrten</span>
       }
     </div>
   }
 
-  <!-- Bikes -->
-  <div class="section-divider">
-    <span class="divider-label">Meine Räder</span>
-    <div class="divider-line"></div>
-    <a class="section-link" [routerLink]="nav.to.bikes()">Alle Räder →</a>
-  </div>
-
+  <!-- Das Rad als Zeichnung -->
   @if (loading()) {
-    <div class="bikes-grid">
-      <app-skeleton [count]="3" height="130px" />
-    </div>
-  } @else {
-    <div class="bikes-grid">
-      @for (bike of activeBikes(); track bike.id) {
-        <a class="bike-card" [class]="cardClass(bike)" [routerLink]="nav.to.bike(bike.id)">
-          <div class="card-top">
-            <span class="type-badge">{{ bike.bike_type_display }}</span>
-            <span class="status-pill" [class]="bike.warn_status | warnClass">
-              {{ bike.warn_status | warnLabel }}
-            </span>
-          </div>
-          <h2 class="bike-name">{{ bike.name }}</h2>
-          @if (bike.total_distance_km != null) {
-            <div class="bike-km">
-              <strong>{{ bike.total_distance_km | number: '1.0-0' }}</strong> km gefahren
-            </div>
-          }
-        </a>
-      } @empty {
-        <div class="empty-state-inline">
-          <p class="empty-title">Noch keine Räder</p>
-          <p class="empty-sub">Synchronisiere dein Strava-Profil, um deine Räder zu laden.</p>
+    <app-skeleton class="drawing-skeleton" height="clamp(14rem, 34vw, 26rem)" />
+  } @else if (focusBike(); as bike) {
+    <section class="drawing" [attr.aria-label]="'Zustand von ' + bike.name">
+      <div class="drawing-head">
+        <div class="drawing-title">
+          <a class="bike-link" [routerLink]="nav.to.bike(bike.id)">
+            <h2 class="g-section-title">{{ bike.name }}</h2>
+            <app-icon class="g-chevron" name="chevron-right" [size]="18" />
+          </a>
+          <span class="g-sub">
+            {{ bike.bike_type_display }}
+            @if (bike.total_distance_km != null) {
+              · <span class="g-num">{{ bike.total_distance_km | number: '1.0-0' }} km</span>
+            }
+          </span>
         </div>
-      }
-    </div>
-  }
 
-  <!-- Activities -->
-  <div class="section-divider" style="margin-top: 2.5rem">
-    <span class="divider-label">Letzte Aktivitäten</span>
-    <div class="divider-line"></div>
-    <a class="section-link" [routerLink]="nav.to.activities()">Alle Aktivitäten →</a>
-  </div>
-
-  @if (loading()) {
-    <div class="activity-list">
-      <app-skeleton variant="row" [count]="4" height="56px" />
-    </div>
-  } @else {
-    <div class="activity-list">
-      @for (activity of recentActivities(); track activity.id) {
-        <a class="activity-row" [routerLink]="nav.to.activity(activity.id)">
-          <div class="activity-main">
-            <span class="activity-name">{{ activity.name }}</span>
-            @if (activity.start_date) {
-              <span class="activity-date">{{ activity.start_date | date: 'dd.MM.yyyy' }}</span>
+        @if (activeBikes().length > 1) {
+          <div class="g-switch" role="group" aria-label="Rad wählen">
+            @for (other of activeBikes(); track other.id) {
+              <button
+                type="button"
+                class="bike-tab"
+                [attr.aria-pressed]="other.id === bike.id"
+                (click)="chooseBike(other)"
+              >
+                <span class="g-dot" [class]="other.warn_status | warnClass"></span>
+                {{ other.name }}
+              </button>
             }
           </div>
-          <div class="activity-metrics">
-            <span>{{ (activity.distance ?? 0) / 1000 | number: '1.0-1' }} km</span>
-            <span>{{ formatDuration(activity.elapsed_time) }}</span>
+        }
+      </div>
+
+      @if (focusAssemblies().length > 0) {
+        <app-bike-blueprint
+          [bikeId]="bike.id"
+          [bikeType]="bike.bike_type"
+          [assemblies]="focusAssemblies()"
+        />
+      } @else {
+        <div class="g-card setup">
+          <img class="setup-art" alt="" [src]="'bike-illustrations/' + bike.bike_type + '.svg'" />
+          <div>
+            <p class="g-text">
+              Trag ein, was an diesem Rad verbaut ist. Kudo kann dir die Teile vorschlagen.
+            </p>
+            <a class="g-btn primary setup-cta" [routerLink]="nav.to.bike(bike.id)">Rad einrichten</a>
           </div>
-        </a>
-      } @empty {
-        <div class="empty-state-inline">
-          <p class="empty-title">Noch keine Aktivitäten</p>
-          <p class="empty-sub">Klicke auf "Jetzt synchronisieren", um deine Fahrten zu laden.</p>
         </div>
       }
-    </div>
+    </section>
+  } @else {
+    <a class="g-btn primary" [routerLink]="nav.to.bikes()">Rad anlegen</a>
   }
+
+  <div class="g-split">
+    @if (focusBike(); as bike) {
+      @if (focusAssemblies().length > 0) {
+        <section class="g-section">
+          <div class="g-section-head">
+            <h2 class="g-section-title">Als Nächstes dran</h2>
+            @if (moreDue() > 0) {
+              <a class="g-section-link" [routerLink]="nav.to.bike(bike.id)">
+                {{ moreDue() }} weitere
+                <app-icon name="chevron-right" [size]="16" />
+              </a>
+            }
+          </div>
+          <div class="g-card g-rows">
+            @for (item of due(); track item.key) {
+              <app-due-row
+                [item]="item"
+                [link]="dueLink(item)"
+                (done)="item.interval && markDone(item.interval)"
+              />
+            } @empty {
+              <p class="all-good">Nichts, worum du dich gerade kümmern müsstest.</p>
+            }
+          </div>
+          <app-wear-legend class="legend" />
+        </section>
+      }
+    }
+
+    <section class="g-section">
+      <div class="g-section-head">
+        <h2 class="g-section-title">Gefahren</h2>
+        <a class="g-section-link" [routerLink]="nav.to.activities()">
+          Alle Fahrten
+          <app-icon name="chevron-right" [size]="16" />
+        </a>
+      </div>
+      @if (ridesLoading()) {
+        <app-skeleton variant="row" [count]="4" height="3.25rem" />
+      } @else if (activities().length > 0) {
+        <app-ride-tally class="tally" [activities]="activities()" />
+        <div class="g-card g-rows">
+          @for (ride of recentRides(); track ride.id) {
+            <app-ride-row [ride]="ride" />
+          }
+        </div>
+      } @else {
+        <p class="g-empty">
+          Noch keine Fahrten. Mit Strava abgleichen holt sie und die Räder dazu.
+        </p>
+      }
+    </section>
+  </div>
 </div>

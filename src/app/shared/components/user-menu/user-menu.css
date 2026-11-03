@@ -17,7 +17,9 @@
   border: 1px solid var(--border);
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition:
+    color 0.12s var(--ease-out),
+    border-color 0.12s var(--ease-out);
 }
 .avatar-btn:hover,
 .avatar-btn.open {
@@ -26,7 +28,7 @@
 }
 
 .avatar-initial {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
   line-height: 1;
@@ -65,17 +67,15 @@
 }
 
 .menu-name {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--text);
 }
 
 .menu-email {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--muted);
   word-break: break-all;
 }
@@ -92,10 +92,9 @@
   text-align: left;
   background: none;
   border: none;
-  border-left: 2px solid transparent;
   color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   padding: 0.55rem 0.8rem;
   cursor: pointer;
   transition:
@@ -104,7 +103,6 @@
 }
 .menu-item:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border-left-color: var(--accent);
 }
 .menu-item:disabled {
   opacity: 0.5;
@@ -112,13 +110,11 @@
 }
 .menu-item.danger:hover {
   background: color-mix(in srgb, var(--critical) 10%, transparent);
-  border-left-color: var(--critical);
   color: var(--critical);
 }
 
 .menu-switch {
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
+  font-size: var(--t-xs);
   padding: 0.1rem 0.35rem;
   border: 1px solid var(--border);
   color: var(--muted);
@@ -142,10 +138,8 @@
 }
 
 .menu-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   color: var(--muted);
 }
 
@@ -153,8 +147,8 @@
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   padding: 0.4rem 0.55rem;
   outline: none;
   width: 100%;
@@ -165,8 +159,8 @@
 }
 
 .menu-hint {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   line-height: 1.5;
   color: var(--muted);
   margin: 0;
@@ -181,14 +175,14 @@
 
 .menu-btn-ghost,
 .menu-btn-primary {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   padding: 0.35rem 0.7rem;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.15s;
+  transition:
+    color 0.12s var(--ease-out),
+    border-color 0.12s var(--ease-out);
 }
 .menu-btn-ghost {
   background: none;
@@ -217,7 +211,7 @@
    Versehen will. Die Warnung erscheint erst nach dem ersten Klick. */
 .menu-item.subtle-danger {
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: var(--t-xs);
 }
 
 .menu-item.subtle-danger:hover {
@@ -235,8 +229,8 @@
 
 .delete-warning {
   margin: 0;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   line-height: 1.5;
   color: var(--text);
 }
@@ -251,10 +245,8 @@
   flex: 1 1 auto;
   min-height: 2.25rem;
   padding: 0.45rem 0.7rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--font-text);
+  font-size: var(--t-xs);
   background: none;
   border: 1px solid var(--critical);
   color: var(--critical);
@@ -279,4 +271,82 @@
 .delete-btn.subtle:hover {
   background: none;
   color: var(--text);
+}
+
+/* ── Lage im Chrome ────────────────────────────────────────────────────────
+   Am Handy rechts oben in der Kopfzeile, am Desktop unten in der Seitenleiste. Das Menü wächst
+   entsprechend nach oben, und wird es zu lang, rollt es in sich statt aus dem Bild zu laufen. */
+.menu-panel {
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  border-radius: var(--r-m);
+}
+
+.avatar-btn {
+  gap: 0.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 50%;
+}
+
+.avatar-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+}
+
+.avatar-name {
+  display: none;
+  overflow: hidden;
+  font-size: var(--t-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.menu-item {
+  min-height: 2.75rem;
+}
+
+@media (min-width: 960px) {
+  :host {
+    display: block;
+  }
+
+  .avatar-btn {
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0 0.625rem 0 0.375rem;
+    color: var(--muted);
+    border-radius: var(--r-s);
+  }
+
+  .avatar-btn:hover,
+  .avatar-btn.open {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .avatar-name {
+    display: block;
+  }
+
+  .avatar-dot {
+    top: 0.3rem;
+    right: auto;
+    left: 2rem;
+  }
+
+  .menu-panel {
+    top: auto;
+    right: auto;
+    bottom: calc(100% + 0.4rem);
+    left: 0;
+    width: 17rem;
+  }
 }

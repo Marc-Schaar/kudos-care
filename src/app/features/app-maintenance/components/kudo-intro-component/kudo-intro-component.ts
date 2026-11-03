@@ -1,5 +1,6 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Icon } from '../../../../shared/components/icon/icon';
 import { BikeType, KudoModelCandidate, KudoSetupSuggestion } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 
@@ -24,7 +25,7 @@ type Phase = 'ask' | 'models' | 'building';
  */
 @Component({
   selector: 'app-kudo-intro-component',
-  imports: [FormsModule],
+  imports: [FormsModule, Icon],
   templateUrl: './kudo-intro-component.html',
   styleUrl: './kudo-intro-component.css',
 })

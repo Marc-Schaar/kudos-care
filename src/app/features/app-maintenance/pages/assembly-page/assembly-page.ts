@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { Icon } from '../../../../shared/components/icon/icon';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
@@ -15,7 +16,7 @@ import { PartForm } from '../../components/part-form/part-form';
 import { PartSheet } from '../../components/part-sheet/part-sheet';
 import { SlotSheet } from '../../components/slot-sheet/slot-sheet';
 import { SwitchSheet } from '../../components/switch-sheet/switch-sheet';
-import { WearMeter } from '../../components/wear-meter/wear-meter';
+import { WearLegend, WearMeter } from '../../components/wear-meter/wear-meter';
 import {
   AssembliesResponse,
   BikeAssembly,
@@ -25,6 +26,7 @@ import {
 } from '../../models/maintenance.models';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { BikeService } from '../../services/bike-service/bike-service';
+import { partRemaining } from '../../shared/utils/utils';
 
 /**
  * Eine Baugruppe: je Platz das montierte Teil und die Alternativen im Regal. Aufziehen ist
@@ -41,6 +43,7 @@ import { BikeService } from '../../services/bike-service/bike-service';
     BottomSheet,
     DatePipe,
     DecimalPipe,
+    Icon,
     IntervalSheet,
     LinksSheet,
     PartForm,
@@ -50,6 +53,7 @@ import { BikeService } from '../../services/bike-service/bike-service';
     SlotSheet,
     SwitchSheet,
     WarnClassPipe,
+    WearLegend,
     WearMeter,
   ],
   templateUrl: './assembly-page.html',
@@ -81,6 +85,13 @@ export class AssemblyPage {
   switching = signal(false);
   linking = signal(false);
   settingsOpen = signal(false);
+  readonly remaining = partRemaining;
+
+  /** Aus dem Menü eines Platzes: dessen Blatt schließt, das Teile-Formular geht auf. */
+  onAddPart(slot: ComponentSlot) {
+    this.editingSlot.set(null);
+    this.addingPartTo.set({ slot, mount: !slot.mounted_component });
+  }
 
   bikeName = computed(() => {
     const bike = this.bikeService.selectedBike();

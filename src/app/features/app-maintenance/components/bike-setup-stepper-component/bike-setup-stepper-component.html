@@ -10,7 +10,7 @@
     />
   } @else if (finished()) {
     <div class="done-panel">
-      <div class="done-icon">✓</div>
+      <app-icon class="done-icon" name="check" [size]="28" />
       <h2 class="done-title">Einrichtung abgeschlossen</h2>
       <p class="done-sub">
         {{ addedCount() }}

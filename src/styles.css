@@ -2,6 +2,9 @@
 
 /* Selbst gehostet: von Google geladen ginge die IP-Adresse jedes Besuchers ohne Einwilligung
    an Google (LG München I, 3.2.2022). */
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
 @import '@fontsource/barlow-condensed/400.css';
 @import '@fontsource/barlow-condensed/600.css';
 @import '@fontsource/barlow-condensed/700.css';
@@ -11,16 +14,24 @@
 @import 'tailwindcss';
 @import './app/features/app-maintenance/garage.css';
 
-/* ── CSS Variables ─────────────────────────────────────────────────────────── */
+/* ── Tokens ────────────────────────────────────────────────────────────────────
+   Zwei Gründe, dieselben wie auf der Landing-Page: Graphit (dunkel) und Zeichenpapier
+   (hell). Jede Farbe hat genau eine Aufgabe: Lime ist die Hauptaktion und "hier bist du",
+   die Ampel ist nur Status, Blau ist nur Wetter. Was davon abweicht, ist ein Fehler. */
 :root {
+  color-scheme: dark;
+
   --bg: #0e0f11;
   --surface: #16181c;
-  --border: #252830;
+  --surface2: #1e2127;
+  --border: #2a2d35;
+  /* Für Linien, die auch ohne Text gelesen werden müssen (Marken, Hinweislinien): ≥ 3:1. */
+  --border-strong: #6b7080;
   --text: #e8e9ec;
-  --muted: #8a8e9d;
+  --muted: #a3a8b3;
   --accent: #c8f060;
-  --accent-subtle: rgba(200, 240, 96, 0.04);
-  --surface2: #1c1f25;
+  --accent-ink: #0e0f11;
+  --accent-subtle: rgba(200, 240, 96, 0.07);
 
   /* Warn-Ampel */
   --ok: #4ade80;
@@ -29,22 +40,63 @@
 
   /* Wetter */
   --rain: #38bdf8;
+
+  /* Zeichenraster */
+  --grid: rgba(232, 233, 236, 0.05);
+
+  /* Barlow trägt den Text, Barlow Condensed die Überschriften. DM Mono nur für Zahlen und
+     technische Beschriftung: als Fließtext wiegt alles gleich viel. */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-text: 'Barlow', system-ui, sans-serif;
+  --font-data: 'DM Mono', ui-monospace, monospace;
+
+  --t-xs: 0.75rem;
+  --t-sm: 0.875rem;
+  --t-md: 1rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.625rem;
+  --t-2xl: clamp(1.875rem, 1.5rem + 1.4vw, 2.5rem);
+  --t-3xl: clamp(2.125rem, 1.45rem + 2.9vw, 3.75rem);
+
+  --r-s: 4px;
+  --r-m: 8px;
+  --r-l: 12px;
+
+  --gutter: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+  /* Breite der Navigation am Desktop, siehe shared/components/main-nav. */
+  --rail: 13.5rem;
+
+  --edge: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --e-float: 0 12px 32px rgba(4, 5, 7, 0.5);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* Optional: Light-Mode Support */
 @media (prefers-color-scheme: light) {
   :root {
-    --bg: #f4f5f7;
-    --surface: #ffffff;
-    --border: #dde0e8;
-    --text: #1a1c22;
-    --muted: #8a8fa0;
-    --accent: #5a8f00;
-    --accent-subtle: rgba(90, 143, 0, 0.05);
-    /* Fehlte hier — dadurch blieb die zweite Fläche im hellen Modus dunkel
-       (#1c1f25 aus dem Dark-Block) und Elemente wie Hover-Zeilen, Eingabefelder
-       und der KI-Berichtskasten standen schwarz auf heller Seite. */
-    --surface2: #eef0f4;
+    color-scheme: light;
+
+    --bg: #e4e6e3;
+    --surface: #f0f2ef;
+    --surface2: #d9dcd8;
+    --border: #c3c7c2;
+    --border-strong: #6d727a;
+    --text: #16181c;
+    --muted: #4b505a;
+    --accent: #3e6a00;
+    --accent-ink: #f4f6ee;
+    --accent-subtle: rgba(62, 106, 0, 0.08);
+
+    /* Die Ampel des dunklen Modus liegt auf Papier unter 2:1. */
+    --ok: #15702f;
+    --warn: #975200;
+    --critical: #be123c;
+    --rain: #03679c;
+
+    --grid: rgba(22, 24, 28, 0.055);
+
+    --edge: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    --e-float: 0 12px 28px rgba(40, 44, 40, 0.2);
   }
 }
 
@@ -60,19 +112,46 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-text);
+  font-size: 1rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+/* ── Was der Browser selbst zeichnet ───────────────────────────────────────── */
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+a {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+html {
+  scrollbar-color: var(--border) var(--bg);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
 }

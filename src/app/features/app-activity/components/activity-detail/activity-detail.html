@@ -1,330 +1,300 @@
-<div class="page">
-  <div class="breadcrumb-row">
-    <nav class="breadcrumb">
-      <a [routerLink]="nav.to.dashboard()">Dashboard</a>
-      <span class="sep">/</span>
-      <span>{{ activityService.activityData()?.name ?? '...' }}</span>
-    </nav>
-    <app-user-menu></app-user-menu>
-  </div>
+<div class="g-page">
+  <a class="g-back" [routerLink]="nav.to.activities()">
+    <app-icon name="chevron-left" [size]="16" />
+    Alle Fahrten
+  </a>
 
   @if (loading()) {
     <div class="loading-bar"></div>
   }
 
   @if (error()) {
-    <div class="alert-banner critical">
-      <span class="alert-icon">⚠</span>
-      <span>{{ error() }}</span>
-    </div>
+    <p class="g-note warn alert">
+      <app-icon name="triangle-alert" [size]="18" />
+      {{ error() }}
+    </p>
   }
 
   @if (activityService.activityData(); as data) {
-    <header class="activity-header">
-      <span class="type-label">Aktivität</span>
-      <h1 class="activity-title">{{ data.name }}</h1>
-
-      <div class="activity-stats">
-        @if (data.distance_km != null) {
-          <div class="stat">
-            <span class="stat-label">Distanz</span>
-            <span class="stat-value">{{ data.distance_km | number: '1.0-1' }} km</span>
-          </div>
-        }
-        <div class="stat">
-          <span class="stat-label">Dauer</span>
-          <span class="stat-value">{{ formatDuration(data.elapsed_time) }}</span>
-        </div>
+    <header class="head">
+      <h1 class="g-title">{{ data.name }}</h1>
+      <p class="g-sub">
         @if (data.start_date) {
-          <div class="stat">
-            <span class="stat-label">Datum</span>
-            <span class="stat-value">{{ data.start_date | date: 'dd.MM.yyyy, HH:mm' }}</span>
-          </div>
+          {{ data.start_date | date: 'EEEE, d. MMMM yyyy, HH:mm' }}
         }
         @if (data.bike_name) {
-          <div class="stat">
-            <span class="stat-label">Rad</span>
-            <span class="stat-value">{{ data.bike_name }}</span>
-          </div>
+          · {{ data.bike_name }}
         }
-        @if (data.weather_timeline.avg_headwind != null) {
-          <div class="stat">
-            <span class="stat-label"
-              >Ø {{ data.weather_timeline.avg_headwind | headwindLabel }}</span
-            >
-            <span
-              class="warn-badge"
-              [class]="'status-' + windStatus(data.weather_timeline.avg_headwind)"
-            >
-              {{ data.weather_timeline.avg_headwind | abs }} km/h
-            </span>
-          </div>
-        }
-      </div>
+      </p>
     </header>
 
-    <section class="card card-full ai-summary-card">
-      <div class="card-header-row">
-        <h2 class="card-title">KI-Auswertung</h2>
-        @if (rideSummary(); as sum) {
+    <dl class="g-stats stats">
+      @if (data.distance_km != null) {
+        <div class="g-stat">
+          <dt>Distanz</dt>
+          <dd>{{ data.distance_km | number: '1.0-1' }} km</dd>
+        </div>
+      }
+      <div class="g-stat">
+        <dt>Dauer</dt>
+        <dd>{{ formatDuration(data.elapsed_time) }}</dd>
+      </div>
+      @if (climate().temperature !== null) {
+        <div class="g-stat">
+          <dt>Temperatur</dt>
+          <dd>{{ climate().temperature | number: '1.0-0' }} °C</dd>
+        </div>
+      }
+      @if (climate().precipitation !== null) {
+        <div class="g-stat">
+          <dt>Regen</dt>
+          <dd>{{ climate().precipitation | number: '1.0-1' }} mm/h</dd>
+        </div>
+      }
+      @if (data.weather_timeline.avg_headwind != null) {
+        <div class="g-stat">
+          <dt>Ø {{ data.weather_timeline.avg_headwind | headwindLabel }}</dt>
+          <dd>{{ data.weather_timeline.avg_headwind | abs | number: '1.0-1' }} km/h</dd>
+        </div>
+      }
+    </dl>
+
+    <!-- Strecke -->
+    <section class="map-section">
+      <div class="g-section-head">
+        <h2 class="g-section-title">Strecke</h2>
+        <div class="g-switch" role="group" aria-label="Einfärbung der Strecke">
           <button
             type="button"
-            class="toggle-btn"
-            [disabled]="rideSummaryLoading()"
-            (click)="loadRideSummary(true)"
+            [attr.aria-pressed]="mapMode() === 'wind'"
+            (click)="setMapMode('wind')"
           >
-            Neu generieren
+            Wind
           </button>
-        }
-      </div>
-
-      @if (rideSummary(); as sum) {
-        <p class="ai-summary-text">{{ sum.summary }}</p>
-        <p class="field-hint">
-          {{ sum.cached ? 'Aus Cache' : 'Neu generiert' }} ·
-          {{ sum.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
-        </p>
-      } @else if (rideSummaryLoading()) {
-        <p class="field-hint">Wird generiert…</p>
-      } @else if (rideSummaryError()) {
-        <p class="error-msg">{{ rideSummaryError() }}</p>
-        <button type="button" class="toggle-btn" (click)="loadRideSummary()">
-          Erneut versuchen
-        </button>
-      } @else {
-        <button type="button" class="toggle-btn" (click)="loadRideSummary()">
-          KI-Auswertung anzeigen
-        </button>
-      }
-    </section>
-
-    <section class="card card-full wear-impact-card">
-      <div class="card-header-row">
-        <h2 class="card-title">Was diese Fahrt gekostet hat</h2>
-        @if (wearImpact()) {
           <button
             type="button"
-            class="toggle-btn"
-            [disabled]="wearImpactLoading()"
-            (click)="loadWearImpact(true)"
+            [attr.aria-pressed]="mapMode() === 'rain'"
+            (click)="setMapMode('rain')"
           >
-            Neu generieren
+            Regen
           </button>
-        }
+        </div>
       </div>
-
-      @if (wearImpact(); as impact) {
-        <div class="impact-list">
-          @for (cat of impact.breakdown.categories; track cat.category) {
-            <div class="impact-row">
-              <div class="impact-head">
-                <span class="impact-cat">{{ cat.category_display }}</span>
-                <span class="warn-badge" [class]="'status-' + impactClass(cat.extra_pct)">
-                  @if (cat.extra_pct > 0) {
-                    +{{ cat.extra_pct }}% durch {{ cat.dominant_driver_display }}
-                  } @else {
-                    kein Wetter-Aufschlag
-                  }
-                </span>
-              </div>
-              <div class="impact-components">
-                @for (comp of cat.components; track comp.id) {
-                  <div class="impact-component">
-                    <span class="impact-comp-name">{{ comp.name }}</span>
-                    @if (comp.share_of_life_pct != null) {
-                      <span class="impact-comp-share">
-                        {{ comp.share_of_life_pct | number: '1.0-1' }} % der Lebensdauer
-                      </span>
-                    } @else {
-                      <span class="impact-comp-share muted">keine Lebensdauer hinterlegt</span>
-                    }
-                  </div>
-                }
-              </div>
-            </div>
-          }
+      @if (windSegments()?.features?.length) {
+        <div class="map-wrap">
+          <app-map
+            [segments]="windSegments()"
+            [mode]="mapMode()"
+            [maxAbsHeadwind]="maxAbsHeadwind()"
+            [maxPrecipitation]="maxPrecipitation()"
+          ></app-map>
         </div>
-
-        @if (impact.breakdown.total_extra_km > 0) {
-          <p class="field-hint">
-            Wetterbedingter Mehrverschleiß gesamt:
-            {{ impact.breakdown.total_extra_km | number: '1.0-2' }} km zusätzlich zu den
-            {{ impact.breakdown.distance_km | number: '1.0-1' }} gefahrenen km.
-          </p>
-        }
-
-        @if (impact.summary) {
-          <p class="ai-summary-text">{{ impact.summary }}</p>
-          <p class="field-hint">
-            Kudo · {{ impact.cached ? 'aus Cache' : 'neu generiert' }}
-            @if (impact.generated_at) {
-              · {{ impact.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
-            }
-          </p>
-        } @else if (impact.ai_consent_required) {
-          <p class="field-hint">
-            Die Zahlen stehen. Kudos Erklärung ist aus, du kannst sie im Benutzermenü einschalten.
-          </p>
-        } @else if (impact.ai_unavailable) {
-          <p class="field-hint">
-            Die Zahlen stehen — nur Kudos Erklärung ist gerade nicht verfügbar.
-          </p>
-        }
-      } @else if (wearImpactLoading()) {
-        <p class="field-hint">Wird berechnet…</p>
-      } @else if (wearImpactError()) {
-        <p class="error-msg">{{ wearImpactError() }}</p>
-        <button type="button" class="toggle-btn" (click)="loadWearImpact()">
-          Erneut versuchen
-        </button>
-      } @else {
-        <button type="button" class="toggle-btn" (click)="loadWearImpact()">
-          Verschleiß dieser Fahrt anzeigen
-        </button>
-      }
-    </section>
-
-    <div class="cards-grid">
-      <section class="card">
-        <div class="card-header-row">
-          <h2 class="card-title">Klima-Check</h2>
-          <div class="chart-toggle">
-            <button
-              type="button"
-              class="toggle-btn"
-              [class.active]="climateMode() === 'temperature'"
-              (click)="setClimateMode('temperature')"
-            >
-              Temperatur
-            </button>
-            <button
-              type="button"
-              class="toggle-btn"
-              [class.active]="climateMode() === 'rain'"
-              (click)="setClimateMode('rain')"
-            >
-              Regen
-            </button>
-          </div>
-        </div>
-        @if (data.weather_timeline.time?.length) {
-          <div class="chart-wrap">
-            <canvas #climateChart></canvas>
-          </div>
-          @if (climateMode() === 'rain') {
-            <div class="wind-legend">
-              <div class="legend-row">
-                <span class="legend-gradient legend-gradient-rain"></span>
-                <span class="legend-label">Niederschlag</span>
-              </div>
-              <p class="legend-hint">
-                Farbintensität = Menge relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
-              </p>
-            </div>
-          }
-        } @else {
-          <div class="card-empty">Keine Wetterdaten verfügbar.</div>
-        }
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">Leistungs-Check (Wind)</h2>
-        @if (data.weather_timeline.time?.length) {
-          <div class="chart-wrap">
-            <canvas #windChart></canvas>
-          </div>
-          <div class="wind-legend">
-            <div class="legend-row">
-              <span class="legend-gradient legend-gradient-critical"></span>
-              <span class="legend-label">Gegenwind</span>
-            </div>
-            <div class="legend-row">
-              <span class="legend-gradient legend-gradient-ok"></span>
-              <span class="legend-label">Rückenwind</span>
-            </div>
-            <p class="legend-hint">
-              Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
+        <div class="scale">
+          @if (mapMode() === 'wind') {
+            <span class="scale-key"><i class="ramp ramp-critical"></i>Gegenwind</span>
+            <span class="scale-key"><i class="ramp ramp-ok"></i>Rückenwind</span>
+            <p class="g-hint">
+              Je kräftiger die Farbe, desto stärker der Wind, gemessen an der stärksten Stelle dieser
+              Fahrt. Abschnitt anklicken für Windrichtung und Fahrtrichtung.
             </p>
-          </div>
-        } @else {
-          <div class="card-empty">Keine Wetterdaten verfügbar.</div>
-        }
-      </section>
-
-      <section class="card card-full">
-        <div class="card-header-row">
-          <h2 class="card-title">Streckenverlauf</h2>
-          <div class="chart-toggle">
-            <button
-              type="button"
-              class="toggle-btn"
-              [class.active]="mapMode() === 'wind'"
-              (click)="setMapMode('wind')"
-            >
-              Wind
-            </button>
-            <button
-              type="button"
-              class="toggle-btn"
-              [class.active]="mapMode() === 'rain'"
-              (click)="setMapMode('rain')"
-            >
-              Regen
-            </button>
-          </div>
+          } @else {
+            <span class="scale-key"><i class="ramp ramp-rain"></i>Niederschlag</span>
+            <p class="g-hint">
+              Je kräftiger die Farbe, desto mehr Regen, gemessen an der stärksten Stelle dieser Fahrt.
+            </p>
+          }
+          @if (windSource() === 'coarse') {
+            <p class="g-hint caution">
+              Für diese Fahrt liegen keine GPS-Detaildaten vor. Der Wind ist als grobe
+              Start-Ziel-Schätzung dargestellt, nicht abschnittsweise.
+            </p>
+          } @else if (windSource() === 'none') {
+            <p class="g-hint caution">
+              Für diese Fahrt liegen keine Winddaten vor, die Strecke wird neutral dargestellt.
+            </p>
+          }
         </div>
-        @if (windSegments()?.features?.length) {
-          <div class="map-wrap">
-            <app-map
-              [segments]="windSegments()"
-              [mode]="mapMode()"
-              [maxAbsHeadwind]="maxAbsHeadwind()"
-              [maxPrecipitation]="maxPrecipitation()"
-            ></app-map>
-          </div>
-          <div class="wind-legend">
-            @if (mapMode() === 'wind') {
-              <div class="legend-row">
-                <span class="legend-gradient legend-gradient-critical"></span>
-                <span class="legend-label">Gegenwind</span>
-              </div>
-              <div class="legend-row">
-                <span class="legend-gradient legend-gradient-ok"></span>
-                <span class="legend-label">Rückenwind</span>
-              </div>
-              <p class="legend-hint">
-                Farbintensität = Stärke relativ zur stärksten Stelle dieser Fahrt (schwach → stark).
-                Abschnitt anklicken für Windrichtung und Fahrtrichtung.
-              </p>
-            } @else {
-              <div class="legend-row">
-                <span class="legend-gradient legend-gradient-rain"></span>
-                <span class="legend-label">Niederschlag</span>
-              </div>
-              <p class="legend-hint">
-                Farbintensität = Menge relativ zur stärksten Stelle dieser Fahrt (schwach → stark)
-              </p>
-            }
-            @if (windSource() === 'coarse') {
-              <p class="legend-hint legend-hint-warn">
-                Für diese Fahrt liegen keine GPS-Detaildaten vor — der Wind ist als grobe
-                Start-Ziel-Schätzung dargestellt, nicht abschnittsweise.
-              </p>
-            } @else if (windSource() === 'none') {
-              <p class="legend-hint legend-hint-warn">
-                Für diese Fahrt liegen keine Winddaten vor — die Strecke wird neutral dargestellt.
-              </p>
+      } @else {
+        <p class="g-empty">Keine Streckendaten verfügbar.</p>
+      }
+    </section>
+
+    <div class="g-split">
+      <div>
+        <section class="g-section">
+          <div class="g-section-head">
+            <h2 class="g-section-title">Was diese Fahrt gekostet hat</h2>
+            @if (wearImpact()) {
+              <button
+                type="button"
+                class="g-link-btn quiet"
+                [disabled]="wearImpactLoading()"
+                (click)="loadWearImpact(true)"
+              >
+                Neu berechnen
+              </button>
             }
           </div>
-        } @else {
-          <div class="card-empty">Keine Streckendaten verfügbar.</div>
-        }
-      </section>
+
+          @if (wearImpact(); as impact) {
+            <div class="g-card g-rows">
+              @for (cat of impact.breakdown.categories; track cat.category) {
+                <div class="impact">
+                  <div class="impact-head">
+                    <span class="g-row-title">{{ cat.category_display }}</span>
+                    <span class="g-pill" [class]="'status-' + impactClass(cat.extra_pct)">
+                      @if (cat.extra_pct > 0) {
+                        +{{ cat.extra_pct }} % durch {{ cat.dominant_driver_display }}
+                      } @else {
+                        kein Aufschlag
+                      }
+                    </span>
+                  </div>
+                  @for (comp of cat.components; track comp.id) {
+                    <div class="impact-part">
+                      <span>{{ comp.name }}</span>
+                      @if (comp.share_of_life_pct != null) {
+                        <span class="g-num">{{ comp.share_of_life_pct | number: '1.0-1' }} %</span>
+                      } @else {
+                        <span class="unknown">keine Lebensdauer</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (impact.breakdown.total_extra_km > 0) {
+              <p class="g-hint below">
+                Das Wetter schlägt
+                <span class="g-num">{{ impact.breakdown.total_extra_km | number: '1.0-2' }} km</span>
+                auf die gefahrenen
+                <span class="g-num">{{ impact.breakdown.distance_km | number: '1.0-1' }} km</span>
+                auf. Prozent: Anteil an der Lebensdauer des Teils.
+              </p>
+            }
+
+            @if (impact.summary) {
+              <p class="g-text below">{{ impact.summary }}</p>
+              <p class="g-hint">
+                Kudo · {{ impact.cached ? 'aus dem Speicher' : 'neu geschrieben' }}
+                @if (impact.generated_at) {
+                  · {{ impact.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
+                }
+              </p>
+            } @else if (impact.ai_consent_required) {
+              <p class="g-hint below">
+                Die Zahlen stehen. Kudos Erklärung ist aus, du kannst sie im Benutzermenü einschalten.
+              </p>
+            } @else if (impact.ai_unavailable) {
+              <p class="g-hint below">
+                Die Zahlen stehen, nur Kudos Erklärung ist gerade nicht verfügbar.
+              </p>
+            }
+          } @else if (wearImpactLoading()) {
+            <p class="g-hint">Wird berechnet…</p>
+          } @else if (wearImpactError()) {
+            <p class="g-hint caution">{{ wearImpactError() }}</p>
+            <button type="button" class="g-btn small retry" (click)="loadWearImpact()">
+              Erneut versuchen
+            </button>
+          } @else {
+            <p class="g-hint explain">
+              Welche Teile diese Fahrt wie viel Lebensdauer gekostet hat, mit dem Wetter dieses Tages.
+            </p>
+            <button type="button" class="g-btn" (click)="loadWearImpact()">Ausrechnen</button>
+          }
+        </section>
+
+        <section class="g-section">
+          <div class="g-section-head">
+            <h2 class="g-section-title">Kudos Auswertung</h2>
+            @if (rideSummary()) {
+              <button
+                type="button"
+                class="g-link-btn quiet"
+                [disabled]="rideSummaryLoading()"
+                (click)="loadRideSummary(true)"
+              >
+                Neu schreiben lassen
+              </button>
+            }
+          </div>
+
+          @if (rideSummary(); as sum) {
+            <p class="g-text">{{ sum.summary }}</p>
+            <p class="g-hint">
+              {{ sum.cached ? 'Aus dem Speicher' : 'Neu geschrieben' }} ·
+              {{ sum.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
+            </p>
+          } @else if (rideSummaryLoading()) {
+            <p class="g-hint">Kudo schreibt…</p>
+          } @else if (rideSummaryError()) {
+            <p class="g-hint caution">{{ rideSummaryError() }}</p>
+            <button type="button" class="g-btn small retry" (click)="loadRideSummary()">
+              Erneut versuchen
+            </button>
+          } @else {
+            <p class="g-hint explain">Die Fahrt in ein paar Sätzen, von der KI aus den Zahlen oben.</p>
+            <button type="button" class="g-btn" (click)="loadRideSummary()">
+              <app-icon name="sparkles" [size]="16" />
+              Schreiben lassen
+            </button>
+          }
+        </section>
+      </div>
+
+      <div>
+        <section class="g-section">
+          <div class="g-section-head">
+            <h2 class="g-section-title">
+              {{ climateMode() === 'rain' ? 'Regen' : 'Temperatur' }}
+            </h2>
+            <div class="g-switch" role="group" aria-label="Wetter-Diagramm">
+              <button
+                type="button"
+                [attr.aria-pressed]="climateMode() === 'temperature'"
+                (click)="setClimateMode('temperature')"
+              >
+                Temperatur
+              </button>
+              <button
+                type="button"
+                [attr.aria-pressed]="climateMode() === 'rain'"
+                (click)="setClimateMode('rain')"
+              >
+                Regen
+              </button>
+            </div>
+          </div>
+          @if (data.weather_timeline.time?.length) {
+            <div class="chart-wrap">
+              <canvas #climateChart></canvas>
+            </div>
+          } @else {
+            <p class="g-empty">Keine Wetterdaten verfügbar.</p>
+          }
+        </section>
+
+        <section class="g-section">
+          <div class="g-section-head">
+            <h2 class="g-section-title">Wind</h2>
+          </div>
+          @if (data.weather_timeline.time?.length) {
+            <div class="chart-wrap">
+              <canvas #windChart></canvas>
+            </div>
+            <div class="scale">
+              <span class="scale-key"><i class="ramp ramp-critical"></i>Gegenwind</span>
+              <span class="scale-key"><i class="ramp ramp-ok"></i>Rückenwind</span>
+            </div>
+          } @else {
+            <p class="g-empty">Keine Wetterdaten verfügbar.</p>
+          }
+        </section>
+      </div>
     </div>
   } @else if (!loading() && !error()) {
-    <div class="empty-state">
-      <div class="empty-icon">⬡</div>
-      <p class="empty-title">Keine Aktivität gefunden</p>
-    </div>
+    <p class="g-empty">Diese Fahrt gibt es nicht.</p>
   }
 </div>

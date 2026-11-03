@@ -1,15 +1,20 @@
 <div class="g-page">
-  <a class="g-back" [routerLink]="nav.to.bike(bikeId())">‹ {{ bikeName() }}</a>
+  <a class="g-back" [routerLink]="nav.to.bike(bikeId())">
+    <app-icon name="chevron-left" [size]="16" />
+    {{ bikeName() }}
+  </a>
 
   @if (loading() && !garage()) {
     <app-skeleton [count]="3" height="96px" />
   } @else if (assembly(); as asm) {
     <header class="head">
       <div class="head-text">
-        <p class="g-eyebrow">{{ asm.group_detail.name }}</p>
         <h1 class="g-title">{{ asm.display_name }}</h1>
         <p class="g-sub">
-          {{ asm.assembly_km | number: '1.0-0' }} km gefahren
+          @if (asm.display_name !== asm.group_detail.name) {
+            {{ asm.group_detail.name }} ·
+          }
+          <span class="g-num">{{ asm.assembly_km | number: '1.0-0' }} km</span> gefahren
           @if (onBikeSince(); as since) {
             · am Rad seit {{ since | date: 'dd.MM.yyyy' : 'UTC' }}
           }
@@ -21,7 +26,7 @@
         aria-label="Baugruppe bearbeiten"
         (click)="settingsOpen.set(true)"
       >
-        ✎
+        <app-icon name="pencil" />
       </button>
     </header>
 
@@ -53,174 +58,196 @@
             }
           </span>
         </span>
-        <span class="g-chevron" aria-hidden="true">›</span>
+        <app-icon class="g-chevron" name="chevron-right" [size]="18" />
       </button>
     }
 
-    <!-- Plätze -->
-    <section class="g-section">
-      <div class="g-section-head">
-        <h2 class="g-section-title">Teile</h2>
-      </div>
-      <div class="g-list">
-        @for (slot of asm.slots; track slot.id) {
-          <article class="g-card slot">
-            <header class="slot-head">
-              <h3 class="slot-name">{{ slot.display_name }}</h3>
-              <button
-                type="button"
-                class="g-icon-btn"
-                [attr.aria-label]="slot.display_name + ' bearbeiten'"
-                (click)="editingSlot.set(slot)"
-              >
-                ⋯
-              </button>
-            </header>
-
-            @if (slot.mounted_component; as part) {
-              <button
-                type="button"
-                class="g-row part"
-                (click)="openPart.set({ component: part, slot: slot })"
-              >
-                <span class="g-dot" [class]="part.warn_status_overall | warnClass"></span>
-                <span class="g-row-main">
-                  <span class="g-row-title">{{ part.label }}</span>
-                  <span class="g-row-sub">
-                    {{ part.wear_km | number: '1.0-0' }} km
-                    @if (part.effective_warn_km) {
-                      von {{ part.effective_warn_km | number: '1.0-0' }} km
-                    }
-                    @if (part.wear_days != null && part.effective_warn_days) {
-                      · {{ part.wear_days }} von {{ part.effective_warn_days }} Tagen
-                    }
-                  </span>
-                  <app-wear-meter
-                    class="part-meter"
-                    [ratio]="part.wear_ratio"
-                    [status]="part.warn_status_overall"
-                  />
-                </span>
-                <span class="g-chevron" aria-hidden="true">›</span>
-              </button>
-            } @else {
-              <p class="empty-slot">Gerade nichts montiert.</p>
-            }
-
-            <!-- Die Alternativen im Regal: ein Tipp zieht auf -->
-            @for (spare of slot.spare_components; track spare.id) {
-              <div class="spare">
-                <button
-                  type="button"
-                  class="g-row"
-                  (click)="openPart.set({ component: spare, slot: slot })"
-                >
-                  <span class="g-row-main">
-                    <span class="g-row-title">{{ spare.label }}</span>
-                    <span class="g-row-sub">
-                      Im Regal · {{ spare.wear_km | number: '1.0-0' }} km
-                    </span>
-                  </span>
-                </button>
-                @if (!asm.is_retired) {
+    <div class="g-split">
+      <!-- Plätze -->
+      <section class="g-section">
+        <div class="g-section-head">
+          <h2 class="g-section-title">Teile</h2>
+        </div>
+        @if (asm.slots.length > 0) {
+          <div class="g-card g-rows">
+            @for (slot of asm.slots; track slot.id) {
+              <article class="slot">
+                <div class="slot-main">
+                  @if (slot.mounted_component; as part) {
+                    <button
+                      type="button"
+                      class="g-row part"
+                      (click)="openPart.set({ component: part, slot: slot })"
+                    >
+                      <span class="g-dot dot" [class]="part.warn_status_overall | warnClass"></span>
+                      <span class="g-row-main">
+                        <span class="part-head">
+                          <span class="g-row-title">{{ slot.display_name }}</span>
+                          @if (remaining(part); as left) {
+                            <span
+                              class="g-num left"
+                              [class.soon]="part.warn_status_overall === 'warn'"
+                              [class.over]="part.warn_status_overall === 'critical'"
+                              >{{ left }}</span
+                            >
+                          }
+                        </span>
+                        <span class="g-row-sub">
+                          {{ part.label }} ·
+                          <span class="g-num">{{ part.wear_km | number: '1.0-0' }} km</span>
+                          @if (part.effective_warn_km) {
+                            von
+                            <span class="g-num">{{ part.effective_warn_km | number: '1.0-0' }} km</span>
+                          }
+                          @if (part.wear_days != null && part.effective_warn_days) {
+                            · {{ part.wear_days }} von {{ part.effective_warn_days }} Tagen
+                          }
+                        </span>
+                        <app-wear-meter class="part-meter" [part]="part" />
+                      </span>
+                    </button>
+                  } @else {
+                    <div class="g-row empty-slot">
+                      <span class="g-dot dot"></span>
+                      <span class="g-row-main">
+                        <span class="g-row-title">{{ slot.display_name }}</span>
+                        <span class="g-row-sub">Gerade nichts montiert.</span>
+                      </span>
+                      @if (!asm.is_retired) {
+                        <button
+                          type="button"
+                          class="g-btn small"
+                          (click)="addingPartTo.set({ slot: slot, mount: true })"
+                        >
+                          Teil eintragen
+                        </button>
+                      }
+                    </div>
+                  }
                   <button
                     type="button"
-                    class="g-btn small mount"
-                    [disabled]="busy()"
-                    (click)="mount(spare)"
+                    class="g-icon-btn"
+                    [attr.aria-label]="slot.display_name + ' bearbeiten'"
+                    (click)="editingSlot.set(slot)"
                   >
-                    Aufziehen
+                    <app-icon name="ellipsis" />
+                  </button>
+                </div>
+
+                <!-- Die Alternativen im Regal: ein Tipp zieht auf -->
+                @for (spare of slot.spare_components; track spare.id) {
+                  <div class="spare">
+                    <button
+                      type="button"
+                      class="g-row"
+                      (click)="openPart.set({ component: spare, slot: slot })"
+                    >
+                      <span class="g-row-main">
+                        <span class="g-row-title">{{ spare.label }}</span>
+                        <span class="g-row-sub">
+                          Im Regal ·
+                          <span class="g-num">{{ spare.wear_km | number: '1.0-0' }} km</span>
+                        </span>
+                      </span>
+                    </button>
+                    @if (!asm.is_retired) {
+                      <button
+                        type="button"
+                        class="g-btn small mount"
+                        [disabled]="busy()"
+                        (click)="mount(spare)"
+                      >
+                        Aufziehen
+                      </button>
+                    }
+                  </div>
+                }
+
+                @if (slot.retired_components.length > 0) {
+                  <button
+                    type="button"
+                    class="g-link-btn quiet retired-toggle"
+                    (click)="toggleRetired(slot.id)"
+                  >
+                    Ausgemustert ({{ slot.retired_components.length }})
+                  </button>
+                }
+
+                @if (isExpanded(slot.id)) {
+                  @for (old of slot.retired_components; track old.id) {
+                    <button
+                      type="button"
+                      class="g-row old"
+                      (click)="openPart.set({ component: old, slot: slot })"
+                    >
+                      <span class="g-row-main">
+                        <span class="g-row-title">{{ old.label }}</span>
+                        <span class="g-row-sub">
+                          <span class="g-num">{{ old.wear_km | number: '1.0-0' }} km</span> ·
+                          ausgemustert {{ old.retired_at | date: 'dd.MM.yyyy' }}
+                        </span>
+                      </span>
+                    </button>
+                  }
+                }
+              </article>
+            }
+          </div>
+          <app-wear-legend class="legend" />
+        } @else {
+          <p class="g-empty">Noch keine Teile eingetragen.</p>
+        }
+        @if (!asm.is_retired) {
+          <button type="button" class="g-btn wide ghost add" (click)="addingItem.set(true)">
+            <app-icon name="plus" [size]="16" />
+            Teil oder Pflege hinzufügen
+          </button>
+        }
+      </section>
+
+      <!-- Pflege -->
+      <section class="g-section">
+        <div class="g-section-head">
+          <h2 class="g-section-title">Pflege</h2>
+          @if (!asm.is_retired) {
+            <button type="button" class="g-link-btn" (click)="addingInterval.set(true)">
+              Eigene Pflege eintragen
+            </button>
+          }
+        </div>
+        @if (asm.intervals.length > 0) {
+          <div class="g-card g-rows">
+            @for (interval of asm.intervals; track interval.id) {
+              <div class="interval">
+                <button type="button" class="g-row part" (click)="editingInterval.set(interval)">
+                  <span class="g-dot dot" [class]="interval.status | warnClass"></span>
+                  <span class="g-row-main">
+                    <span class="g-row-title">{{ interval.label }}</span>
+                    <span class="g-row-sub g-num">{{ intervalDetail(interval) }}</span>
+                    <app-wear-meter
+                      class="part-meter"
+                      [ratio]="interval.usage_ratio"
+                      [status]="interval.status"
+                    />
+                  </span>
+                </button>
+                @if (justDone() === interval.id) {
+                  <button type="button" class="g-btn small mount" (click)="undoDone(interval)">
+                    Rückgängig
+                  </button>
+                } @else if (!asm.is_retired) {
+                  <button type="button" class="g-btn small mount" (click)="markDone(interval)">
+                    Erledigt
                   </button>
                 }
               </div>
             }
-
-            <footer class="slot-foot">
-              @if (!asm.is_retired) {
-                <button
-                  type="button"
-                  class="g-link-btn"
-                  (click)="addingPartTo.set({ slot: slot, mount: !slot.mounted_component })"
-                >
-                  + {{ slot.mounted_component ? 'Weiteres Teil' : 'Teil eintragen' }}
-                </button>
-              }
-              @if (slot.retired_components.length > 0) {
-                <button type="button" class="g-link-btn muted" (click)="toggleRetired(slot.id)">
-                  Ausgemustert ({{ slot.retired_components.length }})
-                </button>
-              }
-            </footer>
-
-            @if (isExpanded(slot.id)) {
-              @for (old of slot.retired_components; track old.id) {
-                <button
-                  type="button"
-                  class="g-row old"
-                  (click)="openPart.set({ component: old, slot: slot })"
-                >
-                  <span class="g-row-main">
-                    <span class="g-row-title">{{ old.label }}</span>
-                    <span class="g-row-sub">
-                      {{ old.wear_km | number: '1.0-0' }} km · ausgemustert
-                      {{ old.retired_at | date: 'dd.MM.yyyy' }}
-                    </span>
-                  </span>
-                </button>
-              }
-            }
-          </article>
-        } @empty {
-          <p class="g-empty">Noch keine Teile eingetragen.</p>
+          </div>
+        } @else {
+          <p class="g-empty">Für diese Baugruppe ist keine Pflege eingetragen.</p>
         }
-        @if (!asm.is_retired) {
-          <button type="button" class="g-btn wide" (click)="addingItem.set(true)">
-            + Teil oder Pflege hinzufügen
-          </button>
-        }
-      </div>
-    </section>
-
-    <!-- Pflege -->
-    @if (asm.intervals.length > 0) {
-      <section class="g-section">
-        <div class="g-section-head">
-          <h2 class="g-section-title">Pflege</h2>
-        </div>
-        <div class="g-card g-rows">
-          @for (interval of asm.intervals; track interval.id) {
-            <div class="interval">
-              <button type="button" class="g-row" (click)="editingInterval.set(interval)">
-                <span class="g-dot" [class]="interval.status | warnClass"></span>
-                <span class="g-row-main">
-                  <span class="g-row-title">{{ interval.label }}</span>
-                  <span class="g-row-sub">{{ intervalDetail(interval) }}</span>
-                  <app-wear-meter
-                    class="part-meter"
-                    [ratio]="interval.usage_ratio"
-                    [status]="interval.status"
-                  />
-                </span>
-              </button>
-              @if (justDone() === interval.id) {
-                <button type="button" class="g-btn small mount" (click)="undoDone(interval)">
-                  Rückgängig
-                </button>
-              } @else if (!asm.is_retired) {
-                <button type="button" class="g-btn small mount" (click)="markDone(interval)">
-                  Erledigt
-                </button>
-              }
-            </div>
-          }
-        </div>
       </section>
-    }
-    @if (!asm.is_retired) {
-      <button type="button" class="g-link-btn add-care" (click)="addingInterval.set(true)">
-        + Eigene Pflege eintragen
-      </button>
-    }
+    </div>
   } @else {
     <p class="g-empty">Diese Baugruppe gibt es nicht mehr.</p>
   }
@@ -252,7 +279,12 @@
     }
 
     @if (editingSlot(); as slot) {
-      <app-slot-sheet [slot]="slot" (closed)="editingSlot.set(null)" (changed)="afterChange()" />
+      <app-slot-sheet
+        [slot]="slot"
+        (closed)="editingSlot.set(null)"
+        (changed)="afterChange()"
+        (addPart)="onAddPart(slot)"
+      />
     }
 
     @if (editingInterval(); as interval) {

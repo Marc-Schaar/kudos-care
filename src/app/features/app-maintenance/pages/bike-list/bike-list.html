@@ -1,30 +1,32 @@
 <div class="g-page">
   <header class="head">
-    <div>
-      <p class="g-eyebrow">Wartung</p>
-      <h1 class="g-title">Meine Räder</h1>
-    </div>
-    <app-user-menu></app-user-menu>
+    <h1 class="g-title">Räder</h1>
+    <button type="button" class="g-btn" (click)="creating.set(true)">
+      <app-icon name="plus" [size]="16" />
+      Rad anlegen
+    </button>
   </header>
 
   @if (loading()) {
-    <app-skeleton [count]="3" height="96px" />
+    <div class="garage">
+      <app-skeleton [count]="2" height="15rem" />
+    </div>
   } @else {
-    <div class="g-list">
+    <div class="garage">
       @for (bike of activeBikes(); track bike.id) {
         <a class="g-card bike" [routerLink]="nav.to.bike(bike.id)">
           <img
             class="bike-art"
-            [src]="'bike-illustrations/' + bike.bike_type + '.svg'"
             alt=""
             loading="lazy"
+            [src]="'bike-illustrations/' + bike.bike_type + '.svg'"
           />
-          <span class="g-row-main">
+          <span class="bike-text">
             <span class="bike-name">{{ bike.name }}</span>
             <span class="g-row-sub">
               {{ bike.bike_type_display }}
               @if (bike.total_distance_km != null) {
-                · {{ bike.total_distance_km | number: '1.0-0' }} km
+                · <span class="g-num">{{ bike.total_distance_km | number: '1.0-0' }} km</span>
               }
             </span>
           </span>
@@ -34,35 +36,28 @@
         </a>
       } @empty {
         <p class="g-empty">
-          Noch keine Räder. Synchronisiere dein Strava-Profil auf der Startseite, oder lege eins von
-          Hand an.
+          Noch keine Räder. Auf der Startseite holt "Mit Strava abgleichen" sie dazu, oder du legst
+          eins von Hand an.
         </p>
       }
     </div>
 
-    <button type="button" class="g-btn wide add" (click)="creating.set(true)">+ Rad anlegen</button>
-
     @if (retiredBikes().length > 0) {
       <section class="g-section">
-        <h2 class="g-section-title">Im Ruhestand</h2>
-        <div class="g-list">
+        <h2 class="g-section-title retired-title">Im Ruhestand</h2>
+        <div class="g-card g-rows">
           @for (bike of retiredBikes(); track bike.id) {
-            <a class="g-card bike retired" [routerLink]="nav.to.bike(bike.id)">
-              <img
-                class="bike-art"
-                [src]="'bike-illustrations/' + bike.bike_type + '.svg'"
-                alt=""
-                loading="lazy"
-              />
+            <a class="g-row" [routerLink]="nav.to.bike(bike.id)">
               <span class="g-row-main">
-                <span class="bike-name">{{ bike.name }}</span>
+                <span class="g-row-title">{{ bike.name }}</span>
                 <span class="g-row-sub">
                   {{ bike.bike_type_display }}
                   @if (bike.total_distance_km != null) {
-                    · {{ bike.total_distance_km | number: '1.0-0' }} km
+                    · <span class="g-num">{{ bike.total_distance_km | number: '1.0-0' }} km</span>
                   }
                 </span>
               </span>
+              <app-icon class="g-chevron" name="chevron-right" [size]="18" />
             </a>
           }
         </div>

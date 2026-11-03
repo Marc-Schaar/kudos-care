@@ -87,7 +87,10 @@ export class Map implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.map = new maplibregl.Map({
       container: this.mapContainer.nativeElement,
-      style: 'https://tiles.openfreemap.org/styles/liberty',
+      // Die bunte Standardkarte erschlägt die Einfärbung der Strecke, um die es hier geht.
+      style: `https://tiles.openfreemap.org/styles/${
+        matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'positron'
+      }`,
       center: [7.0, 51.0],
       zoom: 10,
     });

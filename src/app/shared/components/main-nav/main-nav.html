@@ -1,12 +1,22 @@
 @if (visible()) {
-  <nav class="bottom-nav" aria-label="Hauptnavigation">
+  <!-- Am Handy eine Kopfzeile, die mit der Seite wegrollt. Am Desktop wird daraus die Fläche der
+       Seitenleiste: Wortmarke oben, Benutzermenü unten, die Links liegen darüber. Dasselbe
+       Element, damit es das Benutzermenü nur einmal gibt. -->
+  <header class="chrome">
+    <a class="wordmark" [routerLink]="nav.to.dashboard()" aria-label="Kudos Care, zur Übersicht">
+      KUDOS<span class="wordmark-rule" aria-hidden="true"></span>CARE
+    </a>
+    <app-user-menu />
+  </header>
+
+  <nav class="nav" aria-label="Hauptnavigation">
     <a class="nav-item" [routerLink]="nav.to.dashboard()" routerLinkActive="active">
-      <span class="nav-icon" aria-hidden="true">◆</span>
+      <app-icon name="gauge" [size]="22" />
       <span class="nav-label">Start</span>
     </a>
 
     <a class="nav-item" [routerLink]="nav.to.activities()" routerLinkActive="active">
-      <span class="nav-icon" aria-hidden="true">↗</span>
+      <app-icon name="route" [size]="22" />
       <span class="nav-label">Fahrten</span>
     </a>
 
@@ -16,18 +26,18 @@
       routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }"
     >
-      <span class="nav-icon" aria-hidden="true">🚲</span>
-      <span class="nav-label">Bikes</span>
+      <app-icon name="bike" [size]="22" />
+      <span class="nav-label">Räder</span>
     </a>
 
     @if (bikeId(); as id) {
       <a class="nav-item" [routerLink]="nav.to.bike(id)" routerLinkActive="active">
-        <span class="nav-icon" aria-hidden="true">⚙</span>
+        <app-icon name="wrench" [size]="22" />
         <span class="nav-label">Mein Rad</span>
       </a>
     } @else {
       <span class="nav-item disabled" aria-disabled="true">
-        <span class="nav-icon" aria-hidden="true">⚙</span>
+        <app-icon name="wrench" [size]="22" />
         <span class="nav-label">Mein Rad</span>
       </span>
     }
