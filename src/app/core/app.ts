@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { AiConsentDialog } from '../shared/components/ai-consent-dialog/ai-consent-dialog';
 import { EmailPromptDialog } from '../shared/components/email-prompt-dialog/email-prompt-dialog';
 import { LegalLinks } from '../shared/components/legal-links/legal-links';
 import { MainNav } from '../shared/components/main-nav/main-nav';
@@ -9,7 +10,14 @@ import { NotificationComponent } from '../shared/components/notification-compone
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NotificationComponent, EmailPromptDialog, MainNav, LegalLinks],
+  imports: [
+    RouterOutlet,
+    NotificationComponent,
+    EmailPromptDialog,
+    AiConsentDialog,
+    MainNav,
+    LegalLinks,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

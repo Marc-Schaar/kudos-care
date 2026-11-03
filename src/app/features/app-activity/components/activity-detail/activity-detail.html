@@ -161,6 +161,10 @@
               · {{ impact.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
             }
           </p>
+        } @else if (impact.ai_consent_required) {
+          <p class="field-hint">
+            Die Zahlen stehen. Kudos Erklärung ist aus, du kannst sie im Benutzermenü einschalten.
+          </p>
         } @else if (impact.ai_unavailable) {
           <p class="field-hint">
             Die Zahlen stehen — nur Kudos Erklärung ist gerade nicht verfügbar.

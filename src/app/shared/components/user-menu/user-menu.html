@@ -74,6 +74,34 @@
           </span>
         </button>
 
+        <button
+          type="button"
+          class="menu-item toggle-item"
+          role="menuitemcheckbox"
+          [attr.aria-checked]="currentUser.weather_consent"
+          [disabled]="saving()"
+          (click)="toggleConsent('weather_consent')"
+        >
+          <span>Wetter für neue Fahrten</span>
+          <span class="menu-switch" [class.on]="currentUser.weather_consent" aria-hidden="true">
+            {{ currentUser.weather_consent ? 'AN' : 'AUS' }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="menu-item toggle-item"
+          role="menuitemcheckbox"
+          [attr.aria-checked]="currentUser.ai_consent"
+          [disabled]="saving()"
+          (click)="toggleConsent('ai_consent')"
+        >
+          <span>KI-Texte</span>
+          <span class="menu-switch" [class.on]="currentUser.ai_consent" aria-hidden="true">
+            {{ currentUser.ai_consent ? 'AN' : 'AUS' }}
+          </span>
+        </button>
+
         <div class="menu-divider"></div>
 
         <button type="button" class="menu-item danger" role="menuitem" (click)="logout()">

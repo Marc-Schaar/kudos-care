@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
+import { aiConsentInterceptor } from './interceptors/ai-consent-interceptor/ai-consent-interceptor';
 import { authInterceptor } from './interceptors/auth-interceptor/auth-interceptor';
 import { csrfInterceptor } from './interceptors/csrf-interceptor/csrf-interceptor';
 import { errorInterceptor } from './interceptors/error-interceptor/error-interceptor';
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor, csrfInterceptor, errorInterceptor]),
+      withInterceptors([authInterceptor, csrfInterceptor, errorInterceptor, aiConsentInterceptor]),
       // Deckt nur den Fall ab, dass Request- und Seiten-Origin identisch sind
       // (Produktion, siehe environment.prod.ts: apiUrl ist relativ). Im
       // lokalen Dev-Betrieb (Frontend/Backend auf verschiedenen Ports) greift

@@ -25,15 +25,10 @@ describe('Rechtstexte', () => {
   });
 
   // Die Liste spiegelt die externen Aufrufe in Frontend und Backend.
-  it.each([
-    'Strava',
-    'Google Fonts',
-    'Brevo',
-    'Open-Meteo',
-    'OpenFreeMap',
-    'Google Gemini',
-    'Groq',
-  ])('nennt in der Datenschutzerklärung %s', (service) => {
-    expect(render(Privacy)).toContain(service);
-  });
+  it.each(['Strava', 'Brevo', 'Open-Meteo', 'OpenFreeMap', 'Google Gemini', 'Groq'])(
+    'nennt in der Datenschutzerklärung %s',
+    (service) => {
+      expect(render(Privacy)).toContain(service);
+    },
+  );
 });

@@ -56,4 +56,6 @@ export interface WearImpactResponse {
   generated_at: string | null;
   cached: boolean;
   ai_unavailable?: boolean;
+  /** Der Nutzer hat KI-Texten nicht zugestimmt. */
+  ai_consent_required?: boolean;
 }

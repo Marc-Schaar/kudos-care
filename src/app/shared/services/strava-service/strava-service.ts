@@ -42,11 +42,15 @@ export interface CurrentUser {
   email: string;
   email_notifications_enabled: boolean;
   needs_email: boolean;
+  weather_consent: boolean;
+  ai_consent: boolean;
 }
 
 export interface UserSettingsPatch {
   email?: string;
   email_notifications_enabled?: boolean;
+  weather_consent?: boolean;
+  ai_consent?: boolean;
 }
 
 @Injectable({
@@ -162,6 +166,8 @@ export class StravaService {
       email: '',
       email_notifications_enabled: true,
       needs_email: false,
+      weather_consent: false,
+      ai_consent: false,
     });
   }
 

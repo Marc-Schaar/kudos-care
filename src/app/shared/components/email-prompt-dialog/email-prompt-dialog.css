@@ -130,3 +130,8 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.dialog-text a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

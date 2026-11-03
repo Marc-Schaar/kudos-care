@@ -13,6 +13,19 @@
         tracken.
       </p>
 
+      <label class="consent">
+        <input
+          type="checkbox"
+          [checked]="weatherConsent()"
+          (change)="weatherConsent.set($any($event.target).checked)"
+        />
+        <span>
+          Wetter einrechnen: Startkoordinaten und Datum jeder Fahrt gehen dafür an Open-Meteo. Ohne
+          das zählt jeder Kilometer einmal. Jederzeit im Benutzermenü widerrufbar.
+          <a [routerLink]="nav.to.privacy()">Mehr dazu</a>
+        </span>
+      </label>
+
       <button (click)="connectWithStrava()" class="strava-btn" type="button">
         <img
           src="strava/btn_strava_connect_with_orange.svg"

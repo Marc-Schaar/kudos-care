@@ -1,6 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+/* Selbst gehostet: von Google geladen ginge die IP-Adresse jedes Besuchers ohne Einwilligung
+   an Google (LG München I, 3.2.2022). */
+@import '@fontsource/barlow-condensed/400.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/dm-mono/400.css';
+@import '@fontsource/dm-mono/400-italic.css';
+@import '@fontsource/dm-mono/500.css';
 @import 'tailwindcss';
 @import './app/features/app-maintenance/garage.css';
 

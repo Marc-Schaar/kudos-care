@@ -83,6 +83,12 @@ features/
     Erreichbar über `shared/components/legal-links`: in der App-Shell mit dem offiziellen
     "Powered by Strava"-Logo, auf der Landing-Page ohne. Die Strava-Grafiken in
     `public/strava/` kommen unverändert aus den Brand Guidelines, also nicht nachbauen.
+    **Einwilligungen:** Wetter und KI geben Daten an Dritte, das braucht laut Stravas API
+    Agreement eine ausdrückliche Zustimmung. Wetter: unvorausgewähltes Kästchen im Login, reist
+    über den OAuth-`state` durch den Strava-Roundtrip. KI: das Backend antwortet mit 403
+    `ai_consent_required`, `aiConsentInterceptor` zeigt `ai-consent-dialog` und wiederholt die
+    Anfrage; KI-Aufrufstellen wissen davon nichts. Beides im Benutzermenü widerrufbar.
+    **Schriften** sind selbst gehostet (`@fontsource`), nicht zurück zu Google Fonts wechseln.
   app-login/                   — Login (`/app/login`), Strava-OAuth-Callback
     (`/app/strava-callback`), authGuard. login.html verlinkt auf `/` (Landing-Page).
   app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)

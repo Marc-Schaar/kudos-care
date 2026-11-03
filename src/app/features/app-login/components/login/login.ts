@@ -4,6 +4,8 @@ import { environment } from '../../../../../environments/environment';
 import { StravaService } from '../../../../shared/services/strava-service/strava-service';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
+export const WEATHER_CONSENT_STATE = 'weather_consent';
+
 @Component({
   selector: 'app-login',
   imports: [RouterLink],
@@ -17,6 +19,8 @@ export class Login implements OnInit {
   private readonly stravaService = inject(StravaService);
 
   checking = signal(true);
+  /** Bewusst nicht vorausgewählt: eine Einwilligung muss eine aktive Handlung sein. */
+  weatherConsent = signal(false);
   devLoginEnabled = environment.devLoginEnabled;
 
   ngOnInit() {
@@ -34,7 +38,12 @@ export class Login implements OnInit {
       `&response_type=code` +
       `&scope=profile:read_all,activity:read_all`;
 
-    window.location.href = stravaAuthUrl;
+    // Über \`state\` übersteht die Antwort den Weg über Strava, auch beim Wechsel in die Strava-App.
+    const stravaAuthUrlWithConsent = this.weatherConsent()
+      ? `${stravaAuthUrl}&state=${WEATHER_CONSENT_STATE}`
+      : stravaAuthUrl;
+
+    window.location.href = stravaAuthUrlWithConsent;
   }
 
   devLogin() {

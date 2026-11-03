@@ -1,0 +1,25 @@
+@if (consent.asking()) {
+  <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ai-consent-title">
+    <div class="dialog">
+      <span class="dialog-eyebrow">Kudos Care</span>
+      <h2 class="dialog-title" id="ai-consent-title">KI-Texte einschalten?</h2>
+      <p class="dialog-text">
+        Für diesen Text senden wir Angaben wie Name und Datum einer Fahrt, Distanz, Dauer, Wetter
+        sowie Rad- und Teilenamen an Google Gemini oder Groq in den USA. GPS-Strecken und deine
+        E-Mail-Adresse bleiben hier. Du kannst das jederzeit im Benutzermenü widerrufen.
+        <a [routerLink]="nav.to.privacy()" (click)="decline()">Mehr dazu</a>
+      </p>
+
+      @if (error()) {
+        <div class="dialog-error">Speichern fehlgeschlagen. Bitte später erneut versuchen.</div>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-ghost" (click)="decline()">Nicht jetzt</button>
+        <button type="button" class="btn-primary" [disabled]="saving()" (click)="accept()">
+          {{ saving() ? 'Speichert…' : 'Einwilligen' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

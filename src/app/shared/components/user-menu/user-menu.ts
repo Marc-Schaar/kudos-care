@@ -85,6 +85,22 @@ export class UserMenu {
     });
   }
 
+  /** Einwilligungen in die Weitergabe an Dritte, siehe `app_auth/consent.py` im Backend. */
+  toggleConsent(key: 'weather_consent' | 'ai_consent') {
+    const enabled = !this.user()?.[key];
+    this.saving.set(true);
+    this.stravaService.updateSettings({ [key]: enabled }).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.notificationService.show(enabled ? 'Eingeschaltet.' : 'Ausgeschaltet.', 'info');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.notificationService.show('Einstellung konnte nicht gespeichert werden.', 'error');
+      },
+    });
+  }
+
   toggleNotifications() {
     const enabled = !this.user()?.email_notifications_enabled;
     this.saving.set(true);

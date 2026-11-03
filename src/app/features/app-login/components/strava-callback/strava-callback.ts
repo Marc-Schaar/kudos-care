@@ -6,6 +6,8 @@ import { StravaService } from '../../../../shared/services/strava-service/strava
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
+import { WEATHER_CONSENT_STATE } from '../login/login';
+
 @Component({
   selector: 'app-strava-callback',
   imports: [Skeleton],
@@ -28,6 +30,7 @@ export class StravaCallback {
       const code = params['code'];
       const error = params['error'];
       const scope = params['scope'];
+      const weatherConsent = params['state'] === WEATHER_CONSENT_STATE;
 
       if (error) {
         this.status.set('error');
@@ -36,7 +39,7 @@ export class StravaCallback {
       }
 
       if (code) {
-        this.exchangeCodeWithBackend(code, scope);
+        this.exchangeCodeWithBackend(code, scope, weatherConsent);
       } else {
         this.status.set('error');
         this.errorMessage = 'Kein Autorisierungs-Code in der URL gefunden.';
@@ -44,28 +47,30 @@ export class StravaCallback {
     });
   }
 
-  exchangeCodeWithBackend(code: string, scope?: string) {
+  exchangeCodeWithBackend(code: string, scope?: string, weatherConsent = false) {
     const backendUrl = `${this.baseUrl}/strava/auth/`;
 
-    this.http.post<any>(backendUrl, { code: code, scope: scope }).subscribe({
-      next: (res) => {
-        this.status.set('success');
-        if (res?.athlete) {
-          this.stravaService.setLoggedInUser(res.athlete.id, res.athlete.firstname);
-        }
-        setTimeout(() => this.nav.goTo(this.nav.to.dashboard()), 2000);
-      },
-      error: (err) => {
-        this.status.set('error');
-        if (err.error?.error === 'scope_insufficient') {
-          this.errorMessage =
-            'Bitte erlaube beim Verbinden mit Strava auch den Zugriff auf private Aktivitäten.';
-        } else {
-          this.errorMessage = 'Dein Server konnte den Code nicht bei Strava verifizieren.';
-        }
-        console.error(err);
-      },
-    });
+    this.http
+      .post<any>(backendUrl, { code: code, scope: scope, weather_consent: weatherConsent })
+      .subscribe({
+        next: (res) => {
+          this.status.set('success');
+          if (res?.athlete) {
+            this.stravaService.setLoggedInUser(res.athlete.id, res.athlete.firstname);
+          }
+          setTimeout(() => this.nav.goTo(this.nav.to.dashboard()), 2000);
+        },
+        error: (err) => {
+          this.status.set('error');
+          if (err.error?.error === 'scope_insufficient') {
+            this.errorMessage =
+              'Bitte erlaube beim Verbinden mit Strava auch den Zugriff auf private Aktivitäten.';
+          } else {
+            this.errorMessage = 'Dein Server konnte den Code nicht bei Strava verifizieren.';
+          }
+          console.error(err);
+        },
+      });
   }
 
   retry() {
