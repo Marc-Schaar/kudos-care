@@ -31,6 +31,8 @@ export class NavigationService {
   readonly to = {
     /** Öffentliche Marketing-Startseite — bewusst außerhalb von `/app`. */
     landing: (): RouteCommands => ['/'],
+    imprint: (): RouteCommands => ['/impressum'],
+    privacy: (): RouteCommands => ['/datenschutz'],
     login: (): RouteCommands => ['/app/login'],
     dashboard: (): RouteCommands => ['/app/dashboard'],
 

@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LegalLinks } from '../../../../shared/components/legal-links/legal-links';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 import {
   DRY_KM,
@@ -200,7 +201,7 @@ function sample(keys: readonly Key[], t: number): number {
  */
 @Component({
   selector: 'app-landingpage',
-  imports: [RouterLink, LandingScene],
+  imports: [RouterLink, LandingScene, LegalLinks],
   templateUrl: './landingpage.html',
   styleUrls: ['./landingpage.css', './landingpage.responsive.css', './landingpage.reduced.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

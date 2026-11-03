@@ -66,28 +66,18 @@
   margin-bottom: 2rem;
 }
 
+/* Offizielle Grafik aus Stravas Brand Guidelines: nicht nachbauen, nicht verändern. */
 .strava-btn {
-  background-color: #fc4c02;
-  color: #ffffff;
+  background: none;
   border: none;
-  padding: 0.75rem 1.5rem;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 0.95rem;
-  font-weight: bold;
+  padding: 0;
   cursor: pointer;
   display: inline-flex;
-  align-items: center;
-  gap: 4px;
   transition: opacity 0.15s;
 }
 
 .strava-btn:hover {
   opacity: 0.88;
-}
-
-.strava-brand {
-  font-style: italic;
-  letter-spacing: -0.5px;
 }
 
 .dev-login-btn {

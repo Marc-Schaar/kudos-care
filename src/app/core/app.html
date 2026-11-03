@@ -4,6 +4,12 @@
 <app-email-prompt-dialog></app-email-prompt-dialog>
 <router-outlet></router-outlet>
 
+<!-- Impressum und Datenschutz müssen von jeder Seite aus erreichbar sein, das Strava-Logo gehört
+     dorthin, wo Strava-Daten zu sehen sind. Die Landing-Page bringt ihre Links selbst mit. -->
+@if (showFooter()) {
+  <app-legal-links class="shell-footer" [attribution]="true" />
+}
+
 <!-- Zentrale Navigation, fix am unteren Rand. Liegt hier und nicht im
      Wartungsbereich, damit sie beim Wechsel auf Fahrten oder Start stehen
      bleibt; sie blendet sich selbst aus, solange niemand angemeldet ist. -->

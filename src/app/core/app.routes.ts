@@ -16,6 +16,16 @@ export const routes: Routes = [
   // (Lesezeichen, extern) darauf verlinkt wird.
   { path: 'landingpage', redirectTo: '', pathMatch: 'full' },
   {
+    path: 'impressum',
+    loadComponent: () =>
+      import('../features/app-legal/components/imprint/imprint').then((m) => m.Imprint),
+  },
+  {
+    path: 'datenschutz',
+    loadComponent: () =>
+      import('../features/app-legal/components/privacy/privacy').then((m) => m.Privacy),
+  },
+  {
     path: 'app',
     children: [
       { path: '', redirectTo: 'login', pathMatch: 'full' },

@@ -6,3 +6,9 @@
   display: block;
   padding-bottom: calc(var(--nav-height) + 0.75rem);
 }
+
+.shell-footer {
+  justify-content: center;
+  padding: 1rem 1.25rem 0;
+  color: var(--muted);
+}

@@ -2,6 +2,26 @@
    Stylesheet gilt (`anyComponentStyle` in angular.json), und die Reihenfolge in
    `styleUrls` zählt: diese Datei überschreibt die Basis. */
 
+/* Impressum und Datenschutz, bei jeder Scroll-Position sichtbar: links unten liegt immer die
+   dunkle Fläche, am Telefon rechts oben. */
+.kc-legal {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 0.35rem;
+  padding-inline: 0.35rem;
+  background: var(--ground-d);
+  color: var(--soft-d);
+}
+@media (max-width: 760px) {
+  .kc-legal {
+    left: auto;
+    right: var(--gutter);
+    bottom: auto;
+    top: 0.45rem;
+    font-size: 0.66rem;
+  }
+}
+
 /* ── Telefon: Stapel statt Spalten, die Linie ist die Fahrbahn ────────────── */
 @media (max-width: 760px) {
   .kc {

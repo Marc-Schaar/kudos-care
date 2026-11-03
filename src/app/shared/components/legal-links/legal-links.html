@@ -1,0 +1,13 @@
+@if (attribution()) {
+  <img
+    class="strava"
+    src="strava/api_logo_pwrdBy_strava_horiz_orange.svg"
+    alt="Powered by Strava"
+    width="146"
+    height="15"
+  />
+}
+<nav aria-label="Rechtliches">
+  <a [routerLink]="nav.to.imprint()">Impressum</a>
+  <a [routerLink]="nav.to.privacy()">Datenschutz</a>
+</nav>

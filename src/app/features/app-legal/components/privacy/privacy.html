@@ -1,0 +1,90 @@
+<main class="legal">
+  <a class="legal__back" [routerLink]="nav.to.landing()">Kudos Care</a>
+  <h1>Datenschutz</h1>
+  <p>Stand: November 2026</p>
+
+  <h2>Verantwortlich</h2>
+  <address>
+    {{ contact.name }}<br />
+    {{ contact.street }}<br />
+    {{ contact.postalCity }}<br />
+    {{ contact.email }}
+  </address>
+
+  <h2>Beim Aufruf der Seite</h2>
+  <p>
+    Der Webserver verarbeitet deine IP-Adresse und technische Angaben zur Anfrage, damit die Seite
+    ausgeliefert werden kann und sicher läuft (Art. 6 Abs. 1 lit. f DSGVO). Server-Protokolle:
+    {{ contact.serverLogRetention }}. Hosting: {{ contact.hostingProvider }}.
+  </p>
+  <p>
+    Schriftarten werden von Google Fonts geladen. Dein Browser sendet dabei deine IP-Adresse an
+    Google, auch in die USA.
+  </p>
+
+  <h2>Cookies und Speicher im Browser</h2>
+  <ul>
+    <li><b>sessionid</b>: hält dich angemeldet, bis zu 90 Tage.</li>
+    <li><b>csrftoken</b>: schützt Formulare vor Missbrauch.</li>
+    <li><b>Local Storage</b>: dein Vorname für die Begrüßung. Er bleibt in deinem Browser.</li>
+    <li>
+      <b>Session Storage</b>: merkt sich, dass du die Frage nach der E-Mail-Adresse verschoben hast.
+    </li>
+  </ul>
+  <p>
+    Alle sind für die Funktion nötig (§ 25 Abs. 2 TDDDG). Es gibt kein Tracking und keine Werbung.
+  </p>
+
+  <h2>Anmeldung und Daten von Strava</h2>
+  <p>
+    Du meldest dich über dein Strava-Konto an und erlaubst den Zugriff auf Profil und Aktivitäten,
+    auch private. Wir speichern deine Athleten-ID, die Zugriffsschlüssel, deine Räder und deine
+    Fahrten samt GPS-Strecke, Zeitpunkt, Distanz und Dauer. Rechtsgrundlage ist die Bereitstellung
+    des Dienstes (Art. 6 Abs. 1 lit. b DSGVO). Deinen Namen liefert Strava zwar bei der Anmeldung,
+    wir speichern ihn aber nicht auf dem Server. Für Strava selbst gilt dessen Datenschutzerklärung.
+  </p>
+
+  <h2>Deine Angaben in Kudos Care</h2>
+  <p>
+    Wir speichern, was du anlegst: Baugruppen, Teile, Einbaudaten, Prüfungen und erledigte
+    Wartungen. Daraus berechnen wir den Verschleiß (Art. 6 Abs. 1 lit. b DSGVO).
+  </p>
+
+  <h2>E-Mail</h2>
+  <p>
+    Deine E-Mail-Adresse nutzen wir für die Willkommens-Mail und für Wartungshinweise. Die Hinweise
+    kannst du jederzeit abschalten. Der Versand läuft über Brevo (Frankreich), das dabei Adresse und
+    Inhalt der Mail erhält.
+  </p>
+
+  <h2>Weitere Dienste</h2>
+  <ul>
+    <li>
+      <b>Open-Meteo</b>: Für historisches Wetter sendet unser Server die Startkoordinaten und das
+      Datum einer Fahrt an den Dienst. Ein Bezug zu deinem Namen oder Konto wird nicht übermittelt.
+    </li>
+    <li>
+      <b>OpenFreeMap</b>: Auf der Karte einer Fahrt lädt dein Browser die Kartenbilder von diesem
+      Dienst, der dabei deine IP-Adresse sieht.
+    </li>
+    <li>
+      <b>Google Gemini und Groq (USA)</b>: Nur wenn du einen KI-Text oder den Assistenten
+      anforderst, senden wir die dafür nötigen Angaben an einen dieser Anbieter, zum Beispiel Name
+      und Datum einer Fahrt, Distanz, Dauer, Wetter, Rad- und Teilenamen. GPS-Strecken und deine
+      E-Mail-Adresse werden nicht übermittelt.
+    </li>
+  </ul>
+
+  <h2>Speicherdauer und Löschen</h2>
+  <p>
+    Wir speichern deine Daten, solange dein Konto besteht. Im Benutzermenü kannst du es jederzeit
+    löschen. Dabei werden Profil, Räder, Fahrten und Verschleiß-Historie entfernt.
+  </p>
+
+  <h2>Deine Rechte</h2>
+  <p>
+    Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
+    Datenübertragbarkeit und Widerspruch. Schreib dafür an {{ contact.email }}. Außerdem kannst du
+    dich bei einer Datenschutz-Aufsichtsbehörde beschweren.
+  </p>
+</main>

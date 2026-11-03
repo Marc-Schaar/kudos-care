@@ -230,3 +230,11 @@
     translate: none;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .kc-legal {
+    position: static;
+    order: 2;
+    margin: 1.5rem var(--gutter) 0;
+  }
+}

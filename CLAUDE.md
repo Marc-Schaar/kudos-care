@@ -76,6 +76,13 @@ features/
     Hälften überspannt, misst der Harness gegen den falschen Hintergrund.
     Bei `prefers-reduced-motion` löst sich die Bühne in normalen Seitenfluss auf
     (`landingpage.reduced.css`), dann läuft kein Loop.
+  app-legal/                    — Impressum (`/impressum`) und Datenschutz (`/datenschutz`),
+    öffentlich. `legal-contact.ts` hält die Betreiberangaben; eckige Klammern dort heißen: noch
+    nicht launch-fertig. Die Datenschutzerklärung beschreibt den Code: neuer externer Dienst,
+    Cookie oder Datenfeld, dann dort nachtragen (`legal-pages.spec.ts` prüft die Dienste).
+    Erreichbar über `shared/components/legal-links`: in der App-Shell mit dem offiziellen
+    "Powered by Strava"-Logo, auf der Landing-Page ohne. Die Strava-Grafiken in
+    `public/strava/` kommen unverändert aus den Brand Guidelines, also nicht nachbauen.
   app-login/                   — Login (`/app/login`), Strava-OAuth-Callback
     (`/app/strava-callback`), authGuard. login.html verlinkt auf `/` (Landing-Page).
   app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)

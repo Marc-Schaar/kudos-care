@@ -1,0 +1,54 @@
+/* Gemeinsames Layout von Impressum und Datenschutz: reiner Lesetext. */
+
+.legal {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+.legal__back {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent);
+}
+h1 {
+  margin: 1.5rem 0 1rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 2.6rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+h2 {
+  margin: 2rem 0 0.5rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+p,
+ul {
+  margin-bottom: 0.75rem;
+}
+ul {
+  padding-left: 1.2rem;
+  list-style: disc;
+}
+li {
+  margin-bottom: 0.4rem;
+}
+address {
+  font-style: normal;
+}
+b {
+  font-weight: 500;
+}
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

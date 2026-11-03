@@ -1,0 +1,20 @@
+<main class="legal">
+  <a class="legal__back" [routerLink]="nav.to.landing()">Kudos Care</a>
+  <h1>Impressum</h1>
+
+  <h2>Angaben gemäß § 5 DDG</h2>
+  <address>
+    {{ contact.name }}<br />
+    {{ contact.street }}<br />
+    {{ contact.postalCity }}
+  </address>
+
+  <h2>Kontakt</h2>
+  <p>E-Mail: {{ contact.email }}</p>
+
+  <h2>Strava</h2>
+  <p>
+    Kudos Care nutzt die Schnittstelle von Strava, wird aber nicht von Strava entwickelt oder
+    unterstützt. Strava ist eine Marke von Strava, Inc.
+  </p>
+</main>
