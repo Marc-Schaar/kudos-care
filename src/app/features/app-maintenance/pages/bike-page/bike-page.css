@@ -1,0 +1,137 @@
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.head-art {
+  flex: none;
+  width: 5rem;
+  height: auto;
+  opacity: 0.85;
+}
+
+.head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.head-title {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.head-title .g-title {
+  overflow-wrap: anywhere;
+}
+
+.g-rows > * + * {
+  border-top: 1px solid var(--border);
+}
+
+.due {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-right: 0.6rem;
+}
+
+.due .g-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.due-meter {
+  display: block;
+  margin-top: 0.4rem;
+}
+
+.done {
+  flex: none;
+}
+
+.all-good {
+  padding: 1rem 0.85rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+/* ── Laufradsätze ───────────────────────────────────────────────────────────── */
+
+.set.on {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+}
+
+.set-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem 0.5rem;
+}
+
+.set-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.set .g-rows {
+  border-top: 1px solid var(--border);
+}
+
+.set-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.85rem 0.7rem;
+  border-top: 1px solid var(--border);
+}
+
+.link-summary {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.25rem;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.link-summary:hover {
+  color: var(--text);
+}
+
+.orphans-hint {
+  margin-bottom: 0.5rem;
+}
+
+.report-head {
+  margin-bottom: 0.4rem;
+}
+
+.retired-row {
+  display: flex;
+  align-items: center;
+  padding-right: 0.6rem;
+}
+
+.retired-row .g-row {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 760px) {
+  .head-art {
+    width: 7rem;
+  }
+}

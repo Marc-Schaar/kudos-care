@@ -1,0 +1,423 @@
+/*
+ * Gemeinsame Bausteine des Wartungsbereichs: Seite, Karten, Zeilen, Knöpfe, Formulare.
+ * Global statt je Komponente, weil Seiten und Bottom Sheets dieselben Teile brauchen und
+ * das Component-Style-Budget sonst für jede Datei von vorn anfängt.
+ *
+ * Mobile first: Basiswerte gelten für schmale Screens, breitere bekommen Ausnahmen per
+ * min-width. Trefferflächen mindestens 44 px, Eingabefelder 16 px, damit iOS beim Fokus
+ * nicht hineinzoomt.
+ */
+
+.g-page {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 1.5rem;
+}
+
+@media (min-width: 760px) {
+  .g-page {
+    padding: 2rem 1.5rem 3rem;
+  }
+}
+
+.g-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.g-back:hover {
+  color: var(--text);
+}
+
+.g-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.g-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.g-sub {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.g-section {
+  margin-top: 1.75rem;
+}
+
+.g-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.g-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.g-hint {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.g-empty {
+  padding: 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Karten und Zeilen ─────────────────────────────────────────────────────── */
+
+.g-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.g-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Eine ganze Zeile ist die Trefferfläche — auf dem Handy trifft man keine kleinen Links. */
+.g-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.65rem 0.85rem;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.g-row:hover {
+  background: var(--surface2);
+}
+
+.g-row:focus-visible,
+.g-btn:focus-visible,
+.g-icon-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.g-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.g-row-title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.g-row-sub {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.g-chevron {
+  flex: none;
+  color: var(--muted);
+}
+
+/* ── Ampel ─────────────────────────────────────────────────────────────────── */
+
+.g-dot {
+  flex: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.5;
+}
+
+.g-dot.status-ok {
+  background: var(--ok);
+  opacity: 1;
+}
+
+.g-dot.status-warn {
+  background: var(--warn);
+  opacity: 1;
+}
+
+.g-dot.status-critical {
+  background: var(--critical);
+  opacity: 1;
+}
+
+.g-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.g-pill.status-ok,
+.g-pill.on-bike {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 35%, transparent);
+  background: color-mix(in srgb, var(--ok) 10%, transparent);
+}
+
+.g-pill.status-warn {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+}
+
+.g-pill.status-critical {
+  color: var(--critical);
+  border-color: color-mix(in srgb, var(--critical) 35%, transparent);
+  background: color-mix(in srgb, var(--critical) 10%, transparent);
+}
+
+/* ── Hinweise im Seitenfluss ───────────────────────────────────────────────── */
+
+.g-note {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--muted);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.g-note.warn {
+  border-left-color: var(--warn);
+}
+
+.g-note.accent {
+  border-left-color: var(--accent);
+}
+
+/* ── Knöpfe ────────────────────────────────────────────────────────────────── */
+
+.g-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.95rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.g-btn:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.g-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.g-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0e0f11;
+  font-weight: 500;
+}
+
+.g-btn.ghost {
+  background: transparent;
+}
+
+.g-btn.danger {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--critical) 50%, transparent);
+  color: var(--critical);
+}
+
+.g-btn.danger-solid {
+  background: var(--critical);
+  border-color: var(--critical);
+  color: #fff;
+}
+
+.g-btn.wide {
+  width: 100%;
+}
+
+.g-btn.small {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.g-icon-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.g-icon-btn:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.g-link-btn {
+  min-height: 2.25rem;
+  padding: 0.25rem 0;
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.g-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.g-actions > .g-btn {
+  flex: 1 1 auto;
+}
+
+/* ── Formulare ─────────────────────────────────────────────────────────────── */
+
+.g-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.g-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.g-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.g-input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  .g-input {
+    color-scheme: light;
+  }
+}
+
+.g-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+.g-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.g-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.g-check input {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.1rem;
+  accent-color: var(--accent);
+}
+
+.g-divider {
+  height: 1px;
+  margin: 0.25rem 0;
+  background: var(--border);
+  border: 0;
+}
+
+.g-danger-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.g-text {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  white-space: pre-line;
+}

@@ -1,0 +1,66 @@
+<app-bottom-sheet [title]="title()" (closed)="closed.emit()">
+  @if (plan(); as p) {
+    <div class="g-form">
+      <div>
+        <h3 class="g-label">Kommt ans Rad</h3>
+        @for (item of p.activate; track item.id) {
+          <p class="g-row-title">{{ item.name }}</p>
+        }
+      </div>
+
+      @if (p.park.length > 0) {
+        <div>
+          <h3 class="g-label">Kommt in den Keller</h3>
+          @for (item of p.park; track item.id) {
+            <p class="g-row-title">{{ item.name }}</p>
+          }
+          <p class="g-hint">Behält seine Teile und seine Kilometer.</p>
+        </div>
+      }
+
+      @if (p.mount.length > 0) {
+        <div>
+          <h3 class="g-label">Wechselt mit</h3>
+          @for (item of p.mount; track item.component_id) {
+            <p class="g-row-title">{{ item.slot_name }}: {{ item.label }}</p>
+            @if (item.replaces) {
+              <p class="g-hint">statt {{ item.replaces }}</p>
+            }
+          }
+        </div>
+      }
+
+      @for (item of p.unpaired; track item.component_id) {
+        <div class="g-note warn">
+          {{ item.label }} ({{ item.slot_name }}) gehört zu {{ item.from_assembly }} und bleibt
+          drauf, weil hier nichts anderes hinterlegt ist.
+          <br />
+          <button type="button" class="g-link-btn" (click)="editLinks.emit()">
+            Passendes Teil festlegen
+          </button>
+        </div>
+      }
+
+      @if (showDate()) {
+        <label class="g-field">
+          <span class="g-label">Gewechselt am</span>
+          <input class="g-input" type="date" name="on" [max]="today" [(ngModel)]="on" />
+          <span class="g-hint">Fahrten ab diesem Tag zählen für den neuen Satz.</span>
+        </label>
+      } @else {
+        <button type="button" class="g-link-btn" (click)="showDate.set(true)">
+          Das war an einem anderen Tag
+        </button>
+      }
+
+      <div class="g-actions">
+        <button type="button" class="g-btn ghost" (click)="closed.emit()">Abbrechen</button>
+        <button type="button" class="g-btn primary" [disabled]="busy()" (click)="confirm()">
+          {{ busy() ? 'Wechselt…' : 'Jetzt wechseln' }}
+        </button>
+      </div>
+    </div>
+  } @else {
+    <p class="g-hint">Wird geladen…</p>
+  }
+</app-bottom-sheet>

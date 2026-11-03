@@ -1,0 +1,30 @@
+<app-bottom-sheet [title]="title()" (closed)="closed.emit()">
+  @if (picked(); as group) {
+    <button type="button" class="g-link-btn" (click)="picked.set(null)">‹ Andere Baugruppe</button>
+    <app-assembly-checklist-component
+      [bikeId]="bikeId()"
+      [group]="group"
+      [showName]="false"
+      [ungroupedSlots]="garage().ungrouped_slots"
+      [spareComponents]="garage().spare_components"
+      saveLabel="Anlegen"
+      (created)="onCreated($event)"
+    />
+  } @else {
+    <div class="g-list">
+      @for (group of groups(); track group.id) {
+        <button type="button" class="g-row g-card" (click)="picked.set(group)">
+          <span class="g-row-main">
+            <span class="g-row-title">{{ group.name }}</span>
+            <span class="g-row-sub">
+              {{ group.parts.length }} Teile · {{ group.consumables.length }} Pflege
+            </span>
+          </span>
+          <span class="g-chevron" aria-hidden="true">›</span>
+        </button>
+      } @empty {
+        <p class="g-empty">Alle Baugruppen sind schon angelegt.</p>
+      }
+    </div>
+  }
+</app-bottom-sheet>

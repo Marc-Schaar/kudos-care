@@ -1,0 +1,367 @@
+<div class="g-page">
+  <a class="g-back" [routerLink]="nav.to.bikes()">‹ Meine Räder</a>
+
+  @if (loading() && !bike()) {
+    <app-skeleton [count]="3" height="96px" />
+  }
+
+  @if (bike(); as current) {
+    <header class="head">
+      <img
+        class="head-art"
+        [src]="'bike-illustrations/' + current.bike_type + '.svg'"
+        alt=""
+      />
+      <div class="head-text">
+        <div class="head-title">
+          <h1 class="g-title">{{ current.name }}</h1>
+          <button
+            type="button"
+            class="g-icon-btn"
+            aria-label="Rad bearbeiten"
+            (click)="editingBike.set(true)"
+          >
+            ✎
+          </button>
+        </div>
+        <p class="g-sub">
+          {{ current.bike_type_display }}
+          @if (current.total_distance_km != null) {
+            · {{ current.total_distance_km | number: '1.0-0' }} km
+          }
+          @if (current.retired) {
+            · im Ruhestand
+          }
+        </p>
+      </div>
+    </header>
+
+    @if (needsSetup()) {
+      <app-bike-setup-stepper-component
+        [bikeId]="current.id"
+        [bikeType]="current.bike_type"
+        (done)="setupDismissed.set(true); reload()"
+      />
+    } @else if (garage(); as data) {
+      <!-- Als Nächstes dran -->
+      <section class="g-section">
+        <div class="g-section-head">
+          <h2 class="g-section-title">Als Nächstes dran</h2>
+          <span class="g-sub">
+            @if (criticalCount() > 0) {
+              {{ criticalCount() }} überfällig
+            }
+            @if (criticalCount() > 0 && warnCount() > 0) {
+              ·
+            }
+            @if (warnCount() > 0) {
+              {{ warnCount() }} bald
+            }
+          </span>
+        </div>
+        <div class="g-card g-rows">
+          @for (item of due(); track item.key) {
+            <div class="due">
+              <button type="button" class="g-row" (click)="openDue(item)">
+                <span class="g-dot" [class]="item.status | warnClass"></span>
+                <span class="g-row-main">
+                  <span class="g-row-title">{{ item.title }}</span>
+                  <span class="g-row-sub">{{ item.detail }} · {{ item.where }}</span>
+                  <app-wear-meter class="due-meter" [ratio]="item.ratio" [status]="item.status" />
+                </span>
+              </button>
+              @if (item.interval; as interval) {
+                <button type="button" class="g-btn small done" (click)="markDone(interval)">
+                  Erledigt
+                </button>
+              }
+            </div>
+          } @empty {
+            <p class="all-good">Alles im grünen Bereich. Nichts, worum du dich kümmern müsstest.</p>
+          }
+        </div>
+        @if (hiddenDueCount() > 0) {
+          <button type="button" class="g-link-btn" (click)="showAllDue.set(true)">
+            {{ hiddenDueCount() }} weitere anzeigen
+          </button>
+        } @else if (showAllDue()) {
+          <button type="button" class="g-link-btn" (click)="showAllDue.set(false)">
+            Weniger anzeigen
+          </button>
+        }
+      </section>
+
+      <!-- Laufräder -->
+      <section class="g-section">
+        <div class="g-section-head">
+          <h2 class="g-section-title">Laufräder</h2>
+        </div>
+        <div class="g-list">
+          @for (set of wheelSets(); track set.key) {
+            <article class="g-card set" [class.on]="set.onBike">
+              <header class="set-head">
+                <h3 class="set-name">{{ set.name }}</h3>
+                @if (set.fullyOn) {
+                  <span class="g-pill on-bike">Am Rad</span>
+                } @else if (set.onBike) {
+                  <span class="g-pill on-bike">Teilweise am Rad</span>
+                } @else {
+                  <span class="g-pill">Im Keller</span>
+                }
+              </header>
+
+              <div class="g-rows">
+                @for (wheel of set.wheels; track wheel.id) {
+                  <a class="g-row" [routerLink]="nav.to.assembly(current.id, wheel.id)">
+                    <span class="g-dot" [class]="wheel.worst_status | warnClass"></span>
+                    <span class="g-row-main">
+                      <span class="g-row-title">{{ wheel.group_detail.name }}</span>
+                      <span class="g-row-sub">
+                        {{ partsLabel(wheel.slots.length) }} ·
+                        {{ wheel.assembly_km | number: '1.0-0' }} km gefahren
+                      </span>
+                    </span>
+                    <span class="g-chevron" aria-hidden="true">›</span>
+                  </a>
+                }
+              </div>
+
+              <footer class="set-foot">
+                <button
+                  type="button"
+                  class="link-summary"
+                  (click)="linkingWheels.set(set.wheels)"
+                >
+                  @if (linkedLabels(set).length > 0) {
+                    Wechselt mit: {{ linkedLabels(set).join(', ') }}
+                  } @else {
+                    Bremsbeläge & Co. koppeln
+                  }
+                </button>
+                @if (!set.fullyOn) {
+                  <button type="button" class="g-btn primary" (click)="switching.set(set)">
+                    Aufziehen
+                  </button>
+                }
+              </footer>
+            </article>
+          } @empty {
+            <p class="g-empty">Noch keine Laufräder eingetragen.</p>
+          }
+          <button type="button" class="g-btn wide" (click)="addingSet.set(true)">
+            + Laufradsatz anlegen
+          </button>
+        </div>
+      </section>
+
+      <!-- Baugruppen -->
+      <section class="g-section">
+        <div class="g-section-head">
+          <h2 class="g-section-title">Baugruppen</h2>
+        </div>
+        <div class="g-list">
+          @if (areas().length > 0) {
+            <div class="g-card g-rows">
+              @for (assembly of areas(); track assembly.id) {
+                <a class="g-row" [routerLink]="nav.to.assembly(current.id, assembly.id)">
+                  <span class="g-dot" [class]="assembly.worst_status | warnClass"></span>
+                  <span class="g-row-main">
+                    <span class="g-row-title">{{ assembly.display_name }}</span>
+                    <span class="g-row-sub">
+                      {{ partsLabel(assembly.slots.length) }}
+                      @if (assembly.intervals.length > 0) {
+                        · {{ assembly.intervals.length }} Pflege
+                      }
+                    </span>
+                  </span>
+                  <span class="g-pill" [class]="assembly.worst_status | warnClass">
+                    {{ assembly.worst_status | warnLabel }}
+                  </span>
+                </a>
+              }
+            </div>
+          }
+          <button type="button" class="g-btn wide" (click)="addingAssembly.set(true)">
+            + Baugruppe hinzufügen
+          </button>
+        </div>
+      </section>
+
+      <!-- Alt-Plätze ohne Baugruppe -->
+      @if (ungrouped().length > 0) {
+        <section class="g-section">
+          <div class="g-section-head">
+            <h2 class="g-section-title">Ohne Baugruppe</h2>
+          </div>
+          <div class="g-card g-rows">
+            @for (slot of ungrouped(); track slot.id) {
+              <button type="button" class="g-row" (click)="openUngrouped(slot)">
+                <span class="g-dot" [class]="slot.warn_status | warnClass"></span>
+                <span class="g-row-main">
+                  <span class="g-row-title">{{ slot.display_name }}</span>
+                  @if (slot.mounted_component; as part) {
+                    <span class="g-row-sub">
+                      {{ part.label }} · {{ part.wear_km | number: '1.0-0' }} km
+                    </span>
+                  }
+                </span>
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Gute Teile, deren Laufrad weg ist -->
+      @if (orphans().length > 0) {
+        <section class="g-section">
+          <div class="g-section-head">
+            <h2 class="g-section-title">Im Regal, ohne Platz</h2>
+          </div>
+          <p class="g-hint orphans-hint">
+            Noch gut, aber ihre Baugruppe ist ausgemustert. Tippe ein Teil an, um es umzuziehen.
+          </p>
+          <div class="g-card g-rows">
+            @for (spare of orphans(); track spare.id) {
+              <button type="button" class="g-row" (click)="openOrphan(spare.id)">
+                <span class="g-row-main">
+                  <span class="g-row-title">{{ spare.label }}</span>
+                  <span class="g-row-sub">
+                    {{ spare.slot_name }} · {{ spare.prior_wear_km | number: '1.0-0' }} km
+                  </span>
+                </span>
+                <span class="g-chevron" aria-hidden="true">›</span>
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- KI-Zustandsbericht -->
+      <section class="g-section">
+        @if (report(); as text) {
+          <div class="g-note accent">
+            <p class="g-eyebrow report-head">
+              Zustandsbericht · {{ text.generatedAt | date: 'dd.MM.yyyy' }}
+            </p>
+            <p class="g-text">{{ text.text }}</p>
+            <button
+              type="button"
+              class="g-link-btn"
+              [disabled]="reportLoading()"
+              (click)="loadReport(true)"
+            >
+              {{ reportLoading() ? 'Kudo schreibt…' : 'Neu schreiben lassen' }}
+            </button>
+          </div>
+        } @else {
+          <button
+            type="button"
+            class="g-btn wide ghost"
+            [disabled]="reportLoading()"
+            (click)="loadReport()"
+          >
+            {{ reportLoading() ? 'Kudo schreibt…' : 'Zustand zusammenfassen lassen' }}
+          </button>
+        }
+      </section>
+
+      <!-- Ausgemustert -->
+      @if (retired().length > 0) {
+        <section class="g-section">
+          <button type="button" class="g-link-btn" (click)="showRetired.set(!showRetired())">
+            {{ showRetired() ? 'Ausgemustertes ausblenden' : 'Ausgemustert (' + retired().length + ')' }}
+          </button>
+          @if (showRetired()) {
+            <div class="g-card g-rows">
+              @for (assembly of retired(); track assembly.id) {
+                <div class="retired-row">
+                  <a class="g-row" [routerLink]="nav.to.assembly(current.id, assembly.id)">
+                    <span class="g-row-main">
+                      <span class="g-row-title">{{ assembly.display_name }}</span>
+                      <span class="g-row-sub">
+                        {{ assembly.assembly_km | number: '1.0-0' }} km ·
+                        ausgemustert {{ assembly.retired_at | date: 'dd.MM.yyyy' }}
+                      </span>
+                    </span>
+                  </a>
+                  <button type="button" class="g-btn small done" (click)="restore(assembly)">
+                    Zurückholen
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+    }
+  }
+</div>
+
+<!-- Blätter -->
+@if (editingBike() && bike(); as current) {
+  <app-bike-form-sheet
+    [bike]="current"
+    (closed)="editingBike.set(false)"
+    (saved)="afterChange()"
+    (deleted)="onBikeDeleted()"
+  />
+}
+
+@if (garage(); as data) {
+  @if (addingSet()) {
+    <app-wheelset-sheet
+      [bikeId]="bikeId()"
+      [garage]="data"
+      (closed)="addingSet.set(false)"
+      (created)="onSetCreated($event)"
+    />
+  }
+
+  @if (addingAssembly()) {
+    <app-add-assembly-sheet
+      [bikeId]="bikeId()"
+      [garage]="data"
+      (closed)="addingAssembly.set(false)"
+      (created)="afterChange()"
+    />
+  }
+
+  @if (openPart(); as part) {
+    <app-part-sheet
+      [component]="part.component"
+      [slot]="part.slot"
+      [assembly]="part.assembly"
+      [garage]="data"
+      (closed)="openPart.set(null)"
+      (changed)="afterChange()"
+    />
+  }
+
+  @if (switching(); as set) {
+    <app-switch-sheet
+      [target]="switchTarget(set)"
+      [title]="set.name + ' aufziehen'"
+      (closed)="switching.set(null)"
+      (switched)="afterChange()"
+      (editLinks)="onSwitchWantsLinks(set)"
+    />
+  }
+
+  @if (linkingWheels(); as wheels) {
+    <app-links-sheet
+      [wheels]="wheels"
+      [garage]="data"
+      (closed)="linkingWheels.set(null)"
+      (changed)="afterChange()"
+    />
+  }
+
+  @if (editingInterval(); as interval) {
+    <app-interval-sheet
+      [bikeId]="bikeId()"
+      [interval]="interval"
+      (closed)="editingInterval.set(null)"
+      (changed)="afterChange()"
+    />
+  }
+}

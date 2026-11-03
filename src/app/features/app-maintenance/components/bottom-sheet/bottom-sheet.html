@@ -1,0 +1,19 @@
+<dialog
+  #dialog
+  class="sheet"
+  [attr.aria-label]="title()"
+  (cancel)="onCancel($event)"
+  (click)="onDialogClick($event)"
+>
+  <div class="sheet-panel">
+    <header class="sheet-head">
+      <h2 class="sheet-title">{{ title() }}</h2>
+      <button type="button" class="g-icon-btn" aria-label="Schließen" (click)="closed.emit()">
+        ✕
+      </button>
+    </header>
+    <div class="sheet-body">
+      <ng-content />
+    </div>
+  </div>
+</dialog>

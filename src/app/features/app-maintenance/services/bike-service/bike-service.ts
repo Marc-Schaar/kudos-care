@@ -1,202 +1,66 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { map, Observable, of, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { environment } from './../../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import {
+  ActivationPlan,
   AddAssemblyItemPayload,
   AssembliesResponse,
-  BulkInstalledAtResult,
   BikeAssembly,
   BikeComponent,
   BikeConditionReport,
   BikeDetail,
   BikeList,
+  BulkInstalledAtResult,
   CheckInstructions,
   ComponentCheckPayload,
   ComponentGroupCatalog,
-  ComponentSlotDetail,
-  ComponentSlotList,
+  ComponentSlot,
   ComponentTemplate,
   CreateAssemblyPayload,
   CreateComponentPayload,
   CreateIntervalPayload,
+  CreateTemplatePayload,
   IntervalLogPayload,
   KudoModelCandidate,
   KudoSetupSuggestion,
   MaintenanceInterval,
+  UpdateComponentPayload,
   WeatherWearExplanation,
 } from '../../models/maintenance.models';
+
+/** Optional: an welchem Tag etwas passiert ist. Ohne Angabe gilt "jetzt". */
+function dayBody(on?: string | null): { on?: string } {
+  return on ? { on } : {};
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class BikeService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiUrl;
+  private readonly baseUrl = `${environment.apiUrl}/maintenance`;
 
   public bikes = signal<BikeList[]>([]);
   public selectedBike = signal<BikeDetail | null>(null);
-  public selectedSlot = signal<ComponentSlotDetail | null>(null);
-  public templates = signal<ComponentTemplate[]>([]);
 
-  private devMode = false;
+  // ── Räder ──────────────────────────────────────────────────────────────────
 
-  private mokedBikes: BikeList[] = [
-    {
-      id: 1,
-      strava_bike_id: 101,
-      name: 'Trek Emonda',
-      bike_type: 'road',
-      bike_type_display: 'Rennrad',
-      retired: false,
-      total_distance_km: 12500,
-      warn_status: 'ok',
-    },
-    {
-      id: 2,
-      strava_bike_id: 102,
-      name: 'Altes Stahl-RR',
-      bike_type: 'road',
-      bike_type_display: 'Rennrad',
-      retired: true,
-      total_distance_km: 45000,
-      warn_status: 'unknown',
-    },
-
-    // --- Mountainbike Kategorie ---
-    {
-      id: 3,
-      strava_bike_id: 201,
-      name: 'Specialized Stumpjumper',
-      bike_type: 'mtb',
-      bike_type_display: 'Mountainbike',
-      retired: false,
-      total_distance_km: 3200,
-      warn_status: 'warn',
-    },
-    {
-      id: 4,
-      strava_bike_id: 202,
-      name: 'Downhill Schlitten',
-      bike_type: 'mtb',
-      bike_type_display: 'Mountainbike',
-      retired: false,
-      total_distance_km: 800,
-      warn_status: 'critical',
-    },
-
-    // --- Gravel & CX ---
-    {
-      id: 5,
-      strava_bike_id: 301,
-      name: 'Canyon Grail',
-      bike_type: 'gravel',
-      bike_type_display: 'Gravel',
-      retired: false,
-      total_distance_km: 8900,
-      warn_status: 'ok',
-    },
-    {
-      id: 6,
-      strava_bike_id: 302,
-      name: 'Crosser Training',
-      bike_type: 'cx',
-      bike_type_display: 'Cyclocross',
-      retired: false,
-      total_distance_km: 2100,
-      warn_status: 'warn',
-    },
-
-    // --- E-Bikes ---
-    {
-      id: 7,
-      strava_bike_id: 401,
-      name: 'Turbo Levo SL',
-      bike_type: 'ebike_mtb',
-      bike_type_display: 'E-MTB',
-      retired: false,
-      total_distance_km: 4500,
-      warn_status: 'ok',
-    },
-    {
-      id: 8,
-      strava_bike_id: 402,
-      name: 'Commuter E-Bike',
-      bike_type: 'ebike_city',
-      bike_type_display: 'E-Stadtrad',
-      retired: false,
-      total_distance_km: 12000,
-      warn_status: 'critical',
-    },
-    {
-      id: 9,
-      strava_bike_id: 403,
-      name: 'E-Road Pro',
-      bike_type: 'ebike_road',
-      bike_type_display: 'E-Rennrad',
-      retired: false,
-      total_distance_km: 1500,
-      warn_status: 'ok',
-    },
-
-    // --- City & Sonstiges ---
-    {
-      id: 10,
-      strava_bike_id: 501,
-      name: 'Bahnhofsrad',
-      bike_type: 'city',
-      bike_type_display: 'Stadtrad',
-      retired: false,
-      total_distance_km: 500,
-      warn_status: 'ok',
-    },
-    {
-      id: 11,
-      strava_bike_id: 502,
-      name: 'Einrad / Lastenrad',
-      bike_type: 'other',
-      bike_type_display: 'Sonstiges',
-      retired: false,
-      total_distance_km: 150,
-      warn_status: 'unknown',
-    },
-  ];
-
-  public fetchBikes(): Observable<BikeList[]> {
-    if (this.devMode) {
-      this.bikes.set(this.mokedBikes);
-      return of(this.mokedBikes);
-    } else {
-      return this.http.get<{ bikes: BikeList[] }>(`${this.baseUrl}/maintenance/bikes/`).pipe(
-        map((response) => response.bikes),
-        tap((res) => this.bikes.set(res)),
-      );
-    }
+  fetchBikes(): Observable<BikeList[]> {
+    return this.http.get<{ bikes: BikeList[] }>(`${this.baseUrl}/bikes/`).pipe(
+      map((response) => response.bikes),
+      tap((res) => this.bikes.set(res)),
+    );
   }
 
   fetchBikeDetails(bikeId: number) {
-    if (this.devMode) {
-      const bike = this.mokedBikes.find((b) => b.id === bikeId) || null;
-      const details: BikeDetail = {
-        ...bike!,
-        slots: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      this.selectedBike.set(details);
-      return of(details);
-    } else {
-      return this.http
-        .get<BikeDetail>(`${this.baseUrl}/maintenance/bikes/${bikeId}/`)
-        .pipe(tap((res) => this.selectedBike.set(res)));
-    }
+    return this.http
+      .get<BikeDetail>(`${this.baseUrl}/bikes/${bikeId}/`)
+      .pipe(tap((res) => this.selectedBike.set(res)));
   }
 
-  fetchDistanceAtDate(bikeId: number, isoDate: string) {
-    return this.http.get<{ distance_km: number }>(
-      `${this.baseUrl}/maintenance/bikes/${bikeId}/distance-at/`,
-      { params: { date: isoDate } },
-    );
+  createBike(payload: { name: string; bike_type: string }) {
+    return this.http.post<BikeDetail>(`${this.baseUrl}/bikes/`, payload);
   }
 
   updateBike(
@@ -204,49 +68,14 @@ export class BikeService {
     payload: Partial<{ name: string; bike_type: string; retired: boolean }>,
   ) {
     return this.http
-      .patch<BikeDetail>(`${this.baseUrl}/maintenance/bikes/${bikeId}/`, payload)
+      .patch<BikeDetail>(`${this.baseUrl}/bikes/${bikeId}/`, payload)
       .pipe(tap((res) => this.selectedBike.set(res)));
   }
 
-  fetchSlotDetail(slotId: number) {
+  deleteBike(bikeId: number) {
     return this.http
-      .get<ComponentSlotDetail>(`${this.baseUrl}/maintenance/slots/${slotId}/`)
-      .pipe(tap((res) => this.selectedSlot.set(res)));
-  }
-  addComponent(slotId: number, payload: CreateComponentPayload) {
-    return this.http.post<BikeComponent>(
-      `${this.baseUrl}/maintenance/slots/${slotId}/components/`,
-      payload,
-    );
-  }
-
-  fetchComponent(componentId: number) {
-    return this.http.get<BikeComponent>(`${this.baseUrl}/maintenance/components/${componentId}/`);
-  }
-
-  updateComponent(componentId: number, payload: Partial<BikeComponent>) {
-    return this.http.patch<BikeComponent>(
-      `${this.baseUrl}/maintenance/components/${componentId}/`,
-      payload,
-    );
-  }
-
-  deleteComponent(componentId: number) {
-    return this.http.delete(`${this.baseUrl}/maintenance/components/${componentId}/`);
-  }
-
-  checkComponent(componentId: number, payload: ComponentCheckPayload) {
-    return this.http.post<BikeComponent>(
-      `${this.baseUrl}/maintenance/components/${componentId}/check/`,
-      payload,
-    );
-  }
-
-  fetchWeatherExplanation(componentId: number, refresh = false) {
-    const params = refresh ? '?refresh=true' : '';
-    return this.http.get<WeatherWearExplanation>(
-      `${this.baseUrl}/maintenance/components/${componentId}/weather-explanation/${params}`,
-    );
+      .delete(`${this.baseUrl}/bikes/${bikeId}/`)
+      .pipe(tap(() => this.selectedBike.set(null)));
   }
 
   /**
@@ -256,47 +85,139 @@ export class BikeService {
   fetchConditionReport(bikeId: number, refresh = false) {
     const params = refresh ? '?refresh=true' : '';
     return this.http.get<BikeConditionReport>(
-      `${this.baseUrl}/maintenance/bikes/${bikeId}/condition-report/${params}`,
+      `${this.baseUrl}/bikes/${bikeId}/condition-report/${params}`,
+    );
+  }
+
+  /**
+   * Setzt das Einbaudatum fuer ALLE montierten Teile auf einmal — ohne `assemblyId` fuer
+   * alles, was am Rad ist, sonst nur fuer diese Baugruppe. Die km zaehlen danach aus den
+   * Fahrten ab diesem Tag.
+   */
+  setInstalledAtForAll(bikeId: number, installedAt: string, assemblyId?: number) {
+    const body: { installed_at: string; assembly_id?: number } = {
+      installed_at: installedAt,
+    };
+    if (assemblyId != null) body.assembly_id = assemblyId;
+    return this.http.post<BulkInstalledAtResult>(
+      `${this.baseUrl}/bikes/${bikeId}/installed-at/`,
+      body,
+    );
+  }
+
+  // ── Teile ──────────────────────────────────────────────────────────────────
+
+  addComponent(slotId: number, payload: CreateComponentPayload) {
+    return this.http.post<BikeComponent>(`${this.baseUrl}/slots/${slotId}/components/`, payload);
+  }
+
+  fetchComponent(componentId: number) {
+    return this.http.get<BikeComponent>(`${this.baseUrl}/components/${componentId}/`);
+  }
+
+  updateComponent(componentId: number, payload: UpdateComponentPayload) {
+    return this.http.patch<BikeComponent>(`${this.baseUrl}/components/${componentId}/`, payload);
+  }
+
+  deleteComponent(componentId: number) {
+    return this.http.delete(`${this.baseUrl}/components/${componentId}/`);
+  }
+
+  /** Dieses Teil drauf, das bisherige wandert ins Regal. Ab da zaehlen die km hierfuer. */
+  mountComponent(componentId: number, on?: string | null) {
+    return this.http.post<BikeComponent>(
+      `${this.baseUrl}/components/${componentId}/mount/`,
+      dayBody(on),
+    );
+  }
+
+  /** Abnehmen, aber behalten: liegt danach im Regal. */
+  unmountComponent(componentId: number, on?: string | null) {
+    return this.http.post<BikeComponent>(
+      `${this.baseUrl}/components/${componentId}/unmount/`,
+      dayBody(on),
+    );
+  }
+
+  retireComponent(componentId: number, on?: string | null) {
+    return this.http.post<BikeComponent>(
+      `${this.baseUrl}/components/${componentId}/retire/`,
+      dayBody(on),
+    );
+  }
+
+  /** Aus Versehen ausgemustert, oder doch noch gut: zurueck ins Regal. */
+  restoreComponent(componentId: number) {
+    return this.http.post<BikeComponent>(`${this.baseUrl}/components/${componentId}/restore/`, {});
+  }
+
+  /** Auf einen anderen Platz gleicher Art umziehen, z.B. auf das andere Laufrad. */
+  moveComponent(componentId: number, slotId: number, mount = true, on?: string | null) {
+    return this.http.post<BikeComponent>(`${this.baseUrl}/components/${componentId}/move/`, {
+      slot_id: slotId,
+      mount,
+      ...dayBody(on),
+    });
+  }
+
+  checkComponent(componentId: number, payload: ComponentCheckPayload) {
+    return this.http.post<BikeComponent>(
+      `${this.baseUrl}/components/${componentId}/check/`,
+      payload,
+    );
+  }
+
+  undoCheck(componentId: number) {
+    return this.http.delete<BikeComponent>(`${this.baseUrl}/components/${componentId}/check/`);
+  }
+
+  fetchWeatherExplanation(componentId: number, refresh = false) {
+    const params = refresh ? '?refresh=true' : '';
+    return this.http.get<WeatherWearExplanation>(
+      `${this.baseUrl}/components/${componentId}/weather-explanation/${params}`,
     );
   }
 
   fetchCheckInstructions(componentId: number, refresh = false) {
     const params = refresh ? '?refresh=true' : '';
     return this.http.get<CheckInstructions>(
-      `${this.baseUrl}/maintenance/components/${componentId}/check-instructions/${params}`,
+      `${this.baseUrl}/components/${componentId}/check-instructions/${params}`,
     );
   }
 
-  mountComponent(slotId: number, componentId: number) {
-    return this.http.post<BikeComponent>(`${this.baseUrl}/maintenance/slots/${slotId}/mount/`, {
-      component_id: componentId,
+  // ── Plaetze ────────────────────────────────────────────────────────────────
+
+  renameSlot(slotId: number, customName: string) {
+    return this.http.patch<ComponentSlot>(`${this.baseUrl}/slots/${slotId}/`, {
+      custom_name: customName,
     });
   }
 
-  unmountComponent(slotId: number) {
-    return this.http.post<BikeComponent>(
-      `${this.baseUrl}/maintenance/slots/${slotId}/unmount/`,
-      {},
-    );
+  /** Der Platz samt aller seiner Teile. Der Aufrufer hat nachgefragt. */
+  deleteSlot(slotId: number) {
+    return this.http.delete(`${this.baseUrl}/slots/${slotId}/?confirm=true`);
   }
 
-  // ── Templates ──────────────────────────────────────────────────────────────
+  // ── Katalog ────────────────────────────────────────────────────────────────
 
-  fetchTemplates(bikeType?: string) {
+  fetchGroups(bikeType?: string) {
     const params = bikeType ? `?bike_type=${bikeType}` : '';
-    return this.http
-      .get<ComponentTemplate[]>(`${this.baseUrl}/maintenance/templates/${params}`)
-      .pipe(tap((res) => this.templates.set(res)));
+    return this.http.get<ComponentGroupCatalog[]>(`${this.baseUrl}/groups/${params}`);
   }
 
-  // ── Baugruppen-Katalog + Bike-Baugruppen ───────────────────────────────────
+  createTemplate(payload: CreateTemplatePayload) {
+    return this.http.post<ComponentTemplate>(`${this.baseUrl}/templates/`, payload);
+  }
+
+  // ── Kudo ───────────────────────────────────────────────────────────────────
 
   /** Kudo, Schritt 1: Hersteller (+ Baujahr) → Modellauswahl. */
   fetchKudoModels(manufacturer: string, year: number | null, bikeType: string) {
-    return this.http.post<{ models: KudoModelCandidate[] }>(
-      `${this.baseUrl}/maintenance/assistant/models/`,
-      { manufacturer, year, bike_type: bikeType },
-    );
+    return this.http.post<{ models: KudoModelCandidate[] }>(`${this.baseUrl}/assistant/models/`, {
+      manufacturer,
+      year,
+      bike_type: bikeType,
+    });
   }
 
   /** Kudo, Schritt 2: gewähltes Modell → Vorbelegung für den Setup-Stepper. */
@@ -308,119 +229,94 @@ export class BikeService {
     spec = '',
   ) {
     return this.http.post<KudoSetupSuggestion>(
-      `${this.baseUrl}/maintenance/bikes/${bikeId}/assistant/setup/`,
+      `${this.baseUrl}/bikes/${bikeId}/assistant/setup/`,
       { manufacturer, model, year, spec },
     );
   }
 
-  /**
-   * Setzt das Einbaudatum fuer ALLE montierten Teile auf einmal — ohne
-   * `assemblyId` fuers ganze Bike, sonst nur fuer diese Baugruppe.
-   *
-   * Der km-Stand wird serverseitig aus der Fahrt-Historie zum Stichtag
-   * abgeleitet; der Client schickt bewusst nur das Datum, damit Teile und
-   * Nutzungsperiode dieselbe Zahl bekommen.
-   */
-  setInstalledAtForAll(bikeId: number, installedAt: string, assemblyId?: number) {
-    const body: { installed_at: string; assembly_id?: number } = {
-      installed_at: installedAt,
-    };
-    if (assemblyId != null) body.assembly_id = assemblyId;
-    return this.http.post<BulkInstalledAtResult>(
-      `${this.baseUrl}/maintenance/bikes/${bikeId}/installed-at/`,
-      body,
-    );
+  // ── Baugruppen ─────────────────────────────────────────────────────────────
+
+  fetchAssemblies(bikeId: number) {
+    return this.http.get<AssembliesResponse>(`${this.baseUrl}/bikes/${bikeId}/assemblies/`);
+  }
+
+  createAssembly(bikeId: number, payload: CreateAssemblyPayload) {
+    return this.http.post<BikeAssembly>(`${this.baseUrl}/bikes/${bikeId}/assemblies/`, payload);
+  }
+
+  renameAssembly(assemblyId: number, name: string) {
+    return this.http.patch<BikeAssembly>(`${this.baseUrl}/assemblies/${assemblyId}/`, { name });
+  }
+
+  /** Endgültig, samt aller Teile und ihres Verlaufs. Der Aufrufer hat nachgefragt. */
+  deleteAssembly(assemblyId: number) {
+    return this.http.delete(`${this.baseUrl}/assemblies/${assemblyId}/?confirm=true`);
   }
 
   /** Ergaenzt eine bestehende Baugruppe um ein einzelnes Teil oder Intervall. */
   addAssemblyItem(assemblyId: number, payload: AddAssemblyItemPayload) {
-    return this.http.post(`${this.baseUrl}/maintenance/assemblies/${assemblyId}/items/`, payload);
+    return this.http.post(`${this.baseUrl}/assemblies/${assemblyId}/items/`, payload);
   }
 
-  fetchGroups(bikeType?: string) {
-    const params = bikeType ? `?bike_type=${bikeType}` : '';
-    return this.http.get<ComponentGroupCatalog[]>(`${this.baseUrl}/maintenance/groups/${params}`);
-  }
-
-  fetchAssemblies(bikeId: number) {
-    return this.http.get<AssembliesResponse>(
-      `${this.baseUrl}/maintenance/bikes/${bikeId}/assemblies/`,
-    );
-  }
-
-  createAssembly(bikeId: number, payload: CreateAssemblyPayload) {
-    return this.http.post<BikeAssembly>(
-      `${this.baseUrl}/maintenance/bikes/${bikeId}/assemblies/`,
-      payload,
-    );
-  }
-
-  updateAssembly(
-    assemblyId: number,
-    patch: Partial<Pick<BikeAssembly, 'name' | 'installed_at' | 'is_active' | 'retired_at'>>,
-  ) {
-    return this.http.patch<BikeAssembly>(
-      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/`,
-      patch,
-    );
-  }
-
-  deleteAssembly(assemblyId: number) {
-    return this.http.delete(`${this.baseUrl}/maintenance/assemblies/${assemblyId}/`);
-  }
-
-  /** "Teile erneuern": alte Instanz ausmustern, neue mit frischen Teilen anlegen. */
-  swapAssembly(assemblyId: number, payload: CreateAssemblyPayload) {
-    return this.http.post<BikeAssembly>(
-      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/swap/`,
-      payload,
-    );
+  /** Was beim Aufziehen alles mitwechseln wuerde — aendert nichts. */
+  fetchActivationPlan(assemblyId: number) {
+    return this.http.get<ActivationPlan>(`${this.baseUrl}/assemblies/${assemblyId}/activate/`);
   }
 
   /**
-   * Eine geparkte Baugruppe aufziehen (z.B. Winter-LRS montieren). Die bislang
-   * aufgezogene Instanz derselben Gruppe wird dabei geparkt, nicht ausgemustert —
-   * ihre Teile bleiben montiert und sammeln nur keine km mehr.
+   * Zieht eine Baugruppe auf. Das gekoppelte andere Laufrad und die gekoppelten Teile
+   * wechseln mit, der bisherige Satz wird geparkt und behaelt seine Teile.
    */
-  activateAssembly(assemblyId: number) {
-    return this.http.post<BikeAssembly>(
-      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/activate/`,
-      {},
+  activateAssembly(assemblyId: number, on?: string | null) {
+    return this.http.post<BikeAssembly & { plan: ActivationPlan }>(
+      `${this.baseUrl}/assemblies/${assemblyId}/activate/`,
+      dayBody(on),
     );
   }
 
-  /** Endgültig ausmustern (verkauft/entsorgt) — Teile werden ausgebaut. */
-  retireAssembly(assemblyId: number) {
-    return this.http.post<BikeAssembly>(
-      `${this.baseUrl}/maintenance/assemblies/${assemblyId}/retire/`,
-      {},
-    );
+  /** Endgültig ausmustern (verkauft/entsorgt), wahlweise den ganzen Satz. */
+  retireAssembly(assemblyId: number, withLinked = false, on?: string | null) {
+    return this.http.post<BikeAssembly>(`${this.baseUrl}/assemblies/${assemblyId}/retire/`, {
+      with_linked: withLinked,
+      ...dayBody(on),
+    });
+  }
+
+  restoreAssembly(assemblyId: number) {
+    return this.http.post<BikeAssembly>(`${this.baseUrl}/assemblies/${assemblyId}/restore/`, {});
+  }
+
+  /** Legt fest, was beim Aufziehen mitwechselt. Ersetzt die bisherige Auswahl. */
+  setAssemblyLinks(assemblyId: number, assemblyIds: number[], componentIds: number[]) {
+    return this.http.put<BikeAssembly>(`${this.baseUrl}/assemblies/${assemblyId}/links/`, {
+      assembly_ids: assemblyIds,
+      component_ids: componentIds,
+    });
   }
 
   // ── Wartungs-Intervalle (Verbrauchsmaterial / Pflege) ──────────────────────
 
   addInterval(bikeId: number, payload: CreateIntervalPayload) {
-    return this.http.post<MaintenanceInterval>(
-      `${this.baseUrl}/maintenance/bikes/${bikeId}/intervals/`,
-      payload,
-    );
+    return this.http.post<MaintenanceInterval>(`${this.baseUrl}/bikes/${bikeId}/intervals/`, payload);
   }
 
   updateInterval(intervalId: number, patch: Partial<MaintenanceInterval>) {
-    return this.http.patch<MaintenanceInterval>(
-      `${this.baseUrl}/maintenance/intervals/${intervalId}/`,
-      patch,
-    );
+    return this.http.patch<MaintenanceInterval>(`${this.baseUrl}/intervals/${intervalId}/`, patch);
   }
 
   deleteInterval(intervalId: number) {
-    return this.http.delete(`${this.baseUrl}/maintenance/intervals/${intervalId}/`);
+    return this.http.delete(`${this.baseUrl}/intervals/${intervalId}/`);
   }
 
   logInterval(intervalId: number, payload: IntervalLogPayload = {}) {
     return this.http.post<MaintenanceInterval>(
-      `${this.baseUrl}/maintenance/intervals/${intervalId}/log/`,
+      `${this.baseUrl}/intervals/${intervalId}/log/`,
       payload,
     );
+  }
+
+  /** Aus Versehen auf "Erledigt" getippt: stellt den Stand davor wieder her. */
+  undoIntervalLog(intervalId: number) {
+    return this.http.delete<MaintenanceInterval>(`${this.baseUrl}/intervals/${intervalId}/log/`);
   }
 }

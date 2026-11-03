@@ -1,0 +1,81 @@
+<app-bottom-sheet [title]="title()" (closed)="closed.emit()">
+  <div class="g-form">
+    <form class="g-form" (ngSubmit)="save()">
+      <label class="g-field">
+        <span class="g-label">Name</span>
+        <input class="g-input" name="name" autocomplete="off" [(ngModel)]="name" />
+      </label>
+      <label class="g-field">
+        <span class="g-label">Art</span>
+        <select class="g-input" name="type" [(ngModel)]="bikeType">
+          @for (type of types; track type[0]) {
+            <option [value]="type[0]">{{ type[1] }}</option>
+          }
+        </select>
+      </label>
+      @if (bike()) {
+        <label class="g-check">
+          <input type="checkbox" name="retired" [(ngModel)]="retired" />
+          <span>
+            Im Ruhestand
+            <span class="g-row-sub">Keine Warnungen mehr, die Geschichte bleibt.</span>
+          </span>
+        </label>
+      }
+      <button type="submit" class="g-btn primary" [disabled]="busy() || !name().trim()">
+        {{ bike() ? 'Speichern' : 'Anlegen' }}
+      </button>
+      @if (!bike()) {
+        <p class="g-hint">
+          Fahrten kommen nur bei Rädern an, die auch bei Strava stehen. Die erscheinen nach dem
+          Sync von selbst.
+        </p>
+      }
+    </form>
+
+    @if (bike()) {
+      <hr class="g-divider" />
+      <form class="g-form" (ngSubmit)="setInstalledAt()">
+        <label class="g-field">
+          <span class="g-label">Einbaudatum für alle Teile am Rad</span>
+          <input
+            class="g-input"
+            type="date"
+            name="installedAt"
+            [max]="today"
+            [(ngModel)]="installedAt"
+          />
+          <span class="g-hint">
+            Für den Fall, dass du das Rad erst nach den Fahrten eingerichtet hast. Laufräder im
+            Keller bleiben unberührt.
+          </span>
+        </label>
+        <button type="submit" class="g-btn" [disabled]="busy()">Datum übernehmen</button>
+      </form>
+
+      <div class="g-danger-zone">
+        @if (confirmingDelete()) {
+          <p class="g-text">
+            Das Rad wird samt aller Teile und ihres Verlaufs gelöscht. Deine Fahrten bleiben.
+            @if (fromStrava()) {
+              Beim nächsten Strava-Sync taucht es leer wieder auf. Für „will ich nicht mehr sehen"
+              ist der Ruhestand der bessere Weg.
+            }
+          </p>
+          <div class="g-actions">
+            <button type="button" class="g-btn ghost" (click)="confirmingDelete.set(false)">
+              Abbrechen
+            </button>
+            <button type="button" class="g-btn danger-solid" [disabled]="busy()" (click)="delete()">
+              Endgültig löschen
+            </button>
+          </div>
+        } @else {
+          <button type="button" class="g-btn danger wide" (click)="confirmingDelete.set(true)">
+            Rad löschen
+          </button>
+        }
+      </div>
+    }
+  </div>
+</app-bottom-sheet>

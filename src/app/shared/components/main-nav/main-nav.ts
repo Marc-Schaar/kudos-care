@@ -12,9 +12,8 @@ import { NavigationService } from '../../../shared/services/navigation-service/n
  * eine Seite ohne Rückweg. Deshalb liegt sie jetzt in der App-Shell und gilt
  * für alles.
  *
- * Zwei der fünf Ziele hängen an einem Bike ("Zustand", "Werkstatt"). Solange
- * keins gewählt ist, sind sie deaktiviert statt versteckt — eine Leiste, die
- * ihre Anzahl ändert, springt beim Navigieren.
+ * "Mein Rad" hängt an einem Bike. Solange keins gewählt ist, ist es deaktiviert
+ * statt versteckt — eine Leiste, die ihre Anzahl ändert, springt beim Navigieren.
  *
  * Ausgeblendet auf den öffentlichen Routen (Login, Landing, Strava-Callback) —
  * dort gibt es nichts zu navigieren. Die Sichtbarkeit hängt bewusst an der
@@ -46,8 +45,8 @@ export class MainNav {
 
   /**
    * Das zuletzt geöffnete Bike. `selectedBike` wird von `fetchBikeDetails()`
-   * gesetzt und überlebt den Wechsel auf andere Bereiche — genau das macht die
-   * beiden Bike-Ziele von überall aus erreichbar.
+   * gesetzt und überlebt den Wechsel auf andere Bereiche — genau das macht das
+   * Rad von überall aus erreichbar.
    */
   readonly bikeId = computed(() => this.bikeService.selectedBike()?.id ?? null);
 

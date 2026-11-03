@@ -1,0 +1,37 @@
+<app-bottom-sheet [title]="slot().display_name" (closed)="closed.emit()">
+  <form class="g-form" (ngSubmit)="rename()">
+    <label class="g-field">
+      <span class="g-label">Eigener Name</span>
+      <input
+        class="g-input"
+        name="name"
+        autocomplete="off"
+        [placeholder]="slot().template_detail.name"
+        [(ngModel)]="name"
+      />
+    </label>
+    <button type="submit" class="g-btn" [disabled]="busy()">Speichern</button>
+
+    <div class="g-danger-zone">
+      @if (confirmingDelete()) {
+        <p class="g-text">
+          Der Platz wird entfernt, samt {{ partCount() }}
+          {{ partCount() === 1 ? 'Teil' : 'Teilen' }} und ihrem Verlauf. Das lässt sich nicht
+          rückgängig machen.
+        </p>
+        <div class="g-actions">
+          <button type="button" class="g-btn ghost" (click)="confirmingDelete.set(false)">
+            Abbrechen
+          </button>
+          <button type="button" class="g-btn danger-solid" [disabled]="busy()" (click)="delete()">
+            Endgültig entfernen
+          </button>
+        </div>
+      } @else {
+        <button type="button" class="g-btn danger wide" (click)="confirmingDelete.set(true)">
+          Platz entfernen
+        </button>
+      }
+    </div>
+  </form>
+</app-bottom-sheet>

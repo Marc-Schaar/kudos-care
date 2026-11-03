@@ -41,16 +41,17 @@ export type MaintenanceIntervalKind =
 export type MountPosition = 'front' | 'rear' | '';
 
 /**
- * `assembly` = physische Einheit, am Stück wechselbar (Laufradsatz).
- * `area` = Teile am selben Ort, die unabhängig verschleißen (Bremse, Cockpit) —
- * dort gibt es kein "Wechseln"/"Teile erneuern", nur Einzeltausch.
+ * `assembly` = physische Einheit, am Stück wechselbar (Laufrad). Davon darf es
+ * mehrere je Rad geben, eine davon ist aufgezogen.
+ * `area` = Teile am selben Ort, die unabhängig verschleißen (Bremse, Cockpit). Gibt
+ * es je Rad einmal; getauscht wird dort pro Platz.
  */
 export type GroupKind = 'assembly' | 'area';
 
 export interface ComponentTemplate {
   id: number;
   name: string;
-  /** Seite am Rad. Leer = ohne Seite. Das Diagramm liest das statt des Namens. */
+  /** Seite am Rad. Leer = ohne Seite. */
   position: MountPosition;
   category: ComponentCategory;
   category_display: string;
@@ -62,9 +63,21 @@ export interface ComponentTemplate {
   supports_condition_estimate: boolean;
   maintenance_kind: MaintenanceKind;
   default_in_group: boolean;
+  /** Sitzt nicht auf dem Laufrad, muss aber dazu passen (Bremsbeläge, Scheiben). */
+  follows_wheel: boolean;
   notes: string;
   group: number | null;
   group_name: string | null;
+}
+
+export interface CreateTemplatePayload {
+  name: string;
+  category: ComponentCategory;
+  group: number;
+  maintenance_kind: MaintenanceKind;
+  applicable_bike_types: BikeType[];
+  warn_km?: number | null;
+  warn_days?: number | null;
 }
 
 // ── ComponentCheck ("Prüfen/Freigeben") ────────────────────────────────────────
@@ -86,23 +99,41 @@ export interface ComponentCheckPayload {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+/** montiert = am Platz, spare = im Regal und noch gut, retired = ausgemustert. */
+export type ComponentStatus = 'mounted' | 'spare' | 'retired';
+
+/** Ein Einsatz des Teils. Die km ergeben sich aus den Fahrten in diesem Zeitraum. */
+export interface UsagePeriod {
+  id: number;
+  started_at: string;
+  ended_at: string | null;
+  km: number;
+}
+
 export interface BikeComponent {
   id: number;
   slot: number;
+  /** Marke + Modell, sonst der Name des Platzes. */
+  label: string;
   brand: string;
   model_name: string;
-  distance_at_install: number | null;
-  installed_at: string | null; // ISO date string
-  retired_at: string | null;
+  status: ComponentStatus;
   is_mounted: boolean;
+  installed_at: string | null;
+  retired_at: string | null;
+  /** Km, die das Teil schon hatte, bevor es hier erfasst wurde. */
+  prior_km: number | null;
   notes: string;
   custom_warn_km: number | null;
   custom_warn_days: number | null;
+  effective_warn_km: number | null;
+  effective_warn_days: number | null;
   created_at: string;
   updated_at: string;
-  // berechnete Felder vom Backend
-  wear_km: number | null;
+  wear_km: number;
   wear_days: number | null;
+  /** Verbrauchter Anteil der Lebensdauer auf der schlechtesten Achse. */
+  wear_ratio: number | null;
   warn_status_km: WarnStatus;
   warn_status_days: WarnStatus;
   weather_wear_km: number | null;
@@ -110,37 +141,35 @@ export interface BikeComponent {
   weather_wear_ride_count: number | null;
   warn_status_weather_km: WarnStatus;
   warn_status_overall: WarnStatus;
+  condition_pct: number | null;
   last_check: ComponentCheckSummary | null;
+  periods: UsagePeriod[];
 }
 
 export interface CreateComponentPayload {
   brand: string;
   model_name: string;
-  distance_at_install: number | null;
-  installed_at: string | null;
-  is_mounted: boolean;
-  notes: string;
-  custom_warn_km: number | null;
-  custom_warn_days: number | null;
+  notes?: string;
+  custom_warn_km?: number | null;
+  custom_warn_days?: number | null;
+  prior_km?: number | null;
+  /** Gleich aufziehen (das bisherige Teil wandert ins Regal) oder nur ins Regal legen. */
+  mount: boolean;
+  installed_at?: string;
 }
 
-// ── ComponentSlot ─────────────────────────────────────────────────────────────
-
-export interface MountedComponentSummary {
-  id: number;
-  brand: string;
-  model_name: string;
-  installed_at: string | null;
-  condition_pct: number | null;
-  wear_km: number | null;
-  wear_days: number | null;
-  effective_warn_km: number | null;
-  effective_warn_days: number | null;
-  warn_status_overall: WarnStatus;
-  weather_wear_km: number | null;
-  weather_wear_ride_count: number | null;
-  warn_status_weather_km: WarnStatus;
-}
+export type UpdateComponentPayload = Partial<
+  Pick<
+    BikeComponent,
+    | 'brand'
+    | 'model_name'
+    | 'notes'
+    | 'custom_warn_km'
+    | 'custom_warn_days'
+    | 'prior_km'
+    | 'installed_at'
+  >
+>;
 
 // ── Wetter-Verschleiß-Erklärung (KI-generiert, on-demand) ──────────────────────
 
@@ -166,71 +195,42 @@ export interface BikeConditionReport {
   cached: boolean;
 }
 
-export interface ComponentSlotList {
+// ── Platz am Rad (ComponentSlot) ──────────────────────────────────────────────
+
+export interface ComponentSlot {
   id: number;
   bike: number;
+  assembly: number | null;
   template: number;
   template_detail: ComponentTemplate;
+  custom_name: string;
   display_name: string;
   category: ComponentCategory;
   category_display: string;
   warn_status: WarnStatus;
-  mounted_component: MountedComponentSummary | null;
+  mounted_component: BikeComponent | null;
+  spare_components: BikeComponent[];
+  retired_components: BikeComponent[];
 }
 
-export interface ComponentSlotDetail extends ComponentSlotList {
-  custom_name: string;
-  template_detail: ComponentTemplate;
-  components: BikeComponent[];
-}
-
-/**
- * Ein ausgebautes (nicht montiertes) Teil als Übernahme-Vorschlag beim
- * Baugruppe-Anlegen — Pendant zu `ComponentSlotList.mounted_component` für
- * den Fall, dass das Teil gerade nicht montiert ist (z.B. ein zurückgelegter
- * Laufradsatz-Teil aus dem Keller). Siehe `AssemblyPartItem.reuse_component_id`.
- */
+/** Ein Teil im Regal, mit seiner Herkunft. */
 export interface SpareComponent {
   id: number;
+  slot: number;
+  slot_name: string;
+  assembly: number | null;
+  assembly_name: string | null;
+  /** Seine Baugruppe ist ausgemustert: es braucht einen neuen Platz. */
+  orphaned: boolean;
   template: number;
+  label: string;
   brand: string;
   model_name: string;
+  status: ComponentStatus;
   installed_at: string | null;
   retired_at: string | null;
-  distance_at_retire: number | null;
-  /** Bereits gefahrene km bis zum Ausbau — bleibt bei Übernahme erhalten. */
-  prior_wear_km: number | null;
-}
-
-// ── Quick-Change (Baugruppen-Tausch) ───────────────────────────────────────────
-
-export interface ComponentGroupRef {
-  id: number;
-  name: string;
-}
-
-export interface QuickChangeItem {
-  slot_id: number;
-  display_name: string;
-  preselected: boolean;
-  mounted_component: { brand: string; model_name: string; installed_at: string | null } | null;
-}
-
-export interface QuickChangeGroupResponse {
-  group: ComponentGroupRef;
-  items: QuickChangeItem[];
-}
-
-export interface QuickChangeRequestItem {
-  slot_id: number;
-  include: boolean;
-  brand?: string;
-  model_name?: string;
-}
-
-export interface QuickChangeRequest {
-  installed_at?: string;
-  items: QuickChangeRequestItem[];
+  /** Bisher gefahrene km — bleiben bei einer Übernahme erhalten. */
+  prior_wear_km: number;
 }
 
 // ── Baugruppen-Katalog (ComponentGroup) ──────────────────────────────────────
@@ -245,7 +245,7 @@ export interface ComponentGroupCatalog {
   sort_order: number;
   recommended: boolean;
   is_system: boolean;
-  /** Steuert, ob "Wechseln"/"Teile erneuern" überhaupt angeboten werden. */
+  /** Steuert, ob "Wechseln" angeboten wird und ob es mehrere Instanzen geben darf. */
   kind: GroupKind;
   position: MountPosition;
   parts: ComponentTemplate[];
@@ -259,7 +259,6 @@ export interface ComponentGroupCatalog {
 export interface MaintenanceLog {
   id: number;
   done_at: string;
-  done_distance_km: number | null;
   note: string;
   created_at: string;
 }
@@ -274,17 +273,17 @@ export interface MaintenanceInterval {
   interval_km: number | null;
   interval_days: number | null;
   last_done_at: string | null;
-  last_done_distance_km: number | null;
   notes: string;
   status: WarnStatus;
-  km_since: number | null;
+  km_since: number;
   days_since: number | null;
+  /** Verbrauchter Anteil des Intervalls, schlechteste Achse. */
+  usage_ratio: number | null;
   last_log: MaintenanceLog | null;
 }
 
 export interface IntervalLogPayload {
   done_at?: string;
-  done_distance_km?: number | null;
   note?: string;
 }
 
@@ -300,6 +299,8 @@ export interface CreateIntervalPayload {
 
 // ── Baugruppe (BikeAssembly, Bike-Instanz) ───────────────────────────────────
 
+export type AssemblyStatus = 'active' | 'parked' | 'retired';
+
 export interface BikeAssembly {
   id: number;
   bike: number;
@@ -309,26 +310,42 @@ export interface BikeAssembly {
   display_name: string;
   installed_at: string | null;
   retired_at: string | null;
+  status: AssemblyStatus;
   is_active: boolean;
   /** Abgezogen, aber nicht entsorgt — z.B. der Sommer-LRS im Keller. */
   is_parked: boolean;
+  is_retired: boolean;
   /** Bei geparkten Sätzen der Tag des Abziehens, bei aufgezogenen heute. */
   last_used_at: string | null;
-  slots: ComponentSlotList[];
+  slots: ComponentSlot[];
   intervals: MaintenanceInterval[];
-  assembly_km: number | null;
+  assembly_km: number;
   worst_status: WarnStatus;
+  periods: { started_at: string; ended_at: string | null }[];
+  /** Was beim Aufziehen mitwechselt: das andere Laufrad des Satzes … */
+  linked_assembly_ids: number[];
+  /** … und einzelne Teile aus Bereichen wie der Bremse. */
+  linked_component_ids: number[];
   created_at: string;
   updated_at: string;
 }
 
 export interface AssembliesResponse {
   assemblies: BikeAssembly[];
-  /** Alternativen zum Wechseln (inaktiv, aber nicht ausgemustert). */
+  /** Alternativen zum Wechseln (nicht am Rad, aber nicht ausgemustert). */
   parked_assemblies: BikeAssembly[];
-  ungrouped_slots: ComponentSlotList[];
+  retired_assemblies: BikeAssembly[];
+  ungrouped_slots: ComponentSlot[];
   spare_components: SpareComponent[];
   available_groups: ComponentGroupCatalog[];
+}
+
+/** Was ein Wechsel auslöst — Vorschau und Ergebnis haben dieselbe Form. */
+export interface ActivationPlan {
+  activate: { id: number; name: string; group_name: string }[];
+  park: { id: number; name: string; group_name: string }[];
+  mount: { component_id: number; label: string; slot_name: string; replaces: string | null }[];
+  unpaired: { component_id: number; label: string; slot_name: string; from_assembly: string }[];
 }
 
 export interface AssemblyPartItem {
@@ -370,13 +387,16 @@ export interface CreateAssemblyPayload {
    * neue Instanz geparkt angelegt statt den bestehenden zu verdrängen.
    */
   activate?: boolean;
+  /** Gleich mitkoppeln: das andere Laufrad des neuen Satzes. */
+  linked_assembly_ids?: number[];
 }
 
 // ── Bike ──────────────────────────────────────────────────────────────────────
 
 export interface BikeList {
   id: number;
-  strava_bike_id: number;
+  /** Null = von Hand angelegt, ohne Strava-Bezug. */
+  strava_bike_id: string | null;
   name: string;
   bike_type: BikeType;
   bike_type_display: string;
@@ -386,31 +406,10 @@ export interface BikeList {
 }
 
 export interface BikeDetail extends BikeList {
-  slots: ComponentSlotList[];
+  slots: ComponentSlot[];
   created_at: string;
   updated_at: string;
 }
-
-// ── Kategorie-Gruppierung (Frontend-only) ─────────────────────────────────────
-
-export interface SlotGroup {
-  category: ComponentCategory;
-  category_display: string;
-  slots: ComponentSlotList[];
-  worst_status: WarnStatus;
-}
-
-export const CATEGORY_ORDER: ComponentCategory[] = [
-  'drivetrain',
-  'brakes',
-  'wheels',
-  'suspension',
-  'cockpit',
-  'frame',
-  'electric',
-  'lighting',
-  'other',
-];
 
 export const BIKE_TYPE_LABELS: Record<BikeType, string> = {
   road: 'Rennrad',
@@ -435,7 +434,6 @@ export type KudoConfidence = 'high' | 'medium' | 'low';
 /** Antwort von POST bikes/<id>/installed-at/. */
 export interface BulkInstalledAtResult {
   installed_at: string;
-  distance_at_install: number | null;
   components_updated: number;
   assemblies_updated: number;
 }

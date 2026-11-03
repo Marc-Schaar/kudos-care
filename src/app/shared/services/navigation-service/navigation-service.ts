@@ -39,21 +39,14 @@ export class NavigationService {
 
     /** Bike-Liste im Wartungsbereich. */
     bikes: (): RouteCommands => ['/app/maintenance'],
-    /** Zustandsseite eines Bikes — nur lesen. */
-    bikeCondition: (bikeId: number): RouteCommands => ['/app/maintenance', 'bikes', bikeId],
-    /** Werkstatt eines Bikes — alles, was etwas verändert. */
-    workshop: (bikeId: number): RouteCommands => [
-      '/app/maintenance',
-      'bikes',
-      bikeId,
-      'werkstatt',
-    ],
-    /** Detailseite einer einzelnen Baugruppe. */
+    /** Ein Rad: was fällig ist, seine Laufräder und Baugruppen. */
+    bike: (bikeId: number): RouteCommands => ['/app/maintenance', 'bikes', bikeId],
+    /** Eine einzelne Baugruppe mit ihren Plätzen und Teilen. */
     assembly: (bikeId: number, assemblyId: number): RouteCommands => [
       '/app/maintenance',
       'bikes',
       bikeId,
-      'werkstatt',
+      'baugruppen',
       assemblyId,
     ],
   } as const;
@@ -61,7 +54,7 @@ export class NavigationService {
   /**
    * Navigiert zu einem Ziel aus `to`.
    *
-   * Beispiel: `nav.goTo(nav.to.workshop(bikeId))`
+   * Beispiel: `nav.goTo(nav.to.bike(bikeId))`
    */
   goTo(commands: RouteCommands, extras?: NavigationExtras): Promise<boolean> {
     return this.router.navigate(commands, extras);

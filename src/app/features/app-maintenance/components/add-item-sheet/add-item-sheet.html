@@ -1,0 +1,79 @@
+<app-bottom-sheet title="Was fehlt noch?" (closed)="closed.emit()">
+  @if (custom()) {
+    <form class="g-form" (ngSubmit)="addCustom()">
+      <label class="g-field">
+        <span class="g-label">Name</span>
+        <input class="g-input" name="name" autocomplete="off" [(ngModel)]="name" />
+      </label>
+      <label class="g-field">
+        <span class="g-label">Art</span>
+        <select class="g-input" name="kind" [(ngModel)]="kind">
+          <option value="part">Teil, das getauscht wird</option>
+          <option value="consumable">Pflege, die regelmäßig ansteht</option>
+        </select>
+      </label>
+      <div class="g-two">
+        <label class="g-field">
+          <span class="g-label">Alle (km)</span>
+          <input
+            class="g-input"
+            type="number"
+            name="warnKm"
+            min="0"
+            inputmode="numeric"
+            [(ngModel)]="warnKm"
+          />
+        </label>
+        <label class="g-field">
+          <span class="g-label">Alle (Tage)</span>
+          <input
+            class="g-input"
+            type="number"
+            name="warnDays"
+            min="0"
+            inputmode="numeric"
+            [(ngModel)]="warnDays"
+          />
+        </label>
+      </div>
+      <div class="g-actions">
+        <button type="button" class="g-btn ghost" (click)="custom.set(false)">Zurück</button>
+        <button type="submit" class="g-btn primary" [disabled]="busy() || !name().trim()">
+          Hinzufügen
+        </button>
+      </div>
+    </form>
+  } @else {
+    <div class="g-form">
+      @if (missingParts().length > 0) {
+        <div class="g-list">
+          <span class="g-label">Teile</span>
+          @for (template of missingParts(); track template.id) {
+            <button type="button" class="g-row g-card" [disabled]="busy()" (click)="add(template)">
+              <span class="g-row-main">
+                <span class="g-row-title">{{ template.name }}</span>
+              </span>
+              <span aria-hidden="true">+</span>
+            </button>
+          }
+        </div>
+      }
+      @if (missingConsumables().length > 0) {
+        <div class="g-list">
+          <span class="g-label">Pflege</span>
+          @for (template of missingConsumables(); track template.id) {
+            <button type="button" class="g-row g-card" [disabled]="busy()" (click)="add(template)">
+              <span class="g-row-main">
+                <span class="g-row-title">{{ template.name }}</span>
+              </span>
+              <span aria-hidden="true">+</span>
+            </button>
+          }
+        </div>
+      }
+      <button type="button" class="g-btn wide" (click)="custom.set(true)">
+        Etwas anderes eintragen
+      </button>
+    </div>
+  }
+</app-bottom-sheet>

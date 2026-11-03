@@ -28,8 +28,8 @@ Strava-OAuth, Sync von Aktivitäten/Bikes, Verschleiß-Tracking von Bike-Kompone
 
 - Dev Server: `npm start` (→ `ng serve`, Port 4200)
 - Build: `npm run build` (Production-Config, Budgets 500kB/1MB initial,
-  `anyComponentStyle` 10kB warn / 16kB error — hochgesetzt wegen der animationslastigen
-  `app-landing`-Stylesheet)
+  `anyComponentStyle` 10kB warn / 16kB error, gilt je Stylesheet. Die Landing-Page verteilt
+  ihre Styles deshalb auf drei Dateien in `styleUrls`, die Reihenfolge zählt)
 - Watch-Build: `npm run watch`
 - Tests: `npm test` (Vitest via `ng test`)
 
@@ -49,8 +49,33 @@ core/                          — Shell, Bootstrapping, Routing, Interceptors
 
 features/
   app-landing/                  — Öffentliche Marketing-Landing-Page (`/`, die Startseite,
-    lazy, kein authGuard). Scroll-gekoppelte CSS-Animation (drehende Kurbel + Kette,
-    3D-Tilt) über ein Signal + rAF-Scroll-Listener, Einblendungen via IntersectionObserver.
+    lazy, kein authGuard). **Eine gepinnte Bühne, zwei Gründe, eine Trennlinie** (Grammatik
+    "Split Stage", Begründung in `scrollcraft/builds/kudos-care/BRIEF.md`): links die Kette,
+    rechts der Tacho, weil das Rad nach rechts fährt und die Kette damit hinten liegt, der
+    Tacho vorn. Dasselbe Rad wird in `landing-scene` zweimal gestempelt (`dark`/`paper`),
+    die obere Kopie per `clip-path` an der Linie abgeschnitten; darum endet auch der Regen
+    (`rain-layer.ts`, Canvas) von selbst hart an der Linie. Alles hängt an einer Zahl, der
+    Bühnenzeit `t`, und läuft über direkte DOM-Zugriffe in einem rAF-Loop, der nur läuft,
+    solange sich etwas bewegt. Signals nur für die Regler.
+    **`models/wear-formula.ts` ist eine Kopie** von `WeatherWearCalculator` plus den
+    Koeffizienten aus Migration `0006` im Backend, weil die Seite ohne Anmeldung rechnet
+    und es keinen öffentlichen Endpoint gibt: ändert sich die Formel dort, hier nachziehen.
+    Die Fahrten in `models/sample-season.ts` sind erfunden und auf der Seite so
+    gekennzeichnet; die Zahlen in den Sätzen ("Noch 460 km") werden daraus berechnet, nicht
+    getippt. Die Seite behauptet nur, was das Produkt tut: keine Betriebsstunden und kein
+    Höhenprofil (die Formel nutzt beides nicht), kein Motorrad (`BikeType` kennt keins).
+    **Bewusst ohne die Scrollcraft-Engine**: sie hat kein Teardown, ihre Listener und ihr
+    rAF-Loop liefen nach dem Routenwechsel weiter, und ihr CSS setzt `html`/`body` global
+    zurück. Die `data-sc-*`-Attribute bleiben als Marker für den Prüf-Harness.
+    **Drei Stolperfallen, alle schon passiert:** (1) Cue-Blöcke liegen unsichtbar
+    übereinander. Alles Flächige braucht `pointer-events: none`, sonst fängt eine
+    unsichtbare Liste die Klicks auf den CTA ab; Screenshots zeigen das nicht. (2) Cues
+    arbeiten nur mit Deckkraft: `visibility: hidden` nähme Regler und CTA aus der
+    Tab-Reihenfolge. Fokus auf einem verdeckten Element fährt die Bühne per `data-focus-at`
+    an die Stelle, an der es sichtbar ist. (3) Ein Cue je Grund: ein Element, das beide
+    Hälften überspannt, misst der Harness gegen den falschen Hintergrund.
+    Bei `prefers-reduced-motion` löst sich die Bühne in normalen Seitenfluss auf
+    (`landingpage.reduced.css`), dann läuft kein Loop.
   app-login/                   — Login (`/app/login`), Strava-OAuth-Callback
     (`/app/strava-callback`), authGuard. login.html verlinkt auf `/` (Landing-Page).
   app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)
@@ -343,6 +368,7 @@ Signal-basierte Root-Services sind der durchgängige Pattern:
 ## Testing
 
 Vitest, Specs co-located (`*.spec.ts` neben Source), Standard-Angular-CLI-`TestBed`-Pattern.
+Einzelnes Feature: `npx ng test --watch=false --include="src/app/features/app-landing/**/*.spec.ts"`.
 
 **Stand:** 13 der 28 Spec-Dateien schlagen fehl — allesamt generierte
 "should be created"-Stubs, denen `provideHttpClient`/Router-Provider fehlen bzw. die

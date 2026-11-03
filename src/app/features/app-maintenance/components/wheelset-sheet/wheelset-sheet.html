@@ -1,0 +1,52 @@
+<app-bottom-sheet title="Neuer Laufradsatz" (closed)="closed.emit()">
+  <form class="g-form" (ngSubmit)="save()">
+    <label class="g-field">
+      <span class="g-label">Name</span>
+      <input
+        class="g-input"
+        name="name"
+        placeholder="z.B. Carbon, Alu, Winter"
+        autocomplete="off"
+        [(ngModel)]="name"
+      />
+    </label>
+
+    <div class="g-field">
+      <span class="g-label">Welche Laufräder?</span>
+      <label class="g-check">
+        <input type="checkbox" name="front" [(ngModel)]="front" />
+        <span>Vorderrad</span>
+      </label>
+      <label class="g-check">
+        <input type="checkbox" name="rear" [(ngModel)]="rear" />
+        <span>Hinterrad</span>
+      </label>
+    </div>
+
+    <label class="g-field">
+      <span class="g-label">Seit wann gehört er dir?</span>
+      <input class="g-input" type="date" name="installedAt" [max]="today" [(ngModel)]="installedAt" />
+    </label>
+
+    @if (hasWheelOnBike()) {
+      <label class="g-check">
+        <input type="checkbox" name="mountNow" [(ngModel)]="mountNow" />
+        <span>
+          Gleich aufziehen
+          <span class="g-row-sub">Sonst kommt er erstmal in den Keller und sammelt keine km.</span>
+        </span>
+      </label>
+    }
+
+    <p class="g-hint">
+      Die üblichen Teile werden mit angelegt. Marken und Modelle trägst du danach direkt am Teil ein.
+    </p>
+
+    <div class="g-actions">
+      <button type="button" class="g-btn ghost" (click)="closed.emit()">Abbrechen</button>
+      <button type="submit" class="g-btn primary" [disabled]="!canSave() || busy()">
+        {{ busy() ? 'Legt an…' : 'Anlegen' }}
+      </button>
+    </div>
+  </form>
+</app-bottom-sheet>

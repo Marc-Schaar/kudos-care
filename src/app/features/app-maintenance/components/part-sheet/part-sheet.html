@@ -1,0 +1,298 @@
+<app-bottom-sheet [title]="component().label" (closed)="closed.emit()">
+  @switch (view()) {
+    @case ('edit') {
+      <app-part-form
+        [slot]="slot()"
+        [component]="component()"
+        (saved)="onEdited()"
+        (cancelled)="view.set('main')"
+      />
+    }
+
+    @case ('check') {
+      <form class="g-form" (ngSubmit)="check()">
+        <p class="g-hint">
+          Du hast dir das Teil angesehen und es darf weiterfahren. Der Status zählt ab jetzt neu.
+        </p>
+        @if (slot().template_detail.supports_condition_estimate) {
+          <label class="g-field">
+            <span class="g-label">Geschätzter Restzustand (%)</span>
+            <input
+              class="g-input"
+              type="number"
+              name="condition"
+              min="0"
+              max="100"
+              inputmode="numeric"
+              [(ngModel)]="conditionPct"
+            />
+          </label>
+        }
+        <div class="g-two">
+          <label class="g-field">
+            <span class="g-label">Wieder prüfen in (km)</span>
+            <input
+              class="g-input"
+              type="number"
+              name="snoozeKm"
+              min="0"
+              inputmode="numeric"
+              [(ngModel)]="snoozeKm"
+            />
+          </label>
+          <label class="g-field">
+            <span class="g-label">oder in (Tagen)</span>
+            <input
+              class="g-input"
+              type="number"
+              name="snoozeDays"
+              min="0"
+              inputmode="numeric"
+              [(ngModel)]="snoozeDays"
+            />
+          </label>
+        </div>
+        <label class="g-field">
+          <span class="g-label">Notiz</span>
+          <input class="g-input" name="note" [(ngModel)]="checkNote" autocomplete="off" />
+        </label>
+        <div class="g-actions">
+          <button type="button" class="g-btn ghost" (click)="view.set('main')">Abbrechen</button>
+          <button type="submit" class="g-btn primary" [disabled]="busy()">Geprüft</button>
+        </div>
+      </form>
+    }
+
+    @case ('move') {
+      <form class="g-form" (ngSubmit)="move()">
+        <label class="g-field">
+          <span class="g-label">Wohin?</span>
+          <select class="g-input" name="target" [(ngModel)]="moveSlotId">
+            @for (target of targets(); track target.slot.id) {
+              <option [ngValue]="target.slot.id">
+                {{ target.assembly.display_name }} · {{ target.slot.display_name }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="g-check">
+          <input type="checkbox" name="moveMount" [(ngModel)]="moveMount" />
+          <span>Dort gleich aufziehen</span>
+        </label>
+        <p class="g-hint">
+          Die {{ component().wear_km | number: '1.0-0' }} km bleiben beim Teil, sie hängen nicht am
+          Platz.
+        </p>
+        <div class="g-actions">
+          <button type="button" class="g-btn ghost" (click)="view.set('main')">Abbrechen</button>
+          <button type="submit" class="g-btn primary" [disabled]="busy()">Umziehen</button>
+        </div>
+      </form>
+    }
+
+    @case ('delete') {
+      <div class="g-form">
+        <p class="g-text">
+          {{ component().label }} und sein Verlauf werden endgültig gelöscht. Wenn du nur nicht mehr
+          damit fährst, ist Ausmustern besser: die Geschichte bleibt dann erhalten.
+        </p>
+        <div class="g-actions">
+          <button type="button" class="g-btn ghost" (click)="view.set('main')">Abbrechen</button>
+          <button type="button" class="g-btn danger-solid" [disabled]="busy()" (click)="delete()">
+            Endgültig löschen
+          </button>
+        </div>
+      </div>
+    }
+
+    @default {
+      <div class="g-form">
+        <div class="head-row">
+          <p class="g-sub">{{ slot().display_name }} · {{ statusLabel() }}</p>
+          <span class="g-pill" [class]="component().warn_status_overall | warnClass">
+            {{ component().warn_status_overall | warnLabel }}
+          </span>
+        </div>
+
+        <!-- Die Zahlen, um die es geht -->
+        <div class="axis">
+          <div class="axis-text">
+            <strong>{{ component().wear_km | number: '1.0-0' }} km</strong>
+            @if (component().effective_warn_km) {
+              <span>von {{ component().effective_warn_km | number: '1.0-0' }} km</span>
+            }
+          </div>
+          @if (kmRatio() != null) {
+            <app-wear-meter [ratio]="kmRatio()" [status]="component().warn_status_km" />
+          }
+        </div>
+
+        @if (component().wear_days != null) {
+          <div class="axis">
+            <div class="axis-text">
+              <strong>{{ component().wear_days }} Tage</strong>
+              @if (component().effective_warn_days) {
+                <span>von {{ component().effective_warn_days }} Tagen</span>
+              } @else {
+                <span>seit dem ersten Einbau</span>
+              }
+            </div>
+            @if (daysRatio() != null) {
+              <app-wear-meter [ratio]="daysRatio()" [status]="component().warn_status_days" />
+            }
+          </div>
+        }
+
+        @if (weatherExtra() > 0) {
+          <div class="weather">
+            <p class="g-hint">
+              Wetter zählt wie {{ weatherExtra() | number: '1.0-0' }} km zusätzlich.
+              @if (!weatherText()) {
+                <button
+                  type="button"
+                  class="g-link-btn"
+                  [disabled]="weatherLoading()"
+                  (click)="loadWeatherText()"
+                >
+                  {{ weatherLoading() ? 'Wird erklärt…' : 'Warum?' }}
+                </button>
+              }
+            </p>
+            @if (weatherText(); as text) {
+              <p class="g-text">{{ text }}</p>
+            }
+          </div>
+        }
+
+        @if (component().notes) {
+          <p class="g-text">{{ component().notes }}</p>
+        }
+
+        <!-- Aktionen, je nach Zustand -->
+        <div class="g-actions">
+          @switch (component().status) {
+            @case ('mounted') {
+              <button type="button" class="g-btn primary" (click)="view.set('check')">
+                Prüfen / Freigeben
+              </button>
+              <button type="button" class="g-btn" [disabled]="busy()" (click)="unmount()">
+                Abnehmen
+              </button>
+              @if (targets().length > 0) {
+                <button type="button" class="g-btn" (click)="startMove()">Umziehen</button>
+              }
+              <button type="button" class="g-btn" [disabled]="busy()" (click)="retire()">
+                Ausmustern
+              </button>
+            }
+            @case ('spare') {
+              @if (canMountHere()) {
+                <button type="button" class="g-btn primary" [disabled]="busy()" (click)="mount()">
+                  Aufziehen
+                </button>
+              }
+              @if (targets().length > 0) {
+                <button type="button" class="g-btn" (click)="startMove()">Umziehen</button>
+              }
+              <button type="button" class="g-btn" [disabled]="busy()" (click)="retire()">
+                Ausmustern
+              </button>
+            }
+            @case ('retired') {
+              <button type="button" class="g-btn primary" [disabled]="busy()" (click)="restore()">
+                Wiederherstellen
+              </button>
+            }
+          }
+          <button type="button" class="g-btn ghost" (click)="view.set('edit')">Bearbeiten</button>
+        </div>
+
+        @if (component().status !== 'retired') {
+          @if (showDate()) {
+            <label class="g-field">
+              <span class="g-label">Das war am</span>
+              <input
+                class="g-input"
+                type="date"
+                name="actionDate"
+                [max]="today"
+                [(ngModel)]="actionDate"
+              />
+              <span class="g-hint">Fahrten ab diesem Tag zählen schon für den neuen Stand.</span>
+            </label>
+          } @else {
+            <button type="button" class="g-link-btn left" (click)="showDate.set(true)">
+              Das war an einem anderen Tag
+            </button>
+          }
+        }
+
+        @if (component().last_check; as check) {
+          <div class="g-note">
+            Zuletzt geprüft am {{ check.checked_at | date: 'dd.MM.yyyy' }}
+            @if (check.condition_pct != null) {
+              · {{ check.condition_pct }} %
+            }
+            @if (check.note) {
+              <br />{{ check.note }}
+            }
+            <br />
+            <button type="button" class="g-link-btn" [disabled]="busy()" (click)="undoCheck()">
+              Zurücknehmen
+            </button>
+          </div>
+        }
+
+        <!-- Prüfanleitung -->
+        @if (instructions(); as text) {
+          <div class="g-note accent">
+            <p class="g-text">{{ text }}</p>
+          </div>
+        } @else if (component().status === 'mounted') {
+          <button
+            type="button"
+            class="g-link-btn left"
+            [disabled]="instructionsLoading()"
+            (click)="loadInstructions()"
+          >
+            {{ instructionsLoading() ? 'Kudo schreibt…' : 'Wie prüfe ich das selbst?' }}
+          </button>
+        }
+
+        <!-- Verlauf -->
+        @if (component().periods.length > 0 || component().prior_km) {
+          <div>
+            <h3 class="g-label history-title">Verlauf</h3>
+            <ul class="history">
+              @if (component().prior_km; as prior) {
+                <li>
+                  <span>Vor der Erfassung</span>
+                  <span>{{ prior | number: '1.0-0' }} km</span>
+                </li>
+              }
+              @for (period of component().periods; track period.id) {
+                <li>
+                  <span>
+                    {{ period.started_at | date: 'dd.MM.yy' : 'UTC' }} –
+                    @if (period.ended_at) {
+                      {{ period.ended_at | date: 'dd.MM.yy' : 'UTC' }}
+                    } @else {
+                      heute
+                    }
+                  </span>
+                  <span>{{ period.km | number: '1.0-0' }} km</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <div class="g-danger-zone">
+          <button type="button" class="g-btn danger wide" (click)="view.set('delete')">
+            Teil löschen
+          </button>
+        </div>
+      </div>
+    }
+  }
+</app-bottom-sheet>

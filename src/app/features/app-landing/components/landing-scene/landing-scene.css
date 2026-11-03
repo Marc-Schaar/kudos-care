@@ -1,0 +1,304 @@
+/* Zeichnung einer Bühnenhälfte. Beide Häute sind nur Farben auf derselben Geometrie.
+   Lage und Größe kommen als --frame-* von der Seite. */
+
+:host {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+:host(.skin-dark) {
+  --line: #b4b9c4;
+  --soft: #5b616e;
+  --faint: #23262d;
+  --fill: #0e0f11;
+  --mark-a: #e8e9ec;
+  --mark-b: #c8f060;
+  --accent: #c8f060;
+  --chain: var(--chain-live, #c8f060);
+  --reflector: #c8f060;
+}
+
+:host(.skin-paper) {
+  --line: #1b1d22;
+  --soft: #7d838f;
+  --faint: #c3c7c7;
+  --fill: #e4e6e3;
+  --mark-a: #16181c;
+  --mark-b: #3e6a00;
+  --accent: #3e6a00;
+  --chain: #1b1d22;
+  --reflector: #3e6a00;
+}
+
+/* ── Ferne Ebene ──────────────────────────────────────────────────────────── */
+.far {
+  position: absolute;
+  left: -1vw;
+  bottom: var(--road-y);
+  width: 280vw;
+  height: 42svh;
+  display: flex;
+  will-change: transform;
+}
+.far svg {
+  flex: 0 0 140vw;
+  height: 100%;
+}
+.far path {
+  fill: none;
+  stroke: var(--faint);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── Fahrbahn ─────────────────────────────────────────────────────────────── */
+.road {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--road-y);
+  background: var(--fill);
+  border-top: 2px solid var(--line);
+  overflow: clip;
+}
+.road__ticks {
+  position: absolute;
+  inset: 0 -8vw auto 0;
+  height: 0.65rem;
+  background: repeating-linear-gradient(90deg, var(--soft) 0 1.5px, transparent 1.5px 4vw);
+  will-change: transform;
+}
+
+/* ── Das Rad ──────────────────────────────────────────────────────────────── */
+.frame {
+  position: absolute;
+  left: var(--frame-left);
+  bottom: var(--frame-bottom);
+  width: var(--frame-w);
+  aspect-ratio: 1730 / 960;
+  transform-origin: 0 0;
+}
+.bike {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.part,
+.line,
+.tyre,
+.soft,
+.spoke,
+.cog,
+.pulley,
+.hidden-line {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.part {
+  fill: var(--fill);
+  stroke: var(--line);
+  stroke-width: 3;
+}
+.part--strong {
+  stroke-width: 3.5;
+}
+.line {
+  stroke: var(--line);
+  stroke-width: 3;
+}
+.line--bar {
+  stroke-width: 11;
+}
+.tyre {
+  stroke: var(--line);
+  stroke-width: 3.5;
+}
+.tread {
+  fill: none;
+  stroke: var(--soft);
+  stroke-width: 6;
+  stroke-dasharray: 2 11;
+}
+.soft {
+  stroke: var(--soft);
+  stroke-width: 1.8;
+}
+.spoke {
+  stroke: var(--soft);
+  stroke-width: 1.1;
+}
+.hidden-line {
+  stroke: var(--soft);
+  stroke-width: 1.6;
+  stroke-dasharray: 9 7;
+}
+.rim-mark {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 6;
+}
+.cog {
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.pulley {
+  fill: var(--fill);
+  stroke: var(--line);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 3.4;
+}
+.screen {
+  fill: var(--accent);
+}
+.ring-teeth {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 7;
+  stroke-dasharray: 5 7.3;
+}
+.chain {
+  fill: none;
+  transition: stroke 420ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.chain--plates {
+  stroke: var(--chain);
+  stroke-width: 11;
+  stroke-dasharray: 9 3.7;
+}
+.chain--rollers {
+  stroke: var(--fill);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.01 12.69;
+}
+
+/* ── Nahe Ebene: Leitpfosten, die vor dem Rad durchlaufen ─────────────────── */
+.near {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  width: 280vw;
+  will-change: transform;
+}
+.post {
+  flex: 0 0 70vw;
+  height: clamp(10rem, 46svh, 30rem);
+  position: relative;
+  display: block;
+}
+.post::before {
+  content: '';
+  position: absolute;
+  left: 8vw;
+  top: 0;
+  bottom: 0;
+  width: clamp(1.1rem, 2.2vw, 2.1rem);
+  background:
+    linear-gradient(var(--fill), var(--fill)) padding-box,
+    var(--fill);
+  border: 2px solid var(--line);
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+.post::after {
+  content: '';
+  position: absolute;
+  left: calc(8vw + 2px);
+  top: 13%;
+  width: calc(clamp(1.1rem, 2.2vw, 2.1rem) - 4px);
+  height: 22%;
+  background:
+    linear-gradient(var(--reflector), var(--reflector)) center / 42% 56% no-repeat,
+    var(--line);
+}
+
+/* ── Wortmarke: die Trennlinie läuft zwischen KUDOS und CARE durch ────────── */
+.mark {
+  position: absolute;
+  top: clamp(1rem, 3svh, 1.75rem);
+  left: 0;
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  will-change: transform;
+}
+.mark b {
+  font-weight: inherit;
+}
+.mark b:first-child {
+  position: absolute;
+  right: 100%;
+  padding-right: 0.55rem;
+  color: var(--mark-a);
+}
+.mark b:last-child {
+  display: inline-block;
+  padding-left: 0.55rem;
+  color: var(--mark-b);
+}
+
+/* ── Telefon: das Rad steht ganz in der dunklen Hälfte, die Linie ist die Fahrbahn ── */
+/* Querformat am Telefon: zu wenig Höhe für Pfosten neben dem Text. */
+@media (max-height: 520px) and (min-width: 761px) {
+  .near {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .road,
+  .tread {
+    display: none;
+  }
+  .far {
+    bottom: calc((1 - var(--div0)) * 100svh);
+    height: 30svh;
+  }
+  .near {
+    display: none;
+  }
+  :host(.skin-paper) .frame,
+  :host(.skin-paper) .far {
+    display: none;
+  }
+  .mark {
+    left: var(--gutter);
+  }
+  .mark b:first-child {
+    position: static;
+    padding-right: 0.32rem;
+  }
+  .mark b:last-child {
+    padding-left: 0;
+  }
+  :host(.skin-paper) .mark {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .far,
+  .near,
+  .road__ticks,
+  .mark {
+    will-change: auto;
+  }
+  .near,
+  .mark {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 760px) {
+  .far {
+    display: none;
+  }
+}

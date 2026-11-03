@@ -1,0 +1,94 @@
+<form class="g-form" (ngSubmit)="save()">
+  <div class="g-two">
+    <label class="g-field">
+      <span class="g-label">Marke</span>
+      <input class="g-input" name="brand" [(ngModel)]="brand" autocomplete="off" />
+    </label>
+    <label class="g-field">
+      <span class="g-label">Modell</span>
+      <input class="g-input" name="model" [(ngModel)]="modelName" autocomplete="off" />
+    </label>
+  </div>
+
+  @if (!isEdit()) {
+    <label class="g-check">
+      <input type="checkbox" name="mount" [(ngModel)]="mount" />
+      <span>
+        Gleich aufziehen
+        <span class="g-row-sub">
+          @if (slot().mounted_component; as current) {
+            {{ current.label }} kommt dafür ins Regal.
+          } @else {
+            Ab dann zählen die Kilometer für dieses Teil.
+          }
+        </span>
+      </span>
+    </label>
+  }
+
+  @if (showDate()) {
+    <label class="g-field">
+      <span class="g-label">{{ isEdit() ? 'Zuerst eingebaut am' : 'Eingebaut am' }}</span>
+      <input
+        class="g-input"
+        type="date"
+        name="installedAt"
+        [max]="today"
+        [(ngModel)]="installedAt"
+      />
+      <span class="g-hint">Die Kilometer ergeben sich aus deinen Fahrten ab diesem Tag.</span>
+    </label>
+  }
+
+  <label class="g-field">
+    <span class="g-label">Schon gefahren, bevor es hier erfasst wurde (km)</span>
+    <input
+      class="g-input"
+      type="number"
+      name="priorKm"
+      min="0"
+      inputmode="numeric"
+      placeholder="0"
+      [(ngModel)]="priorKm"
+    />
+  </label>
+
+  <div class="g-two">
+    <label class="g-field">
+      <span class="g-label">Lebensdauer (km)</span>
+      <input
+        class="g-input"
+        type="number"
+        name="warnKm"
+        min="0"
+        inputmode="numeric"
+        [placeholder]="slot().template_detail.warn_km ?? '–'"
+        [(ngModel)]="customWarnKm"
+      />
+    </label>
+    <label class="g-field">
+      <span class="g-label">Lebensdauer (Tage)</span>
+      <input
+        class="g-input"
+        type="number"
+        name="warnDays"
+        min="0"
+        inputmode="numeric"
+        [placeholder]="slot().template_detail.warn_days ?? '–'"
+        [(ngModel)]="customWarnDays"
+      />
+    </label>
+  </div>
+
+  <label class="g-field">
+    <span class="g-label">Notiz</span>
+    <textarea class="g-input" name="notes" rows="2" [(ngModel)]="notes"></textarea>
+  </label>
+
+  <div class="g-actions">
+    <button type="button" class="g-btn ghost" (click)="cancelled.emit()">Abbrechen</button>
+    <button type="submit" class="g-btn primary" [disabled]="saving()">
+      {{ saving() ? 'Speichert…' : 'Speichern' }}
+    </button>
+  </div>
+</form>

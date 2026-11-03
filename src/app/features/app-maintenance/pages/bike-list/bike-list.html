@@ -1,0 +1,76 @@
+<div class="g-page">
+  <header class="head">
+    <div>
+      <p class="g-eyebrow">Wartung</p>
+      <h1 class="g-title">Meine Räder</h1>
+    </div>
+    <app-user-menu></app-user-menu>
+  </header>
+
+  @if (loading()) {
+    <app-skeleton [count]="3" height="96px" />
+  } @else {
+    <div class="g-list">
+      @for (bike of activeBikes(); track bike.id) {
+        <a class="g-card bike" [routerLink]="nav.to.bike(bike.id)">
+          <img
+            class="bike-art"
+            [src]="'bike-illustrations/' + bike.bike_type + '.svg'"
+            alt=""
+            loading="lazy"
+          />
+          <span class="g-row-main">
+            <span class="bike-name">{{ bike.name }}</span>
+            <span class="g-row-sub">
+              {{ bike.bike_type_display }}
+              @if (bike.total_distance_km != null) {
+                · {{ bike.total_distance_km | number: '1.0-0' }} km
+              }
+            </span>
+          </span>
+          <span class="g-pill" [class]="bike.warn_status | warnClass">
+            {{ bike.warn_status | warnLabel }}
+          </span>
+        </a>
+      } @empty {
+        <p class="g-empty">
+          Noch keine Räder. Synchronisiere dein Strava-Profil auf der Startseite, oder lege eins von
+          Hand an.
+        </p>
+      }
+    </div>
+
+    <button type="button" class="g-btn wide add" (click)="creating.set(true)">+ Rad anlegen</button>
+
+    @if (retiredBikes().length > 0) {
+      <section class="g-section">
+        <h2 class="g-section-title">Im Ruhestand</h2>
+        <div class="g-list">
+          @for (bike of retiredBikes(); track bike.id) {
+            <a class="g-card bike retired" [routerLink]="nav.to.bike(bike.id)">
+              <img
+                class="bike-art"
+                [src]="'bike-illustrations/' + bike.bike_type + '.svg'"
+                alt=""
+                loading="lazy"
+              />
+              <span class="g-row-main">
+                <span class="bike-name">{{ bike.name }}</span>
+                <span class="g-row-sub">
+                  {{ bike.bike_type_display }}
+                  @if (bike.total_distance_km != null) {
+                    · {{ bike.total_distance_km | number: '1.0-0' }} km
+                  }
+                </span>
+              </span>
+            </a>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>
+
+@if (creating()) {
+  <app-bike-form-sheet (closed)="creating.set(false)" (saved)="onCreated($event)" />
+}

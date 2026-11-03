@@ -1,5 +1,5 @@
 @if (service.notification(); as note) {
-  <div class="toast {{ note.type }}">
+  <div #toast popover="manual" role="status" class="toast {{ note.type }}">
     {{ note.message }}
   </div>
 }

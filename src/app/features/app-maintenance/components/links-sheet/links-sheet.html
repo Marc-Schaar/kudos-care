@@ -1,0 +1,88 @@
+<app-bottom-sheet [title]="title()" (closed)="closed.emit()">
+  <form class="g-form" (ngSubmit)="save()">
+    <p class="g-hint">
+      Was auf dem Laufrad sitzt, wechselt von selbst mit. Hier legst du fest, was am Rad bleibt und
+      trotzdem dazu passen muss.
+    </p>
+
+    @if (partnerOptions().length > 0) {
+      <label class="g-field">
+        <span class="g-label">Gehört zusammen mit</span>
+        <select class="g-input" name="partner" [(ngModel)]="partnerId">
+          <option [ngValue]="null">Wechselt allein</option>
+          @for (option of partnerOptions(); track option.id) {
+            <option [ngValue]="option.id">{{ option.display_name }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    @for (row of suggestedRows(); track row.slot.id) {
+      <ng-container
+        *ngTemplateOutlet="rowTemplate; context: { $implicit: row }"
+      ></ng-container>
+    } @empty {
+      @if (partnerOptions().length === 0 && otherRows().length === 0) {
+        <p class="g-empty">An diesem Rad gibt es noch nichts, das mitwechseln könnte.</p>
+      }
+    }
+
+    @if (otherRows().length > 0) {
+      @if (showOthers()) {
+        <hr class="g-divider" />
+        <p class="g-label">Weitere Teile, zum Beispiel die Kette</p>
+        @for (row of otherRows(); track row.slot.id) {
+          <ng-container
+            *ngTemplateOutlet="rowTemplate; context: { $implicit: row }"
+          ></ng-container>
+        }
+      } @else {
+        <button type="button" class="g-link-btn" (click)="showOthers.set(true)">
+          Weitere Teile koppeln
+        </button>
+      }
+    }
+
+    <div class="g-actions">
+      <button type="button" class="g-btn ghost" (click)="closed.emit()">Abbrechen</button>
+      <button type="submit" class="g-btn primary" [disabled]="busy()">
+        {{ busy() ? 'Speichert…' : 'Speichern' }}
+      </button>
+    </div>
+  </form>
+</app-bottom-sheet>
+
+<ng-template #rowTemplate let-row>
+  <div class="g-field">
+    <label class="g-field">
+      <span class="g-label">{{ row.slot.display_name }}</span>
+      <select class="g-input" [name]="'link-' + row.slot.id" [(ngModel)]="row.choice">
+        <option [ngValue]="NONE">Bleibt, wie es ist</option>
+        @for (part of row.parts; track part.id) {
+          <option [ngValue]="part.id">{{ partLabel(part) }}</option>
+        }
+        <option [ngValue]="NEW">+ Neues Teil anlegen</option>
+      </select>
+    </label>
+    @if (row.choice() === NEW) {
+      <div class="g-two">
+        <input
+          class="g-input"
+          [name]="'brand-' + row.slot.id"
+          placeholder="Marke"
+          autocomplete="off"
+          [attr.aria-label]="'Marke für ' + row.slot.display_name"
+          [(ngModel)]="row.newBrand"
+        />
+        <input
+          class="g-input"
+          [name]="'model-' + row.slot.id"
+          placeholder="Modell"
+          autocomplete="off"
+          [attr.aria-label]="'Modell für ' + row.slot.display_name"
+          [(ngModel)]="row.newModel"
+        />
+      </div>
+    }
+  </div>
+</ng-template>

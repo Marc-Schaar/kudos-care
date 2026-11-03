@@ -2,6 +2,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
 @import 'tailwindcss';
+@import './app/features/app-maintenance/garage.css';
 
 /* ── CSS Variables ─────────────────────────────────────────────────────────── */
 :root {

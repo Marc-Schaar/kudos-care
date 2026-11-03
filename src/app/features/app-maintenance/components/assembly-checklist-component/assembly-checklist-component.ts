@@ -5,7 +5,7 @@ import {
   AssemblyPartItem,
   BikeAssembly,
   ComponentGroupCatalog,
-  ComponentSlotList,
+  ComponentSlot,
   ComponentTemplate,
   CreateAssemblyPayload,
   KudoConfidence,
@@ -27,7 +27,7 @@ interface PartRow {
    * z.B. ein Altteil, das noch keiner Baugruppe zugeordnet ist. Wenn gesetzt,
    * kann der Nutzer ihn statt eines neuen Teils übernehmen (`reuseExisting`).
    */
-  existingSlot: ComponentSlotList | null;
+  existingSlot: ComponentSlot | null;
   /** True = existingSlot wird übernommen (Slot umgehängt), statt ein neues Teil anzulegen. */
   reuseExisting: boolean;
   /**
@@ -89,7 +89,7 @@ export class AssemblyChecklistComponent implements OnInit {
    * Teile-Zeile mit exakt passendem Template wird ein Übernehmen-Vorschlag
    * angeboten, statt den Nutzer zur Neuanlage zu zwingen.
    */
-  ungroupedSlots = input<ComponentSlotList[]>([]);
+  ungroupedSlots = input<ComponentSlot[]>([]);
   /**
    * Ausgebaute Teile des Bikes (z.B. ein zurückgelegter Laufradsatz-Teil) —
    * für den "vorhandene Komponente übernehmen"-Vorschlag, wenn kein
@@ -185,7 +185,7 @@ export class AssemblyChecklistComponent implements OnInit {
   }
 
   /** Anzeigename für den Übernehmen-Vorschlag einer bestehenden Komponente. */
-  existingLabel(slot: ComponentSlotList): string {
+  existingLabel(slot: ComponentSlot): string {
     const comp = slot.mounted_component;
     const name = [comp?.brand, comp?.model_name].filter((v) => !!v).join(' ');
     return name || 'ohne Marke/Modell';

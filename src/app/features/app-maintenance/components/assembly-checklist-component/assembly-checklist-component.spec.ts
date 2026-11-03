@@ -5,7 +5,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { AssemblyChecklistComponent } from './assembly-checklist-component';
 import {
   ComponentGroupCatalog,
-  ComponentSlotList,
+  ComponentSlot,
   ComponentTemplate,
 } from '../../models/maintenance.models';
 
@@ -51,8 +51,8 @@ function makeGroup(parts: ComponentTemplate[]): ComponentGroupCatalog {
 
 function makeUngroupedSlot(
   templateId: number,
-  overrides: Partial<ComponentSlotList> = {},
-): ComponentSlotList {
+  overrides: Partial<ComponentSlot> = {},
+): ComponentSlot {
   return {
     id: 99,
     bike: 1,
@@ -75,7 +75,7 @@ function makeUngroupedSlot(
       warn_status_overall: 'ok',
     },
     ...overrides,
-  } as ComponentSlotList;
+  } as ComponentSlot;
 }
 
 describe('AssemblyChecklistComponent', () => {

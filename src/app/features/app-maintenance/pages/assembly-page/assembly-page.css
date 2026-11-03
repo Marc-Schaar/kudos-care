@@ -1,0 +1,102 @@
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.head .g-title {
+  overflow-wrap: anywhere;
+}
+
+.state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.links {
+  margin-top: 1rem;
+}
+
+.slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.2rem 0.25rem 0 0.85rem;
+}
+
+.slot-name {
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.part-meter {
+  display: block;
+  margin-top: 0.4rem;
+}
+
+.empty-slot {
+  padding: 0.4rem 0.85rem 0.6rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.spare,
+.interval {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-right: 0.6rem;
+}
+
+.spare {
+  border-top: 1px solid var(--border);
+}
+
+.spare .g-row,
+.interval .g-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.mount {
+  flex: none;
+}
+
+.slot-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.1rem 0.85rem 0.3rem;
+  border-top: 1px solid var(--border);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.old {
+  border-top: 1px solid var(--border);
+  opacity: 0.7;
+}
+
+.g-rows > * + * {
+  border-top: 1px solid var(--border);
+}
+
+.add-care {
+  margin-top: 0.5rem;
+}

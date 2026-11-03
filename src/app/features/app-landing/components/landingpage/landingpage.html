@@ -1,158 +1,243 @@
-<div
-  class="lp"
-  [style.--p]="pageProgress()"
-  [style.--stage]="stageProgress()"
-  [style.--crank]="crankDeg()"
-  [style.--tiltx]="tiltX()"
-  [style.--tiltz]="tiltZ()"
->
-  <div class="lp-backdrop" aria-hidden="true"></div>
-
-  <header class="lp-nav">
-    <span class="lp-logo">KUDOS<span>CARE</span></span>
-    <a class="abtn abtn--sm" [routerLink]="nav.to.login()">App öffnen</a>
-  </header>
-
-  <section class="lp-hero">
-    <p class="lp-eyebrow" data-reveal>Wartungs-Tracking · Strava-Integration</p>
-    <h1 class="lp-title" data-reveal>
-      <span class="glow">Jede Fahrt</span><br />
-      <span class="glow">zählt mit.</span>
-    </h1>
-    <p class="lp-lead" data-reveal>
-      Kudos Care verfolgt den Verschleiß deiner Bike-Komponenten — Kilometer, Betriebsstunden und
-      Tage seit Montage, wettergewichtet nach Regen, Hitze, Kälte und Gegenwind. Direkt aus Strava.
-      Automatisch.
-    </p>
-    <div class="lp-cta" data-reveal>
-      <a class="abtn" [routerLink]="nav.to.login()">Mit Strava verbinden</a>
-      <button class="abtn abtn--ghost" type="button" (click)="scrollToId('how')">
-        So funktioniert's
-      </button>
-    </div>
-
-    <div class="lp-scrollhint" aria-hidden="true"><span></span>scroll</div>
-  </section>
-
-  <!-- 3D-Kurbel + Kette, an den Scroll gekoppelt -->
-  <section class="lp-stage" id="how">
-    <div class="lp-stage-inner">
-      <div class="lp-crank" aria-hidden="true">
-        <!-- Rennrad in Seitenansicht. Alle Rotationen (Kettenblatt, Ritzel, beide
-             Laufräder) laufen per translate→rotate→translate um ihren jeweiligen
-             Mittelpunkt und sind über --crank an den Scroll gekoppelt; die Kette
-             wandert über stroke-dashoffset. Ritzel sitzt an der Hinterachse (150,252),
-             Kettenblatt am Tretlager (262,264) — großer Abstand = Kettenstrebe. -->
-        <svg viewBox="0 0 560 360" role="img" aria-label="Drehendes Rennrad-Antriebsstrang">
-          <ellipse class="lp-ground" cx="300" cy="348" rx="238" ry="12" />
-
-          <g class="wheel wheel--rear">
-            <circle class="tire" cx="150" cy="252" r="92" />
-            <circle class="rim" cx="150" cy="252" r="78" />
-            <line class="wheel-spoke" x1="150" y1="252" x2="225" y2="272" />
-            <line class="wheel-spoke" x1="150" y1="252" x2="170" y2="326" />
-            <line class="wheel-spoke" x1="150" y1="252" x2="96" y2="306" />
-            <line class="wheel-spoke" x1="150" y1="252" x2="75" y2="232" />
-            <line class="wheel-spoke" x1="150" y1="252" x2="130" y2="178" />
-            <line class="wheel-spoke" x1="150" y1="252" x2="204" y2="198" />
-            <circle class="hub" cx="150" cy="252" r="6" />
-          </g>
-
-          <g class="wheel wheel--front">
-            <circle class="tire" cx="470" cy="252" r="92" />
-            <circle class="rim" cx="470" cy="252" r="78" />
-            <line class="wheel-spoke" x1="470" y1="252" x2="545" y2="272" />
-            <line class="wheel-spoke" x1="470" y1="252" x2="490" y2="326" />
-            <line class="wheel-spoke" x1="470" y1="252" x2="416" y2="306" />
-            <line class="wheel-spoke" x1="470" y1="252" x2="395" y2="232" />
-            <line class="wheel-spoke" x1="470" y1="252" x2="450" y2="178" />
-            <line class="wheel-spoke" x1="470" y1="252" x2="524" y2="198" />
-            <circle class="hub" cx="470" cy="252" r="6" />
-          </g>
-
-          <!-- Rahmen -->
-          <line class="tube" x1="262" y1="264" x2="300" y2="150" />
-          <line class="tube" x1="262" y1="264" x2="430" y2="142" />
-          <line class="tube" x1="300" y1="150" x2="430" y2="140" />
-          <line class="tube" x1="430" y1="140" x2="452" y2="178" />
-          <line class="tube" x1="452" y1="178" x2="470" y2="252" />
-          <line class="tube" x1="300" y1="152" x2="150" y2="252" />
-          <line class="tube" x1="262" y1="264" x2="150" y2="252" />
-          <line class="tube" x1="300" y1="150" x2="293" y2="132" />
-          <path class="saddle" d="M 266,132 L 302,127 q 9,0 3,8 l -30,3 q -9,1 -9,-9 Z" />
-          <line class="tube" x1="430" y1="140" x2="452" y2="123" />
-          <path class="bar" d="M 452,123 q 17,-3 18,14 q 1,17 -13,23" />
-
-          <!-- Antrieb -->
-          <path
-            class="chain"
-            d="M 262,228 A 36 36 0 1 1 262,300 L 150,269 A 17 17 0 1 1 150,235 Z"
-          />
-          <circle class="cog" cx="150" cy="252" r="17" />
-          <circle class="cog-hub" cx="150" cy="252" r="5" />
-
-          <g class="ring">
-            <circle class="ring-teeth" cx="262" cy="264" r="36" />
-            <circle class="ring-body" cx="262" cy="264" r="27" />
-            <rect class="spoke" x="258" y="234" width="8" height="60" rx="4" />
-            <rect class="spoke" x="232" y="260" width="60" height="8" rx="4" />
-            <rect class="arm" x="258" y="259" width="74" height="11" rx="5.5" />
-            <circle class="pedal" cx="328" cy="264" r="9" />
-            <circle class="bb" cx="262" cy="264" r="7" />
-          </g>
-        </svg>
+<!-- Split Stage: eine gepinnte Bühne, zwei Gründe, eine Trennlinie. `data-sc-*` sind Marker für
+     den Scrollcraft-Prüf-Harness und die eigene Cue-Logik; die Engine selbst ist nicht geladen.
+     Cue-Fenster: "von bis rampIn rampOut" in Bühnenzeit (t, Viewport-Höhen), siehe landingpage.ts. -->
+<main class="kc">
+  <section class="kc-track" data-sc-act="pin" data-sc-span="11.5">
+    <div class="kc-stage" data-stage data-sc-stage data-sc-verify-state="">
+      <div class="kc-planes" aria-hidden="true">
+        <div class="kc-plane kc-plane--dark">
+          <div class="kc-tint" data-tint></div>
+          <app-landing-scene skin="dark" />
+          <canvas class="kc-rain" data-rain></canvas>
+        </div>
+        <div class="kc-plane kc-plane--paper">
+          <app-landing-scene skin="paper" />
+        </div>
+        <div class="kc-divider" data-divider>
+          <ol class="kc-ticks">
+            @for (ride of rides; track $index) {
+              <li
+                data-tick
+                [class.is-wet]="ride.precipitation > 0"
+                [style.flex-grow]="ride.km"
+              ></li>
+            }
+          </ol>
+        </div>
       </div>
 
-      <div class="lp-stage-copy">
-        <p class="lp-kicker" data-reveal>Der Antrieb</p>
-        <h2 class="glow" data-reveal>Physik statt Bauchgefühl</h2>
-        <p data-reveal>
-          Polyline-Track, Höhenprofil und historische Open-Meteo-Wetterdaten pro Ride ergeben einen
-          Verschleiß-Multiplikator. Kette, Reifen und Bremsbeläge altern im Regen messbar schneller
-          — Kudos Care rechnet das mit, nicht du.
+      <p class="kc-sr kc-brand">Kudos Care</p>
+
+      <!-- Erster Screen: ein Satz über die Linie -->
+      <header class="kc-hero">
+        <h1 class="kc-hero__title">
+          <span class="on-dark" data-sc-cue="0 0.46 0 0.55">Deine Kette zählt anders</span>
+          <span class="on-paper" data-sc-cue="0 0.46 0 0.55">als dein Tacho.</span>
+        </h1>
+        <div class="kc-hero__l">
+          <p data-sc-cue="0 0.46 0 0.55">
+            Kudos Care holt deine Fahrten aus Strava und rechnet das Wetter in den Verschleiß jedes
+            Teils ein.
+          </p>
+          <a
+            class="kc-cta"
+            [routerLink]="nav.to.login()"
+            data-focus-at="0"
+            data-sc-cue="0 0.46 0 0.55"
+            >{{ ctaLabel }}</a
+          >
+        </div>
+        <p class="kc-hero__r on-paper" data-sc-cue="0 0.46 0 0.55">Er kennt nur Kilometer.</p>
+      </header>
+
+      <!-- Die beiden Zähler. Die Zahlen stehen ausgeschrieben im Urteil weiter unten. -->
+      <div class="kc-beat" aria-hidden="true">
+        <div class="kc-read kc-l" data-sc-cue="0.44 6.2 0.04 0.03">
+          <p class="kc-read__label">Kette, Verschleiß</p>
+          <p class="kc-read__num"><span data-out="wear">0</span><small> km</small></p>
+          <div class="kc-bar"><i data-bar="wear"></i></div>
+          <p class="kc-read__meta">
+            <b data-out="status">In Ordnung</b>
+            <span data-out="factor">×1,0</span>
+          </p>
+          <p class="kc-read__ride" data-out="ride"></p>
+        </div>
+        <div class="kc-read kc-r on-paper" data-sc-cue="0.44 6.2 0.04 0.03">
+          <p class="kc-read__label">Tacho, Strecke</p>
+          <p class="kc-read__num"><span data-out="km">0</span><small> km</small></p>
+          <div class="kc-bar"><i data-bar="km"></i></div>
+          <p class="kc-read__meta">
+            <b>In Ordnung</b>
+            <span>×1,0</span>
+          </p>
+          <p class="kc-read__ride">Beispielfahrten, echte Formel</p>
+        </div>
+      </div>
+
+      <!-- Trockene Fahrten -->
+      <section class="kc-beat">
+        <p class="kc-say kc-l" data-sc-cue="0.85 1.9 0.2 0.2">
+          Trockene Fahrten: Jeder Kilometer zählt einmal.
         </p>
-      </div>
+        <p class="kc-say kc-r on-paper" data-sc-cue="0.85 1.9 0.2 0.2">Da sind sich beide einig.</p>
+      </section>
+
+      <!-- t 1,9 bis 2,5 ist absichtlich leer: die Stille vor dem Regen (siehe BRIEF.md) -->
+
+      <section class="kc-beat">
+        <p class="kc-say kc-l" data-sc-cue="3.5 5.05 0.14 0.12">
+          Bei Regen zählt die Kette bis zu doppelt.
+        </p>
+        <p class="kc-say kc-r on-paper" data-sc-cue="3.5 5.05 0.14 0.12">
+          Der Tacho merkt davon nichts.
+        </p>
+      </section>
+
+      <!-- Das Urteil -->
+      <section class="kc-beat">
+        <div class="kc-verdict kc-l" data-sc-cue="5.1 6.2 0.22 0.1">
+          <h2 class="kc-verdict__big">Fällig.</h2>
+          <p>Dieselbe Kette: {{ wearAtEnd }} km Verschleiß auf {{ kmAtEnd }} km Strecke.</p>
+        </div>
+        <div class="kc-verdict kc-r on-paper" data-sc-cue="5.1 6.2 0.22 0.1">
+          <p class="kc-verdict__big">Noch {{ kmLeft }} km.</p>
+          <p>Nach Kilometerstand ist alles in Ordnung.</p>
+        </div>
+      </section>
+
+      <!-- Selbst am Wetter drehen -->
+      <section class="kc-beat">
+        <div class="kc-control kc-l" data-sc-cue="6.15 7.7 0.14 0.1">
+          <h2 class="kc-h2">Dreh am Wetter.</h2>
+          <div class="kc-sliders">
+            <label>
+              <span
+                >Regen <output>{{ rainLabel() }}</output></span
+              >
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.1"
+                data-focus-at="7"
+                [value]="weather().precipitation"
+                (input)="setWeather('precipitation', $event)"
+              />
+            </label>
+            <label>
+              <span
+                >Temperatur <output>{{ tempLabel() }}</output></span
+              >
+              <input
+                type="range"
+                min="-10"
+                max="40"
+                step="1"
+                data-focus-at="7"
+                [value]="weather().temperature"
+                (input)="setWeather('temperature', $event)"
+              />
+            </label>
+            <label>
+              <span
+                >Wind <output>{{ windLabel() }}</output></span
+              >
+              <input
+                type="range"
+                min="0"
+                max="60"
+                step="1"
+                data-focus-at="7"
+                [value]="weather().windSpeed"
+                (input)="setWeather('windSpeed', $event)"
+              />
+            </label>
+          </div>
+          <table class="kc-mult">
+            <caption class="kc-sr">
+              Verschleiß-Faktor je Baugruppe bei diesem Wetter
+            </caption>
+            <tbody>
+              @for (row of multipliers(); track row.label) {
+                <tr>
+                  <th scope="row">{{ row.label }}</th>
+                  <td class="kc-mult__why">{{ row.driver }}</td>
+                  <td class="kc-mult__val">{{ row.factor }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="kc-control-note kc-r on-paper" data-sc-cue="6.15 7.7 0.14 0.1">
+          <p class="kc-control-note__big">×1,0</p>
+          <p>Bei jedem Wetter. Für alle Teile.</p>
+          <p class="kc-fine">
+            Die Gewichte sind die Startwerte aus der App und noch nicht an echten Fahrdaten
+            kalibriert. Eine Schätzung, keine Messung.
+          </p>
+        </div>
+      </section>
+
+      <!-- Was der Tacho alles nicht kann -->
+      <section class="kc-beat">
+        <h2 class="kc-sr">Kudos Care und Tacho im Vergleich</h2>
+        <ul class="kc-rows">
+          @for (row of comparisons; track row.right) {
+            <li class="kc-row">
+              <p
+                class="kc-row__l"
+                [attr.data-sc-cue]="row.cue"
+                [attr.data-cue-stacked]="row.cueStacked"
+              >
+                {{ row.left }}
+              </p>
+              <p
+                class="kc-row__r on-paper"
+                [attr.data-sc-cue]="row.cue"
+                [attr.data-cue-stacked]="row.cueStacked"
+              >
+                {{ row.right }}
+              </p>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Auflösung: die Linie ist am Rand, das ganze Rad steht im Klartext da -->
+      <section class="kc-close" data-sc-cue="9.25 11 0.12 0" data-cue-stacked="9.75 11 0.2 0">
+        <h2 class="kc-close__title">Wissen, wann es dran ist.</h2>
+        <p class="kc-close__weather">{{ closingLine() }}</p>
+        <p>
+          Teile einmal anlegen, der Assistent schlägt sie zu deinem Modell vor. Danach zählt jede
+          Strava-Fahrt von selbst.
+        </p>
+        <a
+          class="kc-cta kc-cta--lg"
+          [routerLink]="nav.to.login()"
+          [attr.data-focus-at]="endOfStage"
+          >{{ ctaLabel }}</a
+        >
+        <p class="kc-foot">Kudos Care · Wartungs-Tracking fürs Fahrrad</p>
+      </section>
+
+      <ul class="kc-parts" aria-label="Zustand der Teile am Ende der Beispielsaison">
+        @for (part of parts; track part.id) {
+          <li
+            class="kc-part"
+            data-sc-cue="9.75 11 0.2 0"
+            [attr.data-part]="part.id"
+            [attr.data-status]="part.status"
+          >
+            <span class="kc-part__name">{{ part.name }}</span>
+            @if (part.id === 'chain') {
+              <span class="kc-part__val" data-chain-old>{{ part.value }}</span>
+              <span class="kc-part__val kc-part__val--new" data-chain-new>neu</span>
+            } @else {
+              <span class="kc-part__val">{{ part.value }}</span>
+            }
+          </li>
+        }
+      </ul>
     </div>
   </section>
-
-  <section class="lp-features">
-    <article class="lp-card" data-reveal>
-      <div class="lp-card-no">01</div>
-      <h3>Verbinden</h3>
-      <p>
-        Login per Strava-OAuth. Bikes und Aktivitäten synchronisieren sich automatisch — kein
-        manuelles Nachtragen von Kilometern.
-      </p>
-    </article>
-    <article class="lp-card" data-reveal>
-      <div class="lp-card-no">02</div>
-      <h3>Tracken</h3>
-      <p>
-        Jede Komponente sitzt in einem Slot. km, Betriebsstunden und Tage seit Montage laufen live
-        mit — wettergewichtet pro Fahrt.
-      </p>
-    </article>
-    <article class="lp-card" data-reveal>
-      <div class="lp-card-no">03</div>
-      <h3>Wissen</h3>
-      <p>
-        Status ok / warn / kritisch. E-Mail, sobald ein Teil fällig wird — auch vorausschauend auf
-        deine nächste voraussichtliche Fahrt.
-      </p>
-    </article>
-  </section>
-
-  <section class="lp-stats">
-    <div class="lp-stat" data-reveal><b>4</b><span>Wetter-Achsen pro Ride</span></div>
-    <div class="lp-stat" data-reveal><b>km·h·d</b><span>Verschleiß-Achsen</span></div>
-    <div class="lp-stat" data-reveal><b>0</b><span>manuelle Einträge</span></div>
-  </section>
-
-  <section class="lp-final">
-    <h2 class="glow" data-reveal>Bereit, deinem Bike zuzuhören?</h2>
-    <a class="abtn abtn--lg" [routerLink]="nav.to.login()" data-reveal
-      >Jetzt mit Strava verbinden</a
-    >
-    <p class="lp-foot">Kudos Care · Wartungs-Tracking für Rad &amp; Motorrad</p>
-  </section>
-</div>
+</main>

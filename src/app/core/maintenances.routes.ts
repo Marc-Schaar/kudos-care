@@ -1,46 +1,33 @@
 import { Routes } from '@angular/router';
 
 /**
- * Routen des Wartungsbereichs.
+ * Routen des Wartungsbereichs: drei Ebenen, die dem entsprechen, wie man über sein Rad
+ * nachdenkt — Räder, ein Rad, eine Baugruppe. Verändert wird dort, wo man gerade ist, per
+ * Bottom Sheet über der Seite; es gibt keine getrennten Seiten zum Ansehen und Ändern mehr.
  *
- * Ein Bike hat zwei Seiten statt einer: `bikes/:id` zeigt nur den Zustand,
- * `bikes/:id/werkstatt` enthält alles, was etwas verändert. Eine einzelne
- * Baugruppe bekommt unter `bikes/:id/werkstatt/:assemblyId` nochmal eine eigene
- * Seite — vorher war das ein Expansion Panel in der Werkstatt-Liste.
- *
- * Die Navigationsleiste liegt bewusst NICHT mehr hier, sondern in der
- * App-Shell (`shared/components/main-nav`): sobald sie auf Fahrten und Start
- * verweist, muss sie auch dort stehen bleiben.
+ * Die Navigationsleiste liegt bewusst NICHT hier, sondern in der App-Shell
+ * (`shared/components/main-nav`): sobald sie auf Fahrten und Start verweist, muss sie
+ * auch dort stehen bleiben.
  */
 export const MAINTENANCE_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('../features/app-maintenance/components/maintenace-page-component/maintenace-page-component').then(
-        (m) => m.MaintenacePageComponent,
-      ),
+      import('../features/app-maintenance/pages/bike-list/bike-list').then((m) => m.BikeListPage),
   },
   {
     path: 'bikes/:id',
     loadComponent: () =>
-      import('../features/app-maintenance/components/bike-condition-page/bike-condition-page').then(
-        (m) => m.BikeConditionPage,
-      ),
+      import('../features/app-maintenance/pages/bike-page/bike-page').then((m) => m.BikePage),
   },
   {
-    path: 'bikes/:id/werkstatt',
+    path: 'bikes/:id/baugruppen/:assemblyId',
     loadComponent: () =>
-      import('../features/app-maintenance/components/bike-service-page/bike-service-page').then(
-        (m) => m.BikeServicePage,
+      import('../features/app-maintenance/pages/assembly-page/assembly-page').then(
+        (m) => m.AssemblyPage,
       ),
   },
-  {
-    // Detailseite einer Baugruppe. Liegt unter werkstatt/, damit der Tab in der
-    // Navigation aktiv bleibt — der nutzt routerLinkActive ohne `exact`.
-    path: 'bikes/:id/werkstatt/:assemblyId',
-    loadComponent: () =>
-      import('../features/app-maintenance/components/assembly-detail-page/assembly-detail-page').then(
-        (m) => m.AssemblyDetailPage,
-      ),
-  },
+  // Alte Adressen, die in Lesezeichen stehen können.
+  { path: 'bikes/:id/werkstatt', redirectTo: 'bikes/:id' },
+  { path: 'bikes/:id/werkstatt/:assemblyId', redirectTo: 'bikes/:id/baugruppen/:assemblyId' },
 ];

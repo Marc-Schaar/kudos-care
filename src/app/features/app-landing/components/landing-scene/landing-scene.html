@@ -1,0 +1,180 @@
+<div class="far" data-far>
+  @for (tile of [0, 1]; track tile) {
+    <svg [attr.viewBox]="ridgeView" preserveAspectRatio="none" aria-hidden="true">
+      @for (d of ridges; track $index) {
+        <path [attr.d]="d" />
+      }
+    </svg>
+  }
+</div>
+
+<div class="road"><div class="road__ticks" data-road></div></div>
+
+<div class="frame" data-frame>
+  <svg class="bike" [attr.viewBox]="view" aria-hidden="true" focusable="false">
+    <!-- Hinterrad, gestrichelt die verdeckte Bremsscheibe -->
+    <g class="wheel" data-wheel [attr.data-cx]="rear.x" [attr.data-cy]="rear.y">
+      <circle class="hidden-line" [attr.cx]="rear.x" [attr.cy]="rear.y" r="80" />
+      <circle class="tread" [attr.cx]="rear.x" [attr.cy]="rear.y" r="336" />
+      <circle class="tyre" [attr.cx]="rear.x" [attr.cy]="rear.y" r="340" />
+      <circle class="soft" [attr.cx]="rear.x" [attr.cy]="rear.y" r="318" />
+      <circle class="soft" [attr.cx]="rear.x" [attr.cy]="rear.y" r="311" />
+      <circle class="soft" [attr.cx]="rear.x" [attr.cy]="rear.y" r="289" />
+      @for (s of rearSpokes; track $index) {
+        <line class="spoke" [attr.x1]="s.x1" [attr.y1]="s.y1" [attr.x2]="s.x2" [attr.y2]="s.y2" />
+      }
+      <path
+        class="rim-mark"
+        [attr.d]="
+          'M' +
+          (rear.x + 300) +
+          ' ' +
+          rear.y +
+          'A300 300 0 0 1 ' +
+          (rear.x + 212) +
+          ' ' +
+          (rear.y + 212)
+        "
+      />
+    </g>
+
+    <!-- Vorderrad -->
+    <g class="wheel" data-wheel [attr.data-cx]="front.x" [attr.data-cy]="front.y">
+      <circle class="hidden-line" [attr.cx]="front.x" [attr.cy]="front.y" r="80" />
+      <circle class="tread" [attr.cx]="front.x" [attr.cy]="front.y" r="336" />
+      <circle class="tyre" [attr.cx]="front.x" [attr.cy]="front.y" r="340" />
+      <circle class="soft" [attr.cx]="front.x" [attr.cy]="front.y" r="318" />
+      <circle class="soft" [attr.cx]="front.x" [attr.cy]="front.y" r="311" />
+      <circle class="soft" [attr.cx]="front.x" [attr.cy]="front.y" r="289" />
+      @for (s of frontSpokes; track $index) {
+        <line class="spoke" [attr.x1]="s.x1" [attr.y1]="s.y1" [attr.x2]="s.x2" [attr.y2]="s.y2" />
+      }
+      <path
+        class="rim-mark"
+        [attr.d]="
+          'M' +
+          (front.x + 300) +
+          ' ' +
+          front.y +
+          'A300 300 0 0 1 ' +
+          (front.x + 212) +
+          ' ' +
+          (front.y + 212)
+        "
+      />
+    </g>
+    <circle class="part" [attr.cx]="front.x" [attr.cy]="front.y" r="26" />
+
+    <!-- Rahmen, gefüllt in Grundfarbe, damit die Rohre die Speichen verdecken -->
+    @for (d of tubes; track $index) {
+      <path class="part" [attr.d]="d" />
+    }
+    <path class="part" [attr.d]="fork" />
+    <path class="part" [attr.d]="saddle" />
+    <path class="part" [attr.d]="stem" />
+    <path class="line line--bar" [attr.d]="bar" />
+    <path class="line line--bar" [attr.d]="hood" />
+
+    <!-- Der Tacho, vorn am Lenker -->
+    <g class="computer">
+      <path class="line" d="M1256 56 L1300 34" />
+      <rect
+        class="part"
+        x="1282"
+        y="10"
+        width="72"
+        height="26"
+        rx="5"
+        transform="rotate(-6 1318 23)"
+      />
+      <rect
+        class="screen"
+        x="1291"
+        y="16"
+        width="54"
+        height="14"
+        rx="2"
+        transform="rotate(-6 1318 23)"
+      />
+    </g>
+
+    <!-- Bremssattel vorn -->
+    <path class="part" d="M1296 498 L1338 482 L1352 516 L1310 532 Z" />
+
+    <!-- Antrieb -->
+    <g class="wheel" data-wheel [attr.data-cx]="rear.x" [attr.data-cy]="rear.y">
+      @for (r of cogs; track r) {
+        <circle class="cog" [attr.cx]="rear.x" [attr.cy]="rear.y" [attr.r]="r" />
+      }
+      <circle class="part" [attr.cx]="rear.x" [attr.cy]="rear.y" r="12" />
+    </g>
+
+    <path class="chain chain--plates" [attr.d]="chain" data-chain />
+    <path class="chain chain--rollers" [attr.d]="chain" data-chain />
+
+    <!-- Schaltwerk -->
+    <path class="line" [attr.d]="'M' + rear.x + ' ' + rear.y + ' L' + upper.x + ' ' + upper.y" />
+    <path class="part" d="M376 672 L402 670 L446 760 L420 772 Z" />
+    <g data-pulley [attr.data-cx]="upper.x" [attr.data-cy]="upper.y">
+      <circle class="pulley" [attr.cx]="upper.x" [attr.cy]="upper.y" [attr.r]="upper.r - 4" />
+    </g>
+    <g data-pulley [attr.data-cx]="lower.x" [attr.data-cy]="lower.y">
+      <circle class="pulley" [attr.cx]="lower.x" [attr.cy]="lower.y" [attr.r]="lower.r - 4" />
+    </g>
+
+    <!-- Kettenblatt und Kurbel -->
+    <g data-crank [attr.data-cx]="bb.x" [attr.data-cy]="bb.y">
+      <circle class="ring-teeth" [attr.cx]="bb.x" [attr.cy]="bb.y" [attr.r]="ringR - 3" />
+      <circle class="part" [attr.cx]="bb.x" [attr.cy]="bb.y" [attr.r]="ringR - 7" />
+      <circle class="soft" [attr.cx]="bb.x" [attr.cy]="bb.y" r="66" />
+      @for (a of chainringBolts; track a) {
+        <path
+          class="line"
+          [attr.d]="'M' + bb.x + ' ' + bb.y + ' L' + (bb.x + 66) + ' ' + bb.y"
+          [attr.transform]="'rotate(' + a + ' ' + bb.x + ' ' + bb.y + ')'"
+        />
+      }
+      <path
+        class="part part--strong"
+        [attr.d]="
+          'M' +
+          bb.x +
+          ' ' +
+          (bb.y - 22) +
+          ' L' +
+          crankEnd +
+          ' ' +
+          (bb.y - 11) +
+          ' A11 11 0 0 1 ' +
+          crankEnd +
+          ' ' +
+          (bb.y + 11) +
+          ' L' +
+          bb.x +
+          ' ' +
+          (bb.y + 22) +
+          ' Z'
+        "
+      />
+      <circle class="part" [attr.cx]="bb.x" [attr.cy]="bb.y" r="24" />
+      <g data-pedal [attr.data-cx]="crankEnd" [attr.data-cy]="bb.y">
+        <rect
+          class="part part--strong"
+          [attr.x]="crankEnd - 46"
+          [attr.y]="bb.y - 10"
+          width="92"
+          height="20"
+          rx="4"
+        />
+      </g>
+    </g>
+  </svg>
+</div>
+
+<div class="near" data-near>
+  @for (post of posts; track post) {
+    <i class="post"></i>
+  }
+</div>
+
+<span class="mark" data-mark aria-hidden="true"><b>KUDOS</b><b>CARE</b></span>

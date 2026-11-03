@@ -1,0 +1,232 @@
+/* prefers-reduced-motion: die Bühne löst sich in normalen Seitenfluss auf. Steht zuletzt in
+   `styleUrls`, weil diese Regeln alles Vorherige überschreiben müssen. */
+
+/* ── Reduzierte Bewegung: keine gepinnte Strecke, alles liegt im Fluss ────── */
+@media (prefers-reduced-motion: reduce) {
+  .kc {
+    --frame-w: min(74vw, 100svh);
+  }
+  .kc-track {
+    height: auto;
+  }
+  .kc-stage {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+    padding-bottom: var(--gutter);
+  }
+  .kc-brand {
+    position: static;
+    order: -2;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    margin: 0;
+    padding: 1.25rem var(--gutter) 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lime);
+  }
+  .kc-hero {
+    order: -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 1rem 0 0;
+    background: linear-gradient(90deg, var(--ground-d) 50%, var(--ground-p) 50%);
+  }
+  .kc-planes {
+    order: 0;
+    position: relative;
+    inset: auto;
+    display: block;
+    height: calc(var(--frame-w) * 0.555 + var(--road-y) + 2rem);
+    overflow: clip;
+  }
+  .kc-beat,
+  .kc-close,
+  .kc-parts {
+    order: 1;
+  }
+  .kc-hero,
+  .kc-hero__title,
+  .kc-hero__l,
+  .kc-hero__r,
+  .kc-rows,
+  .kc-row p,
+  .kc-close,
+  .kc-parts,
+  .kc-part {
+    position: static;
+    translate: none !important;
+    transform: none !important;
+  }
+  .kc-l,
+  .kc-r,
+  .kc-read.kc-l,
+  .kc-read.kc-r,
+  .kc-say.kc-l,
+  .kc-say.kc-r,
+  .kc-verdict.kc-l,
+  .kc-verdict.kc-r {
+    position: static;
+    translate: none !important;
+    width: auto;
+    max-width: none;
+    padding-inline: var(--gutter);
+    text-align: left;
+    border: 0;
+  }
+  [data-sc-cue] {
+    opacity: 1;
+  }
+  .kc-hero__title {
+    grid-column: 1 / -1;
+    margin-bottom: 1rem;
+    align-items: start;
+    column-gap: 0;
+  }
+  .kc-hero__title span:first-child,
+  .kc-hero__title span:last-child {
+    justify-self: start;
+    max-width: none;
+    padding-inline: var(--gutter);
+    text-align: left;
+  }
+  .kc-hero__l,
+  .kc-hero__r {
+    width: auto;
+    padding: 0 var(--gutter) 1.5rem;
+    text-align: left;
+  }
+  .kc-beat {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .kc-beat > * {
+    padding-block: clamp(1.25rem, 3vw, 2.5rem);
+  }
+  .kc-beat > .on-paper {
+    background: var(--ground-p);
+  }
+  .kc-beat > .kc-rows,
+  .kc-beat > .kc-sr {
+    grid-column: 1 / -1;
+    padding: 0;
+  }
+  .kc-l .kc-read__meta {
+    justify-content: flex-start;
+  }
+  .kc-bar i {
+    transform-origin: 0 50%;
+  }
+  .kc-rows {
+    display: block;
+  }
+  .kc-row {
+    position: static;
+    column-gap: 0;
+    align-items: stretch;
+  }
+  .kc-row__l {
+    width: auto;
+    justify-self: stretch;
+    padding: 1rem var(--gutter);
+    text-align: left;
+  }
+  .kc-row__r {
+    width: auto;
+    padding: 1rem var(--gutter);
+    background: var(--ground-p);
+  }
+  .kc-close {
+    width: auto;
+    padding: clamp(2rem, 5vw, 4rem) var(--gutter) 0;
+  }
+  .kc-close p {
+    max-width: 62ch;
+  }
+  .kc-parts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    padding: 1.5rem var(--gutter) 0;
+  }
+  .kc-part {
+    align-items: flex-start;
+    padding: 0;
+  }
+  .kc-part::before,
+  .kc-part::after {
+    display: none;
+  }
+  .kc-cta {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 760px) {
+  .kc {
+    --frame-w: 100vw;
+    --frame-bottom: 1rem;
+  }
+  .kc-planes {
+    height: calc(var(--frame-w) * 0.555 + 2rem);
+  }
+  .kc-hero {
+    display: block;
+    background: var(--ground-d);
+  }
+  .kc-hero .on-paper {
+    color: var(--ink-d);
+  }
+  .kc-hero__title {
+    display: block;
+  }
+  .kc-hero__title span {
+    display: block;
+  }
+  .kc-hero__title span:last-child {
+    position: static;
+    margin-top: 0;
+  }
+  .kc-hero__l p,
+  .kc-hero__l .kc-cta,
+  .kc-close .kc-cta,
+  .kc-close p.kc-foot {
+    position: static;
+  }
+  .kc-hero__l p {
+    margin-bottom: 1rem;
+  }
+  .kc-hero__l .kc-cta {
+    background: var(--lime);
+    color: var(--ground-d);
+  }
+  .kc-hero__r {
+    padding-bottom: 0.5rem;
+    color: var(--soft-d);
+  }
+  .kc-close .kc-cta {
+    margin-top: 0.7rem;
+  }
+  .kc-close p.kc-foot {
+    margin-top: 1.25rem;
+  }
+  .kc-beat,
+  .kc-row {
+    display: block;
+  }
+  .kc-row p,
+  .kc-row p.kc-row__l,
+  .kc-row p.kc-row__r {
+    position: static;
+    translate: none !important;
+  }
+  .kc-control-note {
+    translate: none;
+  }
+}

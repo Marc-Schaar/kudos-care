@@ -1,0 +1,68 @@
+<app-bottom-sheet [title]="title()" (closed)="closed.emit()">
+  <form class="g-form" (ngSubmit)="save()">
+    <label class="g-field">
+      <span class="g-label">Bezeichnung</span>
+      <input class="g-input" name="label" autocomplete="off" [(ngModel)]="label" />
+    </label>
+    <div class="g-two">
+      <label class="g-field">
+        <span class="g-label">Alle (km)</span>
+        <input
+          class="g-input"
+          type="number"
+          name="km"
+          min="0"
+          inputmode="numeric"
+          [(ngModel)]="intervalKm"
+        />
+      </label>
+      <label class="g-field">
+        <span class="g-label">Alle (Tage)</span>
+        <input
+          class="g-input"
+          type="number"
+          name="days"
+          min="0"
+          inputmode="numeric"
+          [(ngModel)]="intervalDays"
+        />
+      </label>
+    </div>
+    <label class="g-field">
+      <span class="g-label">Zuletzt erledigt am</span>
+      <input class="g-input" type="date" name="lastDone" [max]="today" [(ngModel)]="lastDoneAt" />
+    </label>
+
+    <div class="g-actions">
+      <button type="button" class="g-btn ghost" (click)="closed.emit()">Abbrechen</button>
+      <button type="submit" class="g-btn primary" [disabled]="busy() || !label().trim()">
+        Speichern
+      </button>
+    </div>
+
+    @if (interval(); as current) {
+      @if (current.last_log) {
+        <button type="button" class="g-link-btn" [disabled]="busy()" (click)="undoLast()">
+          Letztes „Erledigt" zurücknehmen
+        </button>
+      }
+      <div class="g-danger-zone">
+        @if (confirmingDelete()) {
+          <p class="g-text">Diese Pflege und ihr Verlauf werden gelöscht.</p>
+          <div class="g-actions">
+            <button type="button" class="g-btn ghost" (click)="confirmingDelete.set(false)">
+              Abbrechen
+            </button>
+            <button type="button" class="g-btn danger-solid" [disabled]="busy()" (click)="delete()">
+              Endgültig löschen
+            </button>
+          </div>
+        } @else {
+          <button type="button" class="g-btn danger wide" (click)="confirmingDelete.set(true)">
+            Pflege löschen
+          </button>
+        }
+      </div>
+    }
+  </form>
+</app-bottom-sheet>

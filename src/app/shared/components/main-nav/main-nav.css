@@ -8,8 +8,8 @@
   bottom: 0;
   z-index: 40;
   display: grid;
-  /* Fünf Ziele: Start, Fahrten, Bikes, Zustand, Werkstatt. */
-  grid-template-columns: repeat(5, 1fr);
+  /* Vier Ziele: Start, Fahrten, Bikes, Mein Rad. */
+  grid-template-columns: repeat(4, 1fr);
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -54,8 +54,6 @@
 }
 
 .nav-label {
-  /* Bei fünf Spalten bleiben auf 390px nur ~78px je Ziel — „Werkstatt" passt
-     erst ab dieser Größe ohne Umbruch. */
   font-size: 0.55rem;
   letter-spacing: 0.02em;
   text-transform: uppercase;

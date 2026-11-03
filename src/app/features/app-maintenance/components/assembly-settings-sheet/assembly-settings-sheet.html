@@ -1,0 +1,96 @@
+<app-bottom-sheet [title]="assembly().display_name" (closed)="closed.emit()">
+  @switch (view()) {
+    @case ('retire') {
+      <form class="g-form" (ngSubmit)="retire()">
+        <p class="g-text">
+          Für verkauft oder entsorgt. Die Geschichte bleibt erhalten und du kannst es jederzeit
+          zurückholen. Montierte Teile werden mit ausgemustert, Teile im Regal bleiben Ersatz.
+        </p>
+        @if (hasPartner()) {
+          <label class="g-check">
+            <input type="checkbox" name="withLinked" [(ngModel)]="withLinked" />
+            <span>
+              Den ganzen Satz ausmustern
+              <span class="g-row-sub">Sonst bleibt das gekoppelte Laufrad, wo es ist.</span>
+            </span>
+          </label>
+        }
+        <label class="g-field">
+          <span class="g-label">Ausgemustert am</span>
+          <input class="g-input" type="date" name="retireOn" [max]="today" [(ngModel)]="retireOn" />
+        </label>
+        <div class="g-actions">
+          <button type="button" class="g-btn ghost" (click)="view.set('main')">Abbrechen</button>
+          <button type="submit" class="g-btn primary" [disabled]="busy()">Ausmustern</button>
+        </div>
+      </form>
+    }
+
+    @case ('delete') {
+      <div class="g-form">
+        <p class="g-text">
+          {{ assembly().display_name }} wird endgültig gelöscht, samt
+          {{ partCount() }}
+          {{ partCount() === 1 ? 'Teil' : 'Teilen' }} und ihrem Verlauf. Das lässt sich nicht
+          rückgängig machen.
+        </p>
+        <div class="g-actions">
+          <button type="button" class="g-btn ghost" (click)="view.set('main')">Abbrechen</button>
+          <button type="button" class="g-btn danger-solid" [disabled]="busy()" (click)="delete()">
+            Endgültig löschen
+          </button>
+        </div>
+      </div>
+    }
+
+    @default {
+      <div class="g-form">
+        <form class="g-form" (ngSubmit)="rename()">
+          <label class="g-field">
+            <span class="g-label">Name</span>
+            <input
+              class="g-input"
+              name="name"
+              autocomplete="off"
+              [placeholder]="assembly().group_detail.name"
+              [(ngModel)]="name"
+            />
+          </label>
+          <button type="submit" class="g-btn" [disabled]="busy()">Namen speichern</button>
+        </form>
+
+        @if (!assembly().is_retired) {
+          <hr class="g-divider" />
+          <form class="g-form" (ngSubmit)="setInstalledAt()">
+            <label class="g-field">
+              <span class="g-label">Einbaudatum für alle Teile</span>
+              <input
+                class="g-input"
+                type="date"
+                name="installedAt"
+                [max]="today"
+                [(ngModel)]="installedAt"
+              />
+              <span class="g-hint">
+                Für den Fall, dass du die Baugruppe erst nach den Fahrten angelegt hast. Die km
+                werden aus deinen Fahrten ab diesem Tag berechnet.
+              </span>
+            </label>
+            <button type="submit" class="g-btn" [disabled]="busy()">Datum übernehmen</button>
+          </form>
+        }
+
+        <div class="g-danger-zone">
+          @if (!assembly().is_retired) {
+            <button type="button" class="g-btn wide" (click)="view.set('retire')">
+              Ausmustern
+            </button>
+          }
+          <button type="button" class="g-btn danger wide" (click)="view.set('delete')">
+            Endgültig löschen
+          </button>
+        </div>
+      </div>
+    }
+  }
+</app-bottom-sheet>

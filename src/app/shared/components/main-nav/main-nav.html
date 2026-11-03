@@ -21,27 +21,14 @@
     </a>
 
     @if (bikeId(); as id) {
-      <a
-        class="nav-item"
-        [routerLink]="nav.to.bikeCondition(id)"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <span class="nav-icon" aria-hidden="true">◍</span>
-        <span class="nav-label">Zustand</span>
-      </a>
-      <a class="nav-item" [routerLink]="nav.to.workshop(id)" routerLinkActive="active">
+      <a class="nav-item" [routerLink]="nav.to.bike(id)" routerLinkActive="active">
         <span class="nav-icon" aria-hidden="true">⚙</span>
-        <span class="nav-label">Werkstatt</span>
+        <span class="nav-label">Mein Rad</span>
       </a>
     } @else {
       <span class="nav-item disabled" aria-disabled="true">
-        <span class="nav-icon" aria-hidden="true">◍</span>
-        <span class="nav-label">Zustand</span>
-      </span>
-      <span class="nav-item disabled" aria-disabled="true">
         <span class="nav-icon" aria-hidden="true">⚙</span>
-        <span class="nav-label">Werkstatt</span>
+        <span class="nav-label">Mein Rad</span>
       </span>
     }
   </nav>
