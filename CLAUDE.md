@@ -13,8 +13,22 @@ Strava-OAuth, Sync von Aktivitäten/Bikes, Verschleiß-Tracking von Bike-Kompone
 - **Angular 21.2**, esbuild-basierter Builder (`@angular/build:application`), **keine
   NgModules** — durchgehend Standalone Components.
 - **Tailwind CSS v4** via `@tailwindcss/postcss` (`.postcssrc.json`), importiert in
-  `src/styles.css`. Dark Theme als Default, `prefers-color-scheme: light` Override.
-  Custom CSS-Variablen für Warn-Status-Farben (`--ok`/`--warn`/`--critical`).
+  `src/styles.css`. Dark Theme ("Graphit") als Default, `prefers-color-scheme: light` wird
+  zum "Zeichenpapier" der Landing-Page. **Die Tokens in `src/styles.css` sind die einzige
+  Farbquelle**, jede Farbe hat genau eine Aufgabe: `--accent` (Lime) = Hauptaktion und "hier
+  bist du", `--ok`/`--warn`/`--critical` = nur Status, `--rain` = nur Wetter. Der helle
+  Modus hat eigene Ampel-Werte (die dunklen lagen auf Papier unter 2:1). Text auf
+  Akzent/Status-Flächen nimmt `--accent-ink`, nie `#fff` (Weiß auf `--critical` = 3,7:1).
+- **Schrift:** Barlow (Text), Barlow Condensed (Überschriften), DM Mono **nur für Zahlen
+  und technische Beschriftung** (`.g-num`). Fließtext in Mono ließ alles gleich viel wiegen.
+  Nichts unter 12 px.
+- **Bausteine** in `features/app-maintenance/garage.css` (global, `g-*`), gelten für den
+  ganzen Bereich nach dem Login, nicht nur die Wartung. Status ist immer **Form + Farbe**
+  (`.g-dot`/`.g-pill`: Kreis ok, Dreieck warn, Raute critical, Ring unbekannt).
+  `.g-rows > * + *` muss **hinter** `.g-row` stehen, sonst setzt dessen `border: 0` die
+  Trennlinien zurück.
+- **Icons:** `shared/components/icon` mit Pfaddaten aus Lucide (ISC) in `icons.ts`, kein
+  Laufzeit-Paket, keine Emoji/Glyphen als Icons. Neue Icons aus Lucide übernehmen.
 - Kein UI-Framework (kein Material/PrimeNG) — Komponenten sind handgebaut.
 - **State Management**: Signals in `providedIn:'root'`-Services (kein NgRx/Akita). RxJS
   bleibt Transport-/Async-Layer für HTTP-Calls und Timer (siehe unten).
@@ -91,9 +105,22 @@ features/
     **Schriften** sind selbst gehostet (`@fontsource`), nicht zurück zu Google Fonts wechseln.
   app-login/                   — Login (`/app/login`), Strava-OAuth-Callback
     (`/app/strava-callback`), authGuard. login.html verlinkt auf `/` (Landing-Page).
-  app-dashboard/                — Landing-Page nach Login (Bikes-Übersicht, Sync, Activities)
+  app-dashboard/                — Startseite nach Login. Oben **ein Befund-Satz**
+    (`verdict.ts::buildVerdict`, getestet): zählt überfällige *Dinge*, nicht Räder (vorher
+    "1 überfällig" neben "6 überfällig" auf der Rad-Seite). Darunter die Werkstattzeichnung
+    des dringendsten Rads (Umschalter bei mehreren), "Als Nächstes dran" mit `Erledigt`,
+    Strichliste und letzte Fahrten. Lädt dafür `assemblies/` je aktivem Rad; ein Rad, das
+    nicht lädt, blendet die übrigen nicht aus.
   app-activity/                 — Strava Activity List/Detail, Map, Wetter-Overlay
     pipes/headwind-label, services/activity-service
+    `models/ride-insights.ts` liest aus `GET /activities/` (liefert `track` als WKT und
+    `weather_data`): Routenform (`route-glyph`), nass ab 0,5 mm/h im Stundenmittel,
+    Monatsgruppen, Strichliste (`ride-tally`). `ride-row` ist die gemeinsame Zeile für Start
+    und Fahrtenliste. **Achtung:** der Endpoint liefert alle Fahrten samt Track ohne
+    Pagination (~5 kB je Fahrt) — bei großen Konten im Backend kürzen, dann hier anpassen.
+    Die Karte nutzt OpenFreeMap `dark`/`positron` passend zum Farbmodus (die bunte
+    `liberty` erschlug die Einfärbung). Wind-Chart in **km/h** (Open-Meteo-Default; die
+    Beschriftung sagte früher m/s).
     Die Karte (`components/map`) rendert die **fertigen `wind_segments` vom Backend**
     und interpoliert selbst nichts mehr. Früher schnitt sie den vereinfachten Track in
     Segmente und verteilte die Stundenwerte über den Segment-Index — das war falsch,
@@ -112,6 +139,20 @@ features/
     Eingabefelder mit `font-size: 16px`, damit iOS beim Fokus nicht hineinzoomt.
     Die Navigationsleiste liegt **nicht** hier, sondern global in der App-Shell (siehe
     `shared/components/main-nav`).
+    **Werkstattzeichnung** (`components/bike-blueprint`, Rechnung in
+    `shared/utils/blueprint.ts`, getestet): das Rad als Illustration mit Hinweislinien zu
+    jeder aktiven Baugruppe, darunter Tacho und Wetter als zwei Maßlinien desselben Teils
+    (`largestWeatherGap`, bewusst nicht Bike-Gesamt-km gegen Teil-km). Der Punkt am Rad kommt
+    aus `group_detail.category`/`.position`, **nie aus dem Namen**; Gruppen ohne festen Ort
+    (`accessories`) bekommen keine Linie. Unter 860px Containerbreite (Container-Query)
+    Nummern am Rad plus Liste, die zuerst nur Auffälliges zeigt. Landmarken müssen zu den
+    SVGs in `public/bike-illustrations/` passen. Keine `vector-effect: non-scaling-stroke`
+    auf den Linien: Chrome ignoriert damit `pathLength` und die Einzeichen-Animation zerfällt.
+    **Verschleiß-Lineal** (`components/wear-meter`): Marken bei 80/100 %, Skala bis 125 %,
+    darüber eine Spitze; mit `[part]` schraffiert der Wetter-Aufschlag hinter dem Tacho-Stand
+    (nur wenn die km-Achse die Ampel treibt). `DueItem.remaining` ("noch 709 km",
+    "863 km drüber") ist die Zahl, nach der gehandelt wird. `due-row` ist die gemeinsame
+    Zeile für Start und Rad-Seite.
     Ein Bike hat **zwei Seiten**, bewusst getrennt nach "ansehen" und "ändern":
     `bike-condition-page` (`bikes/:id`) zeigt nur den Zustand — Statistik-Kacheln,
     Diagramm, KI-Zustandsbericht, "Als nächstes fällig" und eine Baugruppen-Übersicht,
@@ -245,9 +286,12 @@ shared/
                                        `auth-guard`, der `createUrlTree` braucht (ein
                                        Guard gibt ein Ziel zurück, er springt nicht) —
                                        den Pfad holt auch er aus dem Service.
-  components/main-nav                — **zentrale Navigationsleiste**, fix am unteren
-                                       Rand, ab 760px eine schwebende Pille. Fünf Ziele:
-                                       Start · Fahrten · Bikes · Zustand · Werkstatt.
+  components/main-nav                — **App-Chrome**: am Handy Kopfzeile (Wortmarke +
+                                       Benutzermenü) und Leiste unten, ab 960px eine
+                                       Seitenleiste (`--rail`). Vier Ziele: Start ·
+                                       Fahrten · Räder · Mein Rad. `isAppRoute()` entscheidet
+                                       auch das Layout in `core/app.html` (`.in-app`).
+                                       Stößt `fetchUser()`/`fetchBikes()` selbst an.
                                        Liegt in der App-Shell (`core/app.html`), nicht im
                                        Wartungsbereich — sobald sie auf Fahrten und Start
                                        verweist, muss sie auch dort stehen bleiben, sonst
@@ -273,9 +317,8 @@ shared/
                                        und die Verschleiß-Historie unwiderruflich
                                        verschwinden. Der Eintrag ist leiser gesetzt als
                                        „Abmelden" — selten gewollt, nie aus Versehen.
-    Bewusst eine Shared-Komponente in den bestehenden Seiten-Headern (Dashboard,
-    Wartung, Activity-Breadcrumb) statt einer globalen Topbar — so bleibt das Layout
-    aller Seiten unangetastet.
+    Liegt einmal im App-Chrome (`main-nav`), nicht mehr in Seiten-Headern: dort fehlte
+    es auf den Fahrten und jeder Rad-Seite. Öffnet am Desktop nach oben.
   components/email-prompt-dialog     — fragt einmal pro Session nach der E-Mail, wenn
     `needs_email` gesetzt ist. Liegt in `core/app.html`, damit er unabhängig von der
     Landing-Route erscheint; „Später" merkt sich das in `sessionStorage` (nicht

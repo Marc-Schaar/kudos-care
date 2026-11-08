@@ -109,6 +109,7 @@
 .interval .g-row {
   flex: 1 1 100%;
   min-width: 0;
+  padding-right: 0.9rem;
 }
 
 .interval .mount {
@@ -123,6 +124,7 @@
 
   .interval .g-row {
     flex: 1 1 auto;
+    padding-right: 0.25rem;
   }
 
   .interval .mount {

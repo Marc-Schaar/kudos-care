@@ -268,7 +268,8 @@
 }
 
 .balloon.status-critical {
-  color: #fff;
+  /* Weiß auf diesem Rot läge bei 3,7:1. */
+  color: var(--accent-ink);
   background: var(--critical);
   border-color: var(--critical);
 }

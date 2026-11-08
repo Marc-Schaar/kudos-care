@@ -13,6 +13,18 @@
   color: var(--muted);
 }
 
+/* Auf kurzen Seiten bleibt die Fußzeile unten, statt mitten im Bild zu schweben. Abgezogen werden
+   die Leiste und die Kopfzeile der App. */
+.in-app {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - var(--nav-height) - 4rem);
+}
+
+.in-app .shell-footer {
+  margin-top: auto;
+}
+
 /* Ab 960 px steht die Navigation links statt unten. */
 @media (min-width: 960px) {
   :host {
@@ -20,6 +32,7 @@
   }
 
   .in-app {
+    min-height: calc(100dvh - 0.75rem);
     padding-left: var(--rail);
   }
 }

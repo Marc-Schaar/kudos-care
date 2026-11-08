@@ -106,4 +106,17 @@ und Konsolenfehlern, dazu die Bedienwege per Klick.
 
 ## Feel-Check
 
-Wird nach dem Bau ergänzt.
+Nicht kalt: selbst gebaut. Ein Durchgang über die Bildschirmfotos, ein Wort je Ort, danach
+mit der Kurve verglichen.
+
+| Ort | Geplant | Gespürt | Folge |
+|---|---|---|---|
+| 1 | Orientierung | Orientierung | keine |
+| 2 | Wiedererkennen | anfangs Leere (Linien fehlten im Ganzseiten-Foto) | Fotomodus, kein Seitenfehler; Linien liegen am Bildschirm richtig, Rahmen-Punkt ans Steuerrohr verlegt |
+| 3 | Klarheit | Klarheit, am Handy erst Gedränge | Knopf unter den Titel, Liste unter der Zeichnung zeigt zuerst nur Auffälliges |
+| 4 | Aha | Aha | keine |
+| 5 | Bestätigung | Bestätigung | keine |
+| 6 | Erledigung | Erledigung | geprüft mit abgefangenem Request: Meldung, Neuladen, Satz oben |
+
+Fingerprint-Gate gegen `kudos-care`: alle sechs Dimensionen verschieden (Grammatik, Navigation,
+Einstieg, Ablauf ohne Scroll-Akte, Abschluss als Eingabe, Signature Move).

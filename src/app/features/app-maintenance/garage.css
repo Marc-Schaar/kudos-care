@@ -428,7 +428,7 @@
 .g-btn.danger-solid {
   background: var(--critical);
   border-color: var(--critical);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .g-btn.wide {
@@ -443,10 +443,6 @@
 /* Mit dem Finger bleibt es bei 44 px, klein darf der Knopf nur unter der Maus sein. */
 @media (pointer: coarse) {
   .g-btn.small {
-    min-height: 2.75rem;
-  }
-
-  .g-switch button {
     min-height: 2.75rem;
   }
 }
@@ -522,6 +518,12 @@
   font-weight: 500;
   cursor: pointer;
   transition: color 0.12s var(--ease-out);
+}
+
+@media (pointer: coarse) {
+  .g-switch button {
+    min-height: 2.75rem;
+  }
 }
 
 .g-switch button:hover {
