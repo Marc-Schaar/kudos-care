@@ -1,8 +1,8 @@
 <app-bottom-sheet [title]="title()" (closed)="closed.emit()">
   <form class="g-form" (ngSubmit)="save()">
     <p class="g-hint">
-      Was auf dem Laufrad sitzt, wechselt von selbst mit. Hier legst du fest, was am Rad bleibt und
-      trotzdem dazu passen muss.
+      Was auf dem Laufrad sitzt, wechselt von selbst mit. Hier legst du für jedes Laufrad fest,
+      welcher Belag oder welche Scheibe beim Wechsel aufgezogen wird.
     </p>
 
     @if (partnerOptions().length > 0) {
@@ -17,10 +17,144 @@
       </label>
     }
 
-    @for (row of suggestedRows(); track row.slot.id) {
-      <ng-container
-        *ngTemplateOutlet="rowTemplate; context: { $implicit: row }"
-      ></ng-container>
+    @for (board of boards(); track board.slot.id) {
+      <section class="board" [attr.aria-labelledby]="'board-' + board.slot.id">
+        <h3 class="board-title" [id]="'board-' + board.slot.id">
+          {{ board.slot.display_name }}
+          @if (showWhere(board)) {
+            <span class="board-where">{{ board.where }}</span>
+          }
+        </h3>
+
+        @if (nothingMounted(board)) {
+          <p class="board-alert">
+            <span class="g-dot status-warn" aria-hidden="true"></span>
+            Gerade ist hier nichts montiert. Öffne das passende Teil und zieh es auf.
+          </p>
+        }
+
+        <div class="board-scroll">
+          <table class="board-grid">
+            <thead>
+              <tr>
+                <td class="corner"></td>
+                @for (wheel of board.wheels; track wheel.id) {
+                  <th scope="col" class="wheel" [class.opened]="isOpened(wheel)">
+                    <span class="wheel-name">{{ wheel.display_name }}</span>
+                    <span class="wheel-state" [class.on]="wheel.is_active">
+                      {{ wheel.is_active ? 'am Rad' : 'im Keller' }}
+                    </span>
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (part of board.parts; track part.id) {
+                <tr>
+                  <th scope="row" class="part">
+                    <span class="part-name">{{ part.label }}</span>
+                    <span class="part-meta">
+                      <span class="g-num">{{ km(part) }}</span>
+                      @if (part.is_mounted) {
+                        <span class="part-on">drauf</span>
+                      }
+                    </span>
+                  </th>
+                  @for (wheel of board.wheels; track wheel.id) {
+                    <td class="cell" [class.opened]="isOpened(wheel)">
+                      <ng-container
+                        *ngTemplateOutlet="
+                          peg;
+                          context: { board, wheel, value: part.id, label: part.label }
+                        "
+                      ></ng-container>
+                    </td>
+                  }
+                </tr>
+              }
+              @if (board.draft(); as draft) {
+                <tr class="draft-row">
+                  <th scope="row" class="part">
+                    <span class="part-name">{{ draftLabel(board) }}</span>
+                    <span class="part-meta">wird beim Speichern angelegt</span>
+                  </th>
+                  @for (wheel of board.wheels; track wheel.id) {
+                    <td class="cell" [class.opened]="isOpened(wheel)">
+                      <ng-container
+                        *ngTemplateOutlet="
+                          peg;
+                          context: { board, wheel, value: NEW, label: draftLabel(board) }
+                        "
+                      ></ng-container>
+                    </td>
+                  }
+                </tr>
+              }
+              <tr class="none-row">
+                <th scope="row" class="part">
+                  <span class="part-name">Nichts koppeln</span>
+                </th>
+                @for (wheel of board.wheels; track wheel.id) {
+                  <td class="cell" [class.opened]="isOpened(wheel)">
+                    <ng-container
+                      *ngTemplateOutlet="
+                        peg;
+                        context: { board, wheel, value: null, label: 'nichts' }
+                      "
+                    ></ng-container>
+                  </td>
+                }
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        @if (board.draft(); as draft) {
+          <div class="g-two">
+            <input
+              class="g-input"
+              [name]="'brand-' + board.slot.id"
+              placeholder="Marke"
+              autocomplete="off"
+              [attr.aria-label]="'Marke für ' + board.slot.display_name"
+              [ngModel]="draft.brand"
+              (ngModelChange)="updateDraft(board, 'brand', $event)"
+            />
+            <input
+              class="g-input"
+              [name]="'model-' + board.slot.id"
+              placeholder="Modell"
+              autocomplete="off"
+              [attr.aria-label]="'Modell für ' + board.slot.display_name"
+              [ngModel]="draft.model"
+              (ngModelChange)="updateDraft(board, 'model', $event)"
+            />
+          </div>
+          <button type="button" class="g-link-btn quiet" (click)="dropDraft(board)">
+            Doch kein neues Teil
+          </button>
+        } @else {
+          <button type="button" class="g-link-btn" (click)="startDraft(board)">
+            Neues Teil anlegen
+          </button>
+        }
+
+        @for (part of shared(board); track part.id) {
+          <p class="board-note">
+            {{ part.label }} hängt an mehreren Laufrädern und bleibt beim Wechsel zwischen ihnen
+            einfach drauf.
+          </p>
+        }
+        @if (unpegged(board).length > 0) {
+          <p class="board-note">
+            Ohne Kopplung bleibt beim Wechsel auf
+            @for (wheel of unpegged(board); track wheel.id; let last = $last) {
+              {{ wheel.display_name }}{{ last ? '' : ' und ' }}
+            }
+            montiert, was gerade drauf ist.
+          </p>
+        }
+      </section>
     } @empty {
       @if (partnerOptions().length === 0 && otherRows().length === 0) {
         <p class="g-empty">An diesem Rad gibt es noch nichts, das mitwechseln könnte.</p>
@@ -32,9 +166,38 @@
         <hr class="g-divider" />
         <p class="g-label">Weitere Teile, zum Beispiel die Kette</p>
         @for (row of otherRows(); track row.slot.id) {
-          <ng-container
-            *ngTemplateOutlet="rowTemplate; context: { $implicit: row }"
-          ></ng-container>
+          <div class="g-field">
+            <label class="g-field">
+              <span class="g-label">{{ row.slot.display_name }}</span>
+              <select class="g-input" [name]="'link-' + row.slot.id" [(ngModel)]="row.choice">
+                <option [ngValue]="NONE">Bleibt, wie es ist</option>
+                @for (part of row.parts; track part.id) {
+                  <option [ngValue]="part.id">{{ partLabel(part) }}</option>
+                }
+                <option [ngValue]="NEW">Neues Teil anlegen</option>
+              </select>
+            </label>
+            @if (row.choice() === NEW) {
+              <div class="g-two">
+                <input
+                  class="g-input"
+                  [name]="'brand-o-' + row.slot.id"
+                  placeholder="Marke"
+                  autocomplete="off"
+                  [attr.aria-label]="'Marke für ' + row.slot.display_name"
+                  [(ngModel)]="row.newBrand"
+                />
+                <input
+                  class="g-input"
+                  [name]="'model-o-' + row.slot.id"
+                  placeholder="Modell"
+                  autocomplete="off"
+                  [attr.aria-label]="'Modell für ' + row.slot.display_name"
+                  [(ngModel)]="row.newModel"
+                />
+              </div>
+            }
+          </div>
         }
       } @else {
         <button type="button" class="g-link-btn" (click)="showOthers.set(true)">
@@ -52,37 +215,16 @@
   </form>
 </app-bottom-sheet>
 
-<ng-template #rowTemplate let-row>
-  <div class="g-field">
-    <label class="g-field">
-      <span class="g-label">{{ row.slot.display_name }}</span>
-      <select class="g-input" [name]="'link-' + row.slot.id" [(ngModel)]="row.choice">
-        <option [ngValue]="NONE">Bleibt, wie es ist</option>
-        @for (part of row.parts; track part.id) {
-          <option [ngValue]="part.id">{{ partLabel(part) }}</option>
-        }
-        <option [ngValue]="NEW">+ Neues Teil anlegen</option>
-      </select>
-    </label>
-    @if (row.choice() === NEW) {
-      <div class="g-two">
-        <input
-          class="g-input"
-          [name]="'brand-' + row.slot.id"
-          placeholder="Marke"
-          autocomplete="off"
-          [attr.aria-label]="'Marke für ' + row.slot.display_name"
-          [(ngModel)]="row.newBrand"
-        />
-        <input
-          class="g-input"
-          [name]="'model-' + row.slot.id"
-          placeholder="Modell"
-          autocomplete="off"
-          [attr.aria-label]="'Modell für ' + row.slot.display_name"
-          [(ngModel)]="row.newModel"
-        />
-      </div>
-    }
-  </div>
+<ng-template #peg let-board="board" let-wheel="wheel" let-value="value" let-label="label">
+  <label class="peg">
+    <input
+      type="radio"
+      class="peg-input"
+      [name]="'peg-' + board.slot.id + '-' + wheel.id"
+      [checked]="board.pegs()[wheel.id] === value"
+      (change)="setPeg(board, wheel, value)"
+      [attr.aria-label]="label + ' für ' + wheel.display_name"
+    />
+    <span class="peg-mark" aria-hidden="true"></span>
+  </label>
 </ng-template>
