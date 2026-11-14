@@ -78,7 +78,7 @@ import { RC } from '../core/paths';
               Upload bei Strava freischalten
             </button>
             <p class="hint">
-              Einmalig nötig: Strava fragt, ob Kudos Care Aktivitäten hochladen darf.
+              Bei der Anmeldung nicht erlaubt: Strava fragt noch einmal, ob Kudos Care Aktivitäten hochladen darf.
             </p>
           }
         </form>

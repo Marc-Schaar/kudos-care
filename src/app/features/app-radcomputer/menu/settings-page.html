@@ -13,8 +13,8 @@
       </p>
     } @else {
       <p class="hint">
-        Du bist über Kudos Care mit Strava verbunden. Zum Hochladen von Fahrten und für private
-        Routen braucht die App einmalig zwei weitere Erlaubnisse von Strava.
+        Bei der Anmeldung wurde das Hochladen zu Strava nicht erlaubt. Zum Hochladen von Fahrten
+        und für private Routen braucht die App diese Erlaubnis von Strava.
       </p>
       <button
         type="button"
@@ -25,9 +25,6 @@
         {{ strava.busy() ? 'Weiter zu Strava …' : 'Upload bei Strava freischalten' }}
       </button>
     }
-    <p class="hint">
-      Meldest du dich in Kudos Care neu an, fragt Strava die Erlaubnisse eventuell erneut ab.
-    </p>
   </div>
 
   <h2 class="section-title">Darstellung</h2>

@@ -159,3 +159,12 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+.auth-hint {
+  margin-bottom: 1.25rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--muted);
+}

@@ -5,6 +5,14 @@ import { interval, switchMap, takeWhile, tap } from 'rxjs';
 import { NotificationService } from '../notification-service/notification-service';
 import { NavigationService } from '../../../shared/services/navigation-service/navigation-service';
 
+/**
+ * Strava-Rechte, die Kudos Care bei der Anmeldung anfragt. Upload (activity:write) und
+ * private Routen (read_all) für den Radcomputer gehören direkt dazu: Strava ersetzt die
+ * Rechte bei jeder Anmeldung, ein Login ohne sie nähme eine spätere Freigabe wieder weg.
+ * Nutzer können beide bei Strava abwählen, dann bietet der Radcomputer das Nachholen an.
+ */
+export const STRAVA_SCOPE = 'profile:read_all,activity:read_all,activity:write,read_all';
+
 export interface Activity {
   id: number;
   name: string;

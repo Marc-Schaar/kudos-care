@@ -365,17 +365,31 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
 - **Ein Paket, kein Lazy Loading innerhalb.** `radcomputer.routes.ts` importiert alle Seiten
   statisch: unterwegs ohne Netz darf kein Seitenwechsel an einem fehlenden Chunk scheitern.
 - **Pfade** in `core/paths.ts` (`RC`), analog zum NavigationService.
-- **Strava** über die Kudos-Session (`core/strava.ts` → `/api/radcomputer/*`). Der normale
-  Login fragt kein `activity:write` an; „Upload bei Strava freischalten“ leitet mit
-  erweitertem Scope und `state=radcomputer` zu Strava, der `StravaCallback` führt danach
-  zurück in den Radcomputer. `GET /api/strava/me/` liefert `can_upload`/`private_routes`.
+- **Strava** über die Kudos-Session (`core/strava.ts` → `/api/radcomputer/*`). Der Login
+  fragt `activity:write` und `read_all` direkt mit an (`STRAVA_SCOPE` in
+  `strava-service.ts`, von Login und Radcomputer geteilt) — Strava ersetzt die Rechte bei
+  jeder Anmeldung, ein Login mit kleinerem Scope nähme die Upload-Freigabe wieder weg.
+  Strava lässt einzelne Rechte aber abwählen; nur dann erscheint „Upload bei Strava
+  freischalten“ (gleicher Scope, `state=radcomputer`, der `StravaCallback` führt zurück in
+  den Radcomputer). `GET /api/strava/me/` liefert `can_upload`/`private_routes`.
 - **Angular 21 bleibt Pflicht**, solange der Radcomputer aufs iPhone X (Safari 16.6) muss:
   Angular 22 setzt Safari ≥ 17.2 voraus.
 - **Pause → Stop.** Pausiert wird aus „Runde“ die Taste „Weiter“ und aus der Hauptaste
   „Stop“. Stop beendet nicht sofort, sondern öffnet „Fahrt abschließen“ (`menu/save-page.ts`):
   erfolgreicher Strava-Upload setzt die Fahrt zurück, nach einem TCX-Export erscheint
   „Fahrt abschließen“. Bis dahin bleibt sie pausiert und lässt sich mit „Weiter“ fortsetzen.
-- Fahrt, Einstellungen, feste Ziele liegen in `localStorage` unter `radcomputer.*`.
+- **Einstellungen** liegen im Konto (`GET|PUT /api/radcomputer/settings/`, snake_case,
+  Mapping in `settings-store.ts::API_FIELDS`), `localStorage` hält nur die Offline-Kopie
+  für den Start ohne Netz. Gespeichert wird erst nach dem ersten Abgleich (sonst
+  überschreibt ein altes Gerät die Kontowerte) und entprellt; `stored: false` vom Server
+  lädt die lokalen Werte einmalig hoch.
+- **Feste Ziele** liegen nur noch im Konto, serverseitig verschlüsselt
+  (`/api/radcomputer/places/`), **nicht** mehr im Browser — „Zuhause“ ist die
+  Wohnadresse. Der alte Schlüssel `radcomputer.places.v1` wird beim ersten erfolgreichen
+  Laden hochgeladen und gelöscht. Ohne Netz ist die Liste leer (`unavailable`); das Routen
+  braucht ohnehin Internet.
+- Die laufende Fahrt liegt weiter in `localStorage` (`radcomputer.*`), damit ein Neuladen
+  sie nicht verliert.
 - `?demo` an der Adresse simuliert GPS und Sensoren (Beispielroute/-training im Menü).
 
 ## Routing (`core/app.routes.ts`, `maintenances.routes.ts`)

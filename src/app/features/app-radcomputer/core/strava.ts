@@ -4,15 +4,11 @@ import { Observable, firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error-interceptor/error-interceptor';
-import { StravaService } from '../../../shared/services/strava-service/strava-service';
+import {
+  STRAVA_SCOPE,
+  StravaService,
+} from '../../../shared/services/strava-service/strava-service';
 import { RADCOMPUTER_GRANT_STATE } from './paths';
-
-/**
- * Rechte für den Radcomputer: der Kudos-Standard plus Upload (activity:write) und
- * private Routen (read_all). Strava ersetzt bei jeder Anmeldung die Rechte, deshalb
- * gehören die Kudos-Rechte mit hinein.
- */
-const GRANT_SCOPE = 'profile:read_all,activity:read_all,activity:write,read_all';
 
 /** Fehler zeigt der Radcomputer in seiner eigenen Leiste, nicht als Kudos-Toast. */
 const context = (): HttpContext => new HttpContext().set(SKIP_ERROR_TOAST, true);
@@ -36,8 +32,8 @@ export interface UploadState {
 
 /**
  * Strava im Radcomputer, über die Anmeldung von Kudos Care (Session-Cookie). Die Seite
- * ist durch den authGuard geschützt, angemeldet ist man hier also immer. Für den Upload
- * fehlt anfangs nur das Recht activity:write; `grantUpload()` holt es bei Strava nach.
+ * ist durch den authGuard geschützt, angemeldet ist man hier also immer. Die Anmeldung fragt
+ * activity:write schon mit an; hat jemand es bei Strava abgewählt, holt `grantUpload()` es nach.
  *
  * Eine hochgeladene Fahrt kommt über den Strava-Webhook automatisch auch in Kudos Care an.
  */
@@ -67,7 +63,7 @@ export class Strava {
       redirect_uri: `${environment.redirectUrl}/app/strava-callback`,
       response_type: 'code',
       approval_prompt: 'auto',
-      scope: GRANT_SCOPE,
+      scope: STRAVA_SCOPE,
       state: RADCOMPUTER_GRANT_STATE,
     });
     window.location.href = `https://www.strava.com/oauth/authorize?${params}`;

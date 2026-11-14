@@ -114,13 +114,22 @@ export class RoutePlanPage {
     if (await this.guide.navigateTo(place)) this.showOnMap();
   }
 
-  protected save(place: Place): void {
-    this.places.add(place);
-    this.toasts.show(`Gespeichert: ${place.name}`);
+  protected async save(place: Place): Promise<void> {
+    this.toasts.show(
+      (await this.places.add(place))
+        ? `Gespeichert: ${place.name}`
+        : 'Speichern fehlgeschlagen. Die Ziele brauchen Internet.',
+    );
+  }
+
+  protected async removePlace(place: Place): Promise<void> {
+    if (!(await this.places.remove(place))) {
+      this.toasts.show('Löschen fehlgeschlagen. Die Ziele brauchen Internet.');
+    }
   }
 
   /** Legt den aktuellen Standort als festes Ziel ab, z. B. „Zuhause“. */
-  protected saveCurrent(event: Event): void {
+  protected async saveCurrent(event: Event): Promise<void> {
     event.preventDefault();
     const fix = this.gps.fix();
     const name = this.searchModel().placeName.trim();
@@ -132,7 +141,10 @@ export class RoutePlanPage {
       this.toasts.show('Bitte einen Namen eingeben, z. B. Zuhause.');
       return;
     }
-    this.places.add({ name, lat: fix.lat, lon: fix.lon });
+    if (!(await this.places.add({ name, lat: fix.lat, lon: fix.lon }))) {
+      this.toasts.show('Speichern fehlgeschlagen. Die Ziele brauchen Internet.');
+      return;
+    }
     this.searchModel.update((m) => ({ ...m, placeName: '' }));
     this.toasts.show(`Gespeichert: ${name}`);
   }

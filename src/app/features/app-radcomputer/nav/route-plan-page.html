@@ -131,7 +131,7 @@
             <button
               type="button"
               class="place-side"
-              (click)="places.remove(place)"
+              (click)="removePlace(place)"
               [attr.aria-label]="place.name + ' löschen'"
             >
               Löschen
@@ -139,6 +139,10 @@
           </li>
         }
       </ul>
+    } @else if (places.unavailable()) {
+      <p class="hint">
+        Keine Verbindung zu Kudos Care. Deine Ziele erscheinen, sobald du online bist.
+      </p>
     } @else {
       <p class="hint">
         Noch keine. Speichere unten deinen Standort oder merke dir ein Suchergebnis.

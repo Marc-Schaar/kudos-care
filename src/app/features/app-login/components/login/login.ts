@@ -1,7 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
-import { StravaService } from '../../../../shared/services/strava-service/strava-service';
+import {
+  STRAVA_SCOPE,
+  StravaService,
+} from '../../../../shared/services/strava-service/strava-service';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 export const WEATHER_CONSENT_STATE = 'weather_consent';
@@ -36,7 +39,7 @@ export class Login implements OnInit {
       `client_id=${this.clientId}` +
       `&redirect_uri=${encodeURIComponent(this.redirectUri)}` +
       `&response_type=code` +
-      `&scope=profile:read_all,activity:read_all`;
+      `&scope=${STRAVA_SCOPE}`;
 
     // Über \`state\` übersteht die Antwort den Weg über Strava, auch beim Wechsel in die Strava-App.
     const stravaAuthUrlWithConsent = this.weatherConsent()
