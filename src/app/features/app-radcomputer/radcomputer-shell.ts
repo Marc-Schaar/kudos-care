@@ -96,7 +96,7 @@ export class RadcomputerShell {
   });
 
   protected readonly onRide = computed(() => this.url().startsWith(RC.ride));
-  /** Ausgeblendete Leiste: nur auf der Fahrt, und nach einem Tipp kurz über dem Inhalt. */
+  /** Ausgeblendete Leiste: nur auf der Fahrt, und nach einem Tipp kurz eingeklappt darunter. */
   protected readonly controlsFloating = computed(
     () => this.onRide() && !this.settings.value().showControls,
   );

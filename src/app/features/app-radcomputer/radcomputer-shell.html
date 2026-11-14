@@ -50,9 +50,17 @@
   <router-outlet />
 </main>
 
-<!-- Wie am Edge: Menü, Runde, Start. Ausgeblendet erscheint die Leiste nach einem Tipp auf die Fahrtseite. -->
-@if (controlsVisible()) {
-  <footer class="controls" [class.floating]="controlsFloating()" (click)="onControlsClick()">
+<!-- Wie am Edge: Menü, Runde, Start. Ausgeblendet erscheint die Leiste nach einem Tipp auf die
+     Fahrtseite. Sie bleibt im Layoutfluss und klappt auf: die Felder rücken nach oben, statt
+     verdeckt zu werden. -->
+<div
+  class="controls-slot"
+  [class.open]="controlsVisible()"
+  [class.collapsible]="controlsFloating()"
+  [attr.inert]="controlsVisible() ? null : ''"
+  [attr.aria-hidden]="controlsVisible() ? null : 'true'"
+>
+  <footer class="controls" (click)="onControlsClick()">
     @if (onRide()) {
       <a class="btn icon" [routerLink]="rc.menu" aria-label="Menü">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -78,7 +86,7 @@
       <button type="button" class="btn primary" (click)="ride.toggle()">{{ mainLabel() }}</button>
     }
   </footer>
-}
+</div>
 
 <div class="toast" role="status" aria-live="polite" [class.show]="toasts.message()">
   {{ toasts.message() }}

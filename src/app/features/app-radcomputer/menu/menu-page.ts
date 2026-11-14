@@ -44,7 +44,7 @@ export class MenuPage {
   protected readonly sensors = inject(Sensors);
   protected readonly gps = inject(Gps);
   protected readonly strava = inject(Strava);
-  private readonly ride = inject(RideRecorder);
+  protected readonly ride = inject(RideRecorder);
   protected readonly guide = inject(RouteGuide);
   protected readonly player = inject(WorkoutPlayer);
   private readonly toasts = inject(Toasts);

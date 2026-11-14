@@ -3,23 +3,21 @@
   height: 100%;
 }
 
-.page-title {
-  font-family: var(--digits);
-  font-size: 34px;
-  line-height: 1;
-  margin-bottom: 14px;
-}
-
-/* Stand der Fahrt: Zustand links, zwei Zahlen rechts. Der Rand links trägt die Farbe
-   des Aufnahmebalkens, damit man denselben Zustand wiedererkennt. */
+/* Stand der Fahrt: die eine laute Fläche im Menü. Zustand links, zwei Zahlen rechts; der
+   Rand links trägt die Farbe des Aufnahmebalkens, damit man denselben Zustand wiedererkennt.
+   Ganze Fläche führt zurück zur Fahrt. */
 .ride {
-  margin-bottom: 18px;
-  padding: 10px 0 10px 14px;
-  border-left: 6px solid var(--line);
+  min-height: 88px;
+  margin-bottom: 10px;
+  padding: 12px var(--gutter) 12px 14px;
+  border-left: 8px solid var(--line);
+  border-radius: 0 4px 4px 0;
+  background: var(--panel);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: end;
+  align-items: center;
   gap: 18px;
+  text-decoration: none;
 }
 .ride[data-s='running'] {
   border-left-color: var(--go);
@@ -32,10 +30,10 @@
   border-left-style: dashed;
 }
 .ride-state {
-  align-self: center;
   font-family: var(--digits);
-  font-size: var(--t-l);
+  font-size: var(--t-xl);
   font-weight: 700;
+  line-height: 1.1;
 }
 .ride[data-s='running'] .ride-state {
   color: var(--go);
@@ -46,9 +44,10 @@
 .ride-num {
   display: grid;
   justify-items: end;
+  gap: 2px;
 }
 .ride-num .digits {
-  font-size: var(--t-2xl);
+  font-size: 34px;
   line-height: 1;
 }
 .ride-unit {
@@ -56,23 +55,74 @@
   color: var(--muted);
 }
 
+/* Sensoren: drei gleich große Tasten, Zustand als Form und Wort. Verbunden zieht der Rahmen
+   auf Vordergrundfarbe an, damit drei grüne Häkchen nicht nötig sind. */
+.sensors {
+  margin-bottom: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.sensor {
+  min-height: 72px;
+  padding: 10px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  display: grid;
+  align-content: space-between;
+  gap: 6px;
+  text-align: left;
+}
+.sensor[data-state='on'] {
+  border-color: var(--fg);
+}
+.sensor[data-state='busy'] {
+  border-color: var(--hold);
+  border-style: dashed;
+}
+.sensor[data-state='err'] {
+  border-color: var(--warn);
+}
+.sensor-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+  min-width: 0;
+}
+.sensor-sub {
+  font-size: var(--t-s);
+  line-height: 1.25;
+  color: var(--muted);
+}
+.sensor[data-state='on'] .sensor-sub {
+  color: var(--fg);
+}
+.sensor[data-state='busy'] .sensor-sub {
+  color: var(--hold);
+}
+.sensor[data-state='err'] .sensor-sub {
+  color: var(--warn);
+}
+
+/* Einträge: Piktogramm auf einer Schildplatte, Name, Stand; Pfeil rechts führt weiter. */
 .list {
   display: grid;
   border-top: 2px solid var(--fg);
 }
 .item {
-  min-height: 68px;
+  min-height: 76px;
   padding: 10px 40px 10px 0;
   position: relative;
   display: grid;
-  align-content: center;
-  gap: 3px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
   border-bottom: 1px solid var(--line);
   text-decoration: none;
-  text-align: left;
-  width: 100%;
 }
-/* Pfeil nach rechts: führt auf eine eigene Seite */
 .item::after {
   content: '';
   position: absolute;
@@ -85,6 +135,39 @@
   border-top: 3px solid var(--fg);
   transform: rotate(45deg);
 }
+.item:active {
+  background: var(--panel);
+}
+.plate {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--edge);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+}
+/* Geladene Route, geladenes Training, aufgezeichnete Fahrt: Platte gefüllt, Stand in
+   Vordergrundfarbe. Eine Formänderung, nicht nur Farbe. */
+.item.set .plate {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+.plate svg,
+.exit svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+.text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
 .name {
   font-family: var(--digits);
   font-size: var(--t-xl);
@@ -95,50 +178,35 @@
   font-size: var(--t-m);
   color: var(--muted);
   line-height: 1.3;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* Geladene Route, geladenes Training: in Vordergrundfarbe statt grau */
-.sub.set {
+.item.set .sub {
   color: var(--fg);
 }
 
-/* Sensoren: drei gleich große Kacheln, Zustand als Form und Wort */
-.sensors {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-.sensor {
-  min-height: 84px;
-  padding: 10px;
-  border: 2px solid var(--edge);
+/* Ausgang: kein Pfeil wie bei den Unterseiten, sondern das Zeichen für „verlässt die App“. */
+.exit {
+  min-height: 68px;
+  margin-top: 32px;
+  padding: 10px var(--gutter);
+  border: 2px solid var(--line);
   border-radius: 4px;
   display: grid;
-  align-content: space-between;
-  gap: 8px;
-  text-align: left;
-}
-.sensor-head {
-  display: flex;
+  grid-template-columns: 26px minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  font-family: var(--digits);
+  gap: 14px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.exit .name {
   font-size: var(--t-l);
-  font-weight: 700;
-}
-.sensor .sub {
-  font-size: var(--t-s);
-  white-space: normal;
-}
-.sensor .sub[data-state='on'] {
   color: var(--fg);
 }
-.sensor .sub[data-state='busy'] {
-  color: var(--hold);
+.exit .sub {
+  font-size: var(--t-s);
 }
-.sensor .sub[data-state='err'] {
-  color: var(--warn);
+.exit:active {
+  background: var(--panel);
 }

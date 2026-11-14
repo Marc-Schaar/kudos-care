@@ -137,7 +137,7 @@ const STATE_TEXT: Record<RideDisplayState, string> = {
   `,
   styleUrl: './ride-page.css',
   host: {
-    '(click)': 'onTap()',
+    '(click)': 'onTap($event)',
     '(touchstart)': 'onTouchStart($event)',
     '(touchend)': 'onTouchEnd($event)',
     '(document:keydown)': 'onKey($event)',
@@ -198,9 +198,15 @@ export class RidePage {
     this.view.show(pages[(index + delta + pages.length) % pages.length].key);
   }
 
-  /** Ist die Bedienleiste ausgeblendet, holt ein Tipp sie für ein paar Sekunden zurück. */
-  protected onTap(): void {
-    if (!this.settings.value().showControls) this.view.reveal();
+  /**
+   * Ist die Bedienleiste ausgeblendet, holt ein Tipp sie für ein paar Sekunden zurück, ein
+   * zweiter blendet sie sofort wieder aus. Tasten auf der Seite (Seitenstriche, Kartenzoom)
+   * schalten die Leiste nicht mit, sonst verschwände sie beim Blättern.
+   */
+  protected onTap(event: MouseEvent): void {
+    if (this.settings.value().showControls) return;
+    if ((event.target as Element | null)?.closest('button, a, input, select')) return;
+    this.view.toggle();
   }
 
   protected onTouchStart(event: TouchEvent): void {

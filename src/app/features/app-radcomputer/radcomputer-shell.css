@@ -116,17 +116,47 @@ main {
   border-color: var(--fg);
   color: var(--fg);
 }
-/* Ausgeblendet: legt sich nach einem Tipp über die Seite, ohne dass die Felder springen. */
-.controls.floating {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 5;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom));
-  padding-left: calc(6px + env(safe-area-inset-left));
-  padding-right: calc(6px + env(safe-area-inset-right));
+/* Ausgeblendet: Die Leiste klappt nach einem Tipp auf und schiebt den Inhalt nach oben, statt
+   ihn zu verdecken. 0fr → 1fr animiert die echte Höhe, ohne sie zu kennen. Aus geht schneller
+   als an: beim Einblenden soll das Auge folgen können, beim Ausblenden nichts mehr warten. */
+.controls-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.controls-slot > .controls {
+  min-height: 0;
+  overflow: hidden;
+}
+.controls-slot.collapsible {
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.12s ease-in;
+}
+.controls-slot.collapsible.open {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.18s ease-out;
+}
+/* Eingeklappt darf weder Polster noch Linie stehen bleiben: beides erst mit dem Aufklappen. */
+.controls-slot.collapsible > .controls {
+  padding-block: 0;
+  border-top-width: 0;
+  transition:
+    padding 0.12s ease-in,
+    border-top-width 0.12s ease-in;
+}
+.controls-slot.collapsible.open > .controls {
+  padding-block: 6px;
   border-top: 2px solid var(--fg);
+  transition:
+    padding 0.18s ease-out,
+    border-top-width 0.18s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .controls-slot.collapsible,
+  .controls-slot.collapsible.open,
+  .controls-slot.collapsible > .controls,
+  .controls-slot.collapsible.open > .controls {
+    transition: none;
+  }
 }
 
 .toast {

@@ -1,11 +1,12 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-
-import { Ticker } from './ticker';
+import { Injectable, signal } from '@angular/core';
 
 export type RidePageKey = 'data' | 'avg' | 'lap' | 'map' | 'workout';
 
-/** So lange bleibt die ausgeblendete Bedienleiste nach einem Tipp sichtbar (ms). */
-const REVEAL_MS = 6000;
+/**
+ * So lange bleibt die ausgeblendete Bedienleiste nach einem Tipp sichtbar (ms). Kurz, weil
+ * die Leiste den Datenfeldern Platz nimmt; wer sie bedient, verlängert sie mit jedem Tipp.
+ */
+const REVEAL_MS = 3000;
 
 /**
  * Zustand der Fahrtansicht, geteilt zwischen Rahmen, Fahrtseiten und Menü:
@@ -13,23 +14,35 @@ const REVEAL_MS = 6000;
  */
 @Injectable({ providedIn: 'root' })
 export class RideView {
-  private readonly ticker = inject(Ticker);
-  private readonly revealedUntil = signal(0);
+  private timer: ReturnType<typeof setTimeout> | undefined;
 
   readonly page = signal<RidePageKey>('data');
   /** Zoomstufe der Kartenseite, bleibt beim Blättern erhalten. */
   readonly mapZoom = signal(16);
-  readonly revealed = computed(() => this.ticker.now() < this.revealedUntil());
+  /**
+   * Eigener Timer statt des Sekundentakts: Am Ticker hinge das Ausblenden bis zu einer
+   * Sekunde länger, als eingestellt ist.
+   */
+  readonly revealed = signal(false);
 
   show(page: RidePageKey): void {
     this.page.set(page);
   }
 
   reveal(): void {
-    this.revealedUntil.set(Date.now() + REVEAL_MS);
+    clearTimeout(this.timer);
+    this.revealed.set(true);
+    this.timer = setTimeout(() => this.revealed.set(false), REVEAL_MS);
   }
 
   hide(): void {
-    this.revealedUntil.set(0);
+    clearTimeout(this.timer);
+    this.revealed.set(false);
+  }
+
+  /** Tipp auf die Fahrtseite: einblenden, oder sofort wieder weg, wenn sie schon steht. */
+  toggle(): void {
+    if (this.revealed()) this.hide();
+    else this.reveal();
   }
 }

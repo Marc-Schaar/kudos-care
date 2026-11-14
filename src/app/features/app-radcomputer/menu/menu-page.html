@@ -1,10 +1,11 @@
 @let s = settings.value();
 
 <div class="scroll">
-  <h2 class="page-title">Menü</h2>
+  <h2 class="sr-only">Menü</h2>
 
-  <!-- Stand der Fahrt: damit man im Menü nicht vergisst, dass die Aufnahme weiterläuft -->
-  <section class="ride" [attr.data-s]="rideState()" aria-label="Aktuelle Fahrt">
+  <!-- Stand der Fahrt, zugleich das größte Ziel zurück: im Menü soll man nicht vergessen,
+       dass die Aufnahme weiterläuft. -->
+  <a class="ride" [routerLink]="rc.ride" [attr.data-s]="rideState()" aria-label="Zurück zur Fahrt">
     <span class="ride-state">{{ rideStateText() }}</span>
     <span class="ride-num">
       <span class="digits">{{ rideTime() }}</span>
@@ -14,50 +15,76 @@
       <span class="digits">{{ rideKm() }}</span>
       <span class="ride-unit">km</span>
     </span>
-  </section>
+  </a>
 
-  <nav class="list" aria-label="Menü">
-    <a class="item" [routerLink]="rc.route">
-      <span class="name">Routenplanung</span>
-      <span class="sub" [class.set]="guide.route()">{{ routeText() }}</span>
-    </a>
-    <a class="item" [routerLink]="rc.training">
-      <span class="name">Training</span>
-      <span class="sub" [class.set]="player.workout()">{{ workoutText() }}</span>
-    </a>
-    <a class="item" [routerLink]="rc.save">
-      <span class="name">Fahrt speichern</span>
-      <span class="sub">{{ saveText() }}</span>
-    </a>
-    <a class="item" [routerLink]="rc.settings">
-      <span class="name">Einstellungen</span>
-      <span class="sub">{{ settingsText() }}</span>
-    </a>
-    <a class="item" [routerLink]="kudos.to.dashboard()">
-      <span class="name">Zu Kudos Care</span>
-      <span class="sub">Fahrten, Räder, Wartung</span>
-    </a>
-  </nav>
-
-  <h3 class="section-title">Sensoren</h3>
-  <div class="sensors">
-    <button type="button" class="sensor" (click)="onGps()">
+  <!-- Sensoren zuerst: vor dem Losfahren ist das die erste Frage. -->
+  <div class="sensors" role="group" aria-label="Sensoren">
+    <button type="button" class="sensor" [attr.data-state]="gps.state()" (click)="onGps()">
       <span class="sensor-head"
         ><span class="sense" [attr.data-state]="gps.state()"></span>GPS</span
       >
-      <span class="sub" [attr.data-state]="gps.state()">{{ gpsText() }}</span>
+      <span class="sensor-sub">{{ gpsText() }}</span>
     </button>
-    <button type="button" class="sensor" (click)="sensors.connect('pwr')">
+    <button
+      type="button"
+      class="sensor"
+      [attr.data-state]="pwrState()"
+      (click)="sensors.connect('pwr')"
+    >
       <span class="sensor-head"
         ><span class="sense" [attr.data-state]="pwrState()"></span>Leistung</span
       >
-      <span class="sub" [attr.data-state]="pwrState()">{{ sensorText[pwrState()] }}</span>
+      <span class="sensor-sub">{{ sensorText[pwrState()] }}</span>
     </button>
-    <button type="button" class="sensor" (click)="sensors.connect('hr')">
+    <button
+      type="button"
+      class="sensor"
+      [attr.data-state]="hrState()"
+      (click)="sensors.connect('hr')"
+    >
       <span class="sensor-head"><span class="sense" [attr.data-state]="hrState()"></span>Puls</span>
-      <span class="sub" [attr.data-state]="hrState()">{{ sensorText[hrState()] }}</span>
+      <span class="sensor-sub">{{ sensorText[hrState()] }}</span>
     </button>
   </div>
+
+  <nav class="list" aria-label="Menü">
+    <a class="item" [class.set]="guide.route()" [routerLink]="rc.route">
+      <span class="plate" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M7 21V11a3 3 0 0 1 3-3h9M15 4l4 4-4 4" /></svg>
+      </span>
+      <span class="text">
+        <span class="name">Routenplanung</span>
+        <span class="sub">{{ routeText() }}</span>
+      </span>
+    </a>
+    <a class="item" [class.set]="player.workout()" [routerLink]="rc.training">
+      <span class="plate" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M3 20h18M5 20v-5h4v5M10 20V7h4v13M15 20v-9h4v9" /></svg>
+      </span>
+      <span class="text">
+        <span class="name">Training</span>
+        <span class="sub">{{ workoutText() }}</span>
+      </span>
+    </a>
+    <a class="item" [class.set]="ride.hasData()" [routerLink]="rc.save">
+      <span class="plate" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M4 14v6h16v-6" /></svg>
+      </span>
+      <span class="text">
+        <span class="name">Fahrt speichern</span>
+        <span class="sub">{{ saveText() }}</span>
+      </span>
+    </a>
+    <a class="item" [routerLink]="rc.settings">
+      <span class="plate" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M15 4v6M4 17h3M11 17h9M9 14v6" /></svg>
+      </span>
+      <span class="text">
+        <span class="name">Einstellungen</span>
+        <span class="sub">{{ settingsText() }}</span>
+      </span>
+    </a>
+  </nav>
 
   <h3 class="section-title">Anzeige</h3>
   <div class="stack">
@@ -79,9 +106,20 @@
         />
       </label>
     </div>
-    <p class="hint">
-      Ausgeblendet erscheint die Bedienleiste nach einem Tipp auf die Fahrtseite für ein paar
-      Sekunden. Sensoren verbindest du dann hier.
-    </p>
+    @if (!s.showControls) {
+      <p class="hint">
+        Tippe auf die Fahrtseite, um die Leiste für 3 Sekunden einzublenden; ein zweiter Tipp
+        blendet sie sofort aus.
+      </p>
+    }
   </div>
+
+  <!-- Ausgang aus dem Radcomputer: abgesetzt, damit man ihn nicht mit einer Unterseite verwechselt. -->
+  <a class="exit" [routerLink]="kudos.to.dashboard()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" /></svg>
+    <span class="text">
+      <span class="name">Zu Kudos Care</span>
+      <span class="sub">Fahrten, Räder, Wartung</span>
+    </span>
+  </a>
 </div>
