@@ -10,10 +10,19 @@ import { UserMenu } from '../user-menu/user-menu';
 /** Routen ohne App-Chrome: alles davor liegt vor dem Login. */
 const PUBLIC_ROUTES = ['/app/login', '/app/strava-callback', '/impressum', '/datenschutz'];
 
+/** Bereiche, die den ganzen Bildschirm brauchen und ihre eigene Bedienung mitbringen. */
+const FULLSCREEN_ROUTES = ['/app/radcomputer'];
+
+/** Läuft hier ein Vollbild-Bereich (Radcomputer am Lenker)? Dann ohne Leiste und Fußzeile. */
+export function isFullscreenRoute(url: string): boolean {
+  const path = url.split(/[?#]/)[0];
+  return FULLSCREEN_ROUTES.some((route) => path.startsWith(route));
+}
+
 /** Gehört diese Adresse zum Bereich nach dem Login? Entscheidet über Navigation und Layout. */
 export function isAppRoute(url: string): boolean {
   const path = url.split(/[?#]/)[0];
-  if (path === '/' || path === '/landingpage') return false;
+  if (path === '/' || path === '/landingpage' || isFullscreenRoute(path)) return false;
   return !PUBLIC_ROUTES.some((route) => path.startsWith(route));
 }
 

@@ -1,0 +1,212 @@
+/* Radcomputer: Grundstile, nur innerhalb von .rc (Host von rc-shell). Kudos Care nutzt
+   dieselben Variablennamen (--bg, --muted …) mit anderen Werten; hier drin gelten diese.
+
+   Nachtmodus: echtes Schwarz, weil OLED-Pixel dann aus sind (Akku).
+   Farbe steht nur für Zustände, nie für Dekoration. */
+.rc {
+  --bg: #000;
+  --fg: #fff;
+  --muted: #a8a8a8;
+  --line: #2e2e2e;
+  --edge: #7a7a7a;
+  --panel: #161616;
+  --ok: #4ade80;
+  --hold: #ffb400;
+  --warn: #ff6b5e;
+  --digits:
+    'DIN Alternate', Bahnschrift, 'Roboto Condensed', system-ui, -apple-system, 'Helvetica Neue',
+    Arial, sans-serif;
+  --text: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: dark;
+}
+.rc[data-theme='day'] {
+  --bg: #fff;
+  --fg: #000;
+  --muted: #4a4a4a;
+  --line: #bdbdbd;
+  --edge: #6e6e6e;
+  --panel: #f0f0f0;
+  --ok: #0a6b2d;
+  --hold: #8a4a00;
+  --warn: #b3261e;
+  color-scheme: light;
+}
+
+/* Vollbild über Kudos Care */
+.rc {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--text);
+  font-size: 16px;
+  line-height: normal;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+body.rc-active {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.rc *,
+.rc *::before,
+.rc *::after {
+  box-sizing: border-box;
+}
+.rc button,
+.rc input,
+.rc select {
+  font: inherit;
+  color: inherit;
+}
+.rc button {
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.rc input,
+.rc select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+.rc a {
+  color: inherit;
+}
+.rc :focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: 2px;
+}
+.rc h1,
+.rc h2,
+.rc h3,
+.rc p {
+  margin: 0;
+}
+/* Tailwinds Reset nimmt Überschriften das Fett; hier sollen sie es haben. */
+.rc h1,
+.rc h2,
+.rc h3 {
+  font-weight: 700;
+}
+
+.rc .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.rc .muted {
+  color: var(--muted);
+}
+.rc .digits {
+  font-family: var(--digits);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Große Ziele für Handschuhe */
+.rc .btn {
+  min-height: 52px;
+  padding: 0 16px;
+  border: 2px solid var(--edge);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+}
+.rc .btn.primary {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+}
+.rc .btn.danger {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.rc .btn:disabled {
+  opacity: 0.4;
+}
+
+/* Scrollbare Seiten (Menü, Auswahl-Listen) */
+.rc .scroll {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 14px 12px 24px;
+}
+.rc .stack {
+  display: grid;
+  gap: 10px;
+}
+.rc .section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 18px 0 8px;
+}
+.rc .section-title:first-child {
+  margin-top: 0;
+}
+.rc .hint {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.rc .form-row {
+  display: grid;
+  gap: 4px;
+}
+.rc .form-row label {
+  font-size: 15px;
+  font-weight: 600;
+}
+.rc .form-row input:not([type='checkbox']),
+.rc .form-row select {
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 17px;
+  width: 100%;
+}
+.rc .form-row .error {
+  font-size: 14px;
+  color: var(--warn);
+}
+.rc .check-row {
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.rc .check-row input {
+  width: 26px;
+  height: 26px;
+  accent-color: var(--fg);
+  flex: none;
+}

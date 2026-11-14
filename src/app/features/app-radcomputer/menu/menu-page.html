@@ -1,0 +1,74 @@
+@let s = settings.value();
+
+<div class="scroll">
+  <h2 class="page-title">Menü</h2>
+
+  <nav class="list" aria-label="Menü">
+    <a class="item" [routerLink]="rc.route">
+      <span class="name">Routenplanung</span>
+      <span class="sub">{{ routeText() }}</span>
+    </a>
+    <a class="item" [routerLink]="rc.training">
+      <span class="name">Training</span>
+      <span class="sub">{{ workoutText() }}</span>
+    </a>
+    <a class="item" [routerLink]="rc.save">
+      <span class="name">Fahrt speichern</span>
+      <span class="sub">{{ saveText() }}</span>
+    </a>
+    <a class="item" [routerLink]="rc.settings">
+      <span class="name">Einstellungen</span>
+      <span class="sub">{{ settingsText() }}</span>
+    </a>
+    <a class="item" [routerLink]="kudos.to.dashboard()">
+      <span class="name">Zu Kudos Care</span>
+      <span class="sub">Fahrten, Räder, Wartung</span>
+    </a>
+  </nav>
+
+  <h3 class="section-title">Sensoren</h3>
+  <div class="list">
+    <button type="button" class="item sensor" [attr.data-state]="gps.state()" (click)="onGps()">
+      <span class="name">GPS</span>
+      <span class="sub">{{ gpsText() }}</span>
+    </button>
+    <button
+      type="button"
+      class="item sensor"
+      [attr.data-state]="pwrState()"
+      (click)="sensors.connect('pwr')"
+    >
+      <span class="name">Powermeter</span>
+      <span class="sub">{{ sensorText[pwrState()] }}</span>
+    </button>
+    <button
+      type="button"
+      class="item sensor"
+      [attr.data-state]="hrState()"
+      (click)="sensors.connect('hr')"
+    >
+      <span class="name">Pulsgurt</span>
+      <span class="sub">{{ sensorText[hrState()] }}</span>
+    </button>
+  </div>
+
+  <h3 class="section-title">Anzeige</h3>
+  <div class="stack">
+    <label class="check-row">
+      GPS, PWR und HF oben zeigen
+      <input
+        type="checkbox"
+        [checked]="s.showStatusBar"
+        (change)="toggle('showStatusBar', $event)"
+      />
+    </label>
+    <label class="check-row">
+      Bedienleiste unten zeigen
+      <input type="checkbox" [checked]="s.showControls" (change)="toggle('showControls', $event)" />
+    </label>
+    <p class="hint">
+      Ausgeblendet erscheint die Bedienleiste nach einem Tipp auf die Fahrtseite für ein paar
+      Sekunden. Sensoren verbindest du dann hier.
+    </p>
+  </div>
+</div>

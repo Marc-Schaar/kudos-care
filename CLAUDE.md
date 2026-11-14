@@ -59,7 +59,8 @@ core/                          — Shell, Bootstrapping, Routing, Interceptors
     csrf-interceptor/          — haengt X-CSRFToken manuell an, origin-unabhaengig
                                   (siehe Auth-Abschnitt unten — Angulars eingebauter
                                   Mechanismus reicht im lokalen Dev-Betrieb NICHT)
-    error-interceptor/         — globaler HTTP-Error-Handler → NotificationService-Toast
+    error-interceptor/         — globaler HTTP-Error-Handler → NotificationService-Toast;
+                                  `SKIP_ERROR_TOAST` (HttpContext) schaltet ihn je Request ab
 
 features/
   app-landing/                  — Öffentliche Marketing-Landing-Page (`/`, die Startseite,
@@ -336,6 +337,32 @@ haben Ordner+Klasse mit `*Component`-Suffix (`SlotCardComponent`), neuere Featur
 (`Dashboard`, `Login`, `ActivityList`). Bei neuem Code: kein `Component`-Suffix verwenden,
 Konsistenz zu neueren Features halten.
 
+## Radcomputer (`features/app-radcomputer/`)
+
+Radcomputer für den Lenker (iPhone X mit iOS 16 in Bluefy, wegen Web Bluetooth):
+Datenseiten, Powermeter/Pulsgurt per BLE, Navigation mit Abbiegehinweisen, Trainingsmodus
+(ZWO/ERG/MRC), Aufzeichnung als TCX und Upload zu Strava. Kam aus einem eigenen Projekt
+dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
+
+- **Vollbild über Kudos Care.** `isFullscreenRoute()` (main-nav.ts) blendet Leiste und
+  Fußzeile auf `/app/radcomputer` aus; `rc-shell` legt sich `position: fixed` darüber und
+  bringt eigene Bedienung mit (☰ Menü · Runde · Start), Rückweg im Menü „Zu Kudos Care“.
+- **Eigene Farben und Grundstile, nur unter `.rc`** (`radcomputer.css`, per `@import` in
+  `styles.css`). Kudos und Radcomputer nutzen dieselben Variablennamen (`--bg`, `--muted`,
+  `--ok` …) mit anderen Werten — Radcomputer-Regeln deshalb nie ohne `.rc`-Präfix global
+  machen. Tag/Nacht setzt die Shell als `data-theme` auf sich, nicht aufs Dokument.
+- **Ein Paket, kein Lazy Loading innerhalb.** `radcomputer.routes.ts` importiert alle Seiten
+  statisch: unterwegs ohne Netz darf kein Seitenwechsel an einem fehlenden Chunk scheitern.
+- **Pfade** in `core/paths.ts` (`RC`), analog zum NavigationService.
+- **Strava** über die Kudos-Session (`core/strava.ts` → `/api/radcomputer/*`). Der normale
+  Login fragt kein `activity:write` an; „Upload bei Strava freischalten“ leitet mit
+  erweitertem Scope und `state=radcomputer` zu Strava, der `StravaCallback` führt danach
+  zurück in den Radcomputer. `GET /api/strava/me/` liefert `can_upload`/`private_routes`.
+- **Angular 21 bleibt Pflicht**, solange der Radcomputer aufs iPhone X (Safari 16.6) muss:
+  Angular 22 setzt Safari ≥ 17.2 voraus.
+- Fahrt, Einstellungen, feste Ziele liegen in `localStorage` unter `radcomputer.*`.
+- `?demo` an der Adresse simuliert GPS und Sensoren (Beispielroute/-training im Menü).
+
 ## Routing (`core/app.routes.ts`, `maintenances.routes.ts`)
 
 - `''` → die öffentliche Landing-Page (lazy, `loadComponent`, ungeschützt) — das ist die
@@ -345,7 +372,8 @@ Konsistenz zu neueren Features halten.
   `app.routes.ts`, `children:`): `''` → redirect `login`, `login`/`strava-callback` →
   eager, ungeschützt, `dashboard` → eager, `authGuard`, `activities`/`activity/:id` →
   lazy (`loadComponent`), `authGuard`, `maintenance` → `loadChildren` →
-  `MAINTENANCE_ROUTES`. Kein Template/keine Komponente baut diese Pfade selbst
+  `MAINTENANCE_ROUTES`, `radcomputer` → `loadChildren` → `RADCOMPUTER_ROUTES`, `authGuard`
+  (Unterseiten `fahrt`, `menue`, `menue/route|training|speichern|einstellungen`). Kein Template/keine Komponente baut diese Pfade selbst
   zusammen — `shared/services/navigation-service` liefert sie bereits mit dem
   `app/`-Präfix, das ist die einzige Stelle, die eine Änderung hier kennen muss
   (Ausnahme: `login.ts` baut die Strava-`redirect_uri` clientseitig aus

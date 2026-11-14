@@ -1,0 +1,76 @@
+<header>
+  <h1 class="sr-only">Radcomputer</h1>
+  @if (settings.value().showStatusBar) {
+    <div class="status">
+      <button
+        type="button"
+        class="chip"
+        [attr.data-state]="gps.state()"
+        [attr.aria-label]="'GPS ' + gpsText() + ' – Standort'"
+        (click)="onGps()"
+      >
+        GPS <small>{{ gpsText() }}</small>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [attr.data-state]="pwrState()"
+        [attr.aria-label]="'PWR ' + pwrText() + ' – Powermeter'"
+        (click)="sensors.connect('pwr')"
+      >
+        PWR <small>{{ pwrText() }}</small>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [attr.data-state]="hrState()"
+        [attr.aria-label]="'HF ' + hrText() + ' – Pulsgurt'"
+        (click)="sensors.connect('hr')"
+      >
+        HF <small>{{ hrText() }}</small>
+      </button>
+      <span class="clock digits"><span class="sr-only">Uhrzeit </span>{{ clock() }}</span>
+    </div>
+  }
+
+  @if (navStrip(); as nav) {
+    <button type="button" class="strip" [class.warn]="nav.off" (click)="openRidePage('map')">
+      <rc-cue-arrow [kind]="nav.kind" />
+      <span class="digits">{{ nav.distance }}</span>
+      <span class="strip-text">{{ nav.text }}</span>
+    </button>
+  }
+  @if (workoutStrip(); as wo) {
+    <button type="button" class="strip" (click)="openRidePage('workout')">
+      <span class="digits">{{ wo.remaining }}</span>
+      <span class="strip-text">{{ wo.text }}</span>
+    </button>
+  }
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<!-- Wie am Edge: Menü, Runde, Start. Ausgeblendet erscheint die Leiste nach einem Tipp auf die Fahrtseite. -->
+@if (controlsVisible()) {
+  <footer class="controls" [class.floating]="controlsFloating()" (click)="onControlsClick()">
+    @if (onRide()) {
+      <a class="btn icon" [routerLink]="rc.menu" aria-label="Menü">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </a>
+    } @else {
+      <a class="btn icon" [routerLink]="rc.ride" aria-label="Zur Fahrt">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+      </a>
+    }
+    <button type="button" class="btn" [disabled]="ride.status() !== 'running'" (click)="ride.lap()">
+      Runde
+    </button>
+    <button type="button" class="btn primary" (click)="ride.toggle()">{{ mainLabel() }}</button>
+  </footer>
+}
+
+<div class="toast" role="status" aria-live="polite" [class.show]="toasts.message()">
+  {{ toasts.message() }}
+</div>

@@ -5,7 +5,7 @@ import { filter } from 'rxjs';
 import { AiConsentDialog } from '../shared/components/ai-consent-dialog/ai-consent-dialog';
 import { EmailPromptDialog } from '../shared/components/email-prompt-dialog/email-prompt-dialog';
 import { LegalLinks } from '../shared/components/legal-links/legal-links';
-import { isAppRoute, MainNav } from '../shared/components/main-nav/main-nav';
+import { isAppRoute, isFullscreenRoute, MainNav } from '../shared/components/main-nav/main-nav';
 import { NotificationComponent } from '../shared/components/notification-component/notification-component';
 
 @Component({
@@ -26,7 +26,9 @@ export class App {
   private readonly path = signal(this.router.url);
 
   protected readonly title = signal('kudos-care');
-  protected readonly showFooter = computed(() => this.path().split(/[?#]/)[0] !== '/');
+  protected readonly showFooter = computed(
+    () => this.path().split(/[?#]/)[0] !== '/' && !isFullscreenRoute(this.path()),
+  );
   protected readonly inApp = computed(() => isAppRoute(this.path()));
 
   constructor() {

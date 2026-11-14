@@ -7,6 +7,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
 import { WEATHER_CONSENT_STATE } from '../login/login';
+import { RADCOMPUTER_GRANT_STATE } from '../../../app-radcomputer/core/paths';
 
 @Component({
   selector: 'app-strava-callback',
@@ -22,6 +23,7 @@ export class StravaCallback {
   private baseUrl = environment.apiUrl;
 
   status = signal<'loading' | 'success' | 'error'>('loading');
+  private backToRadcomputer = false;
   error = false;
   errorMessage = '';
 
@@ -31,6 +33,8 @@ export class StravaCallback {
       const error = params['error'];
       const scope = params['scope'];
       const weatherConsent = params['state'] === WEATHER_CONSENT_STATE;
+      // Zurück aus „Upload freischalten“ im Radcomputer: danach wieder dorthin.
+      this.backToRadcomputer = params['state'] === RADCOMPUTER_GRANT_STATE;
 
       if (error) {
         this.status.set('error');
@@ -58,7 +62,8 @@ export class StravaCallback {
           if (res?.athlete) {
             this.stravaService.setLoggedInUser(res.athlete.id, res.athlete.firstname);
           }
-          setTimeout(() => this.nav.goTo(this.nav.to.dashboard()), 2000);
+          const next = this.backToRadcomputer ? this.nav.to.radcomputer() : this.nav.to.dashboard();
+          setTimeout(() => this.nav.goTo(next), 2000);
         },
         error: (err) => {
           this.status.set('error');

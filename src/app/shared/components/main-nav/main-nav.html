@@ -41,5 +41,10 @@
         <span class="nav-label">Mein Rad</span>
       </span>
     }
+
+    <a class="nav-item" [routerLink]="nav.to.radcomputer()" routerLinkActive="active">
+      <app-icon name="compass" [size]="22" />
+      <span class="nav-label">Radcomputer</span>
+    </a>
   </nav>
 }

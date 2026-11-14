@@ -49,6 +49,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'radcomputer',
+        canActivate: [authGuard],
+        loadChildren: () =>
+          import('../features/app-radcomputer/radcomputer.routes').then(
+            (m) => m.RADCOMPUTER_ROUTES,
+          ),
+      },
+      {
         path: 'maintenance',
         loadChildren: () => import('./maintenances.routes').then((m) => m.MAINTENANCE_ROUTES),
       },

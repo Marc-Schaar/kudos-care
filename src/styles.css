@@ -13,6 +13,8 @@
 @import '@fontsource/dm-mono/500.css';
 @import 'tailwindcss';
 @import './app/features/app-maintenance/garage.css';
+/* Nur innerhalb von .rc wirksam (Vollbild-Radcomputer), siehe Datei. */
+@import './app/features/app-radcomputer/radcomputer.css';
 
 /* ── Tokens ────────────────────────────────────────────────────────────────────
    Zwei Gründe, dieselben wie auf der Landing-Page: Graphit (dunkel) und Zeichenpapier
