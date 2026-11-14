@@ -1,16 +1,25 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
-/** Ein Datenfeld: kleine Beschriftung oben, großer Wert unten. */
+import { DASH } from '../core/format';
+
+/**
+ * Ein Datenfeld: Beschriftung oben, darunter der Wert mit seiner Einheit auf derselben
+ * Grundlinie („149 bpm“), damit das Auge nicht quer über das Feld springen muss.
+ *
+ * Volle Ziffern heißt: die Uhr läuft. Solange nichts aufgezeichnet wird (bereit, pausiert,
+ * Auto-Pause), stehen die Werte nur als Umriss da, bei Auto-Pause in Verkehrsgelb. Das ist
+ * eine Formänderung, kein reiner Farbwechsel: auf Armlänge und für Farbenblinde lesbar.
+ */
 @Component({
   selector: 'rc-data-field',
   template: `
-    <span class="label">
-      {{ label() }}
-      @if (unit()) {
-        <span>{{ unit() }}</span>
+    <span class="label">{{ label() }}</span>
+    <span class="value digits" [class.long]="value().length > 5">
+      <span class="num">{{ value() }}</span>
+      @if (showUnit()) {
+        <span class="unit">{{ unit() }}</span>
       }
     </span>
-    <span class="value digits" [class.long]="value().length > 5">{{ value() }}</span>
   `,
   host: {
     '[class.hero]': 'size() === "hero"',
@@ -34,13 +43,9 @@ import { Component, input } from '@angular/core';
       font-size: var(--t-m);
       font-weight: 700;
       color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
       white-space: nowrap;
-    }
-    .label span {
-      font-weight: 400;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .value {
       line-height: 0.9;
@@ -60,6 +65,27 @@ import { Component, input } from '@angular/core';
     :host(.hero) .value.long {
       font-size: min(23vw, 14vh);
     }
+    .unit {
+      margin-left: 0.14em;
+      font-size: max(var(--t-m), 0.27em);
+      letter-spacing: 0;
+      color: var(--muted);
+    }
+
+    /* Keine Aufzeichnung: Umrissziffern. Der Strich wächst mit der Schrift mit.
+       Er liegt unter einer Füllung in Hintergrundfarbe und ist deshalb doppelt so breit
+       angesetzt: Die DIN setzt „1“ und „:“ aus überlappenden Formen zusammen, deren
+       innere Nähte ein reiner Umriss sichtbar nachzeichnen würde. */
+    :host-context([data-s='idle']) .num,
+    :host-context([data-s='paused']) .num,
+    :host-context([data-s='auto']) .num {
+      color: var(--bg);
+      -webkit-text-stroke: max(3px, 0.07em) var(--fg);
+      paint-order: stroke fill;
+    }
+    :host-context([data-s='auto']) .num {
+      -webkit-text-stroke-color: var(--hold);
+    }
   `,
 })
 export class DataField {
@@ -67,4 +93,7 @@ export class DataField {
   readonly unit = input('');
   readonly value = input.required<string>();
   readonly size = input<'normal' | 'wide' | 'hero'>('normal');
+
+  /** Ohne Wert („--“) hat die Einheit nichts, woran sie stehen könnte. */
+  protected readonly showUnit = computed(() => !!this.unit() && this.value() !== DASH);
 }
