@@ -28,9 +28,9 @@ import { Component, computed, input, output } from '@angular/core';
       display: block;
     }
     button {
-      width: 52px;
-      height: 52px;
-      border: 2px solid var(--edge);
+      width: 56px;
+      height: 56px;
+      border: 2px solid var(--fg);
       border-radius: 50%;
       background: var(--bg);
       display: grid;

@@ -5,9 +5,7 @@
     @if (guide.route(); as route) {
       <div class="current">
         <span class="name">{{ route.name }}</span>
-        <span class="hint"
-          >{{ fmtDistance(route.lengthM) }} · {{ route.cues.length }} Hinweise</span
-        >
+        <span class="hint">{{ fmtDistance(route.lengthM) }}, {{ route.cues.length }} Hinweise</span>
       </div>
       <button type="button" class="btn" (click)="guide.clear()">Route beenden</button>
     } @else if (guide.busy()) {
@@ -43,11 +41,12 @@
                   {{
                     stravaLoading() === route.id
                       ? 'lädt …'
-                      : fmtDistance(route.distance_m) + ' · ' + num(route.elevation_m) + ' hm'
+                      : fmtDistance(route.distance_m) +
+                        ', ' +
+                        num(route.elevation_m) +
+                        ' hm' +
+                        (route.ride ? '' : ', keine Radroute')
                   }}
-                  @if (!route.ride) {
-                    · keine Radroute
-                  }
                 </span>
               </button>
             </li>

@@ -17,7 +17,24 @@ import { RC } from '../core/paths';
     <div class="scroll">
       <rc-sub-header title="Fahrt speichern" />
       <div class="stack">
-        <p class="hint">{{ ride.hasData() ? summary() : 'Noch nichts aufgezeichnet.' }}</p>
+        @if (ride.hasData()) {
+          <dl class="facts">
+            <div>
+              <dt>Fahrzeit</dt>
+              <dd class="digits">{{ facts().time }}</dd>
+            </div>
+            <div>
+              <dt>Distanz <span>km</span></dt>
+              <dd class="digits">{{ facts().km }}</dd>
+            </div>
+            <div>
+              <dt>Runden</dt>
+              <dd class="digits">{{ facts().laps }}</dd>
+            </div>
+          </dl>
+        } @else {
+          <p class="hint">Noch nichts aufgezeichnet. Starte die Aufnahme auf der Fahrtseite.</p>
+        }
 
         <form class="stack" (submit)="upload($event)">
           <div class="form-row">
@@ -57,6 +74,7 @@ import { RC } from '../core/paths';
           }
         </form>
 
+        <h3 class="section-title">Andere Wege</h3>
         <button type="button" class="btn" (click)="exportFile()" [disabled]="!ride.hasData()">
           Als TCX-Datei exportieren
         </button>
@@ -81,6 +99,43 @@ import { RC } from '../core/paths';
       display: block;
       height: 100%;
     }
+    .facts {
+      margin: 0 0 8px;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 0.8fr;
+      border-top: 2px solid var(--fg);
+      border-bottom: 1px solid var(--line);
+    }
+    .facts > div {
+      padding: 8px 10px 10px;
+      min-width: 0;
+    }
+    .facts > div + div {
+      border-left: 1px solid var(--line);
+    }
+    .facts > div:first-child {
+      padding-left: 0;
+    }
+    .facts dt {
+      font-family: var(--digits);
+      font-size: var(--t-m);
+      font-weight: 700;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .facts dt span {
+      font-weight: 400;
+    }
+    .facts dd {
+      margin: 4px 0 0;
+      font-size: var(--t-2xl);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .btn.danger {
+      margin-top: 18px;
+    }
   `,
 })
 export class SavePage {
@@ -94,9 +149,13 @@ export class SavePage {
   protected readonly uploadForm = form(this.uploadModel);
   protected readonly discardArmed = signal(false);
 
-  protected readonly summary = computed(() => {
+  protected readonly facts = computed(() => {
     const stats = this.ride.stats();
-    return `${fmtTime(stats.movingMs)} Fahrzeit, ${num(stats.distanceM / 1000, 2)} km, ${this.ride.laps().length} Runden`;
+    return {
+      time: fmtTime(stats.movingMs),
+      km: num(stats.distanceM / 1000, 2),
+      laps: String(this.ride.laps().length),
+    };
   });
 
   protected async exportFile(): Promise<void> {

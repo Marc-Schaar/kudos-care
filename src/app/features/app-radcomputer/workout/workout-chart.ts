@@ -49,8 +49,9 @@ interface Bar {
       stroke-dasharray: 5 4;
       vector-effect: non-scaling-stroke;
     }
+    /* Hier bist du: dieselbe Farbe wie die laufende Aufnahme */
     .cursor {
-      stroke: var(--hold);
+      stroke: var(--go);
       stroke-width: 3;
       vector-effect: non-scaling-stroke;
     }

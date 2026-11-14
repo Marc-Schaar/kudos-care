@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { fmtDistance, fmtTime, num } from '../core/format';
 import { Gps } from '../core/gps';
-import { Settings, SensorState } from '../core/models';
+import { RideDisplayState, Settings, SensorState } from '../core/models';
 import { RideRecorder } from '../core/ride-recorder';
 import { Sensors } from '../core/sensors';
 import { SettingsStore } from '../core/settings-store';
@@ -18,7 +18,14 @@ const SENSOR_TEXT: Record<SensorState, string> = {
   off: 'Tippen zum Verbinden',
   busy: 'sucht …',
   on: 'verbunden',
-  err: 'Fehler – erneut tippen',
+  err: 'Fehler, erneut tippen',
+};
+
+const RIDE_STATE_TEXT: Record<RideDisplayState, string> = {
+  idle: 'Bereit',
+  running: 'Aufnahme läuft',
+  auto: 'Auto-Pause',
+  paused: 'Pausiert',
 };
 
 type DisplayToggle = keyof Pick<Settings, 'showStatusBar' | 'showControls'>;
@@ -38,13 +45,18 @@ export class MenuPage {
   protected readonly gps = inject(Gps);
   protected readonly strava = inject(Strava);
   private readonly ride = inject(RideRecorder);
-  private readonly guide = inject(RouteGuide);
-  private readonly player = inject(WorkoutPlayer);
+  protected readonly guide = inject(RouteGuide);
+  protected readonly player = inject(WorkoutPlayer);
   private readonly toasts = inject(Toasts);
 
   protected readonly pwrState = this.sensors.state('pwr');
   protected readonly hrState = this.sensors.state('hr');
   protected readonly sensorText = SENSOR_TEXT;
+
+  protected readonly rideState = this.ride.displayState;
+  protected readonly rideStateText = computed(() => RIDE_STATE_TEXT[this.ride.displayState()]);
+  protected readonly rideTime = computed(() => fmtTime(this.ride.stats().movingMs));
+  protected readonly rideKm = computed(() => num(this.ride.stats().distanceM / 1000, 1));
 
   protected readonly gpsText = computed(() => {
     const acc = this.gps.accuracy();

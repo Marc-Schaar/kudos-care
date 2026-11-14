@@ -3,16 +3,23 @@
   height: 100%;
 }
 
+/* Geladene Route: dieselbe Innenlinie wie das Wegweiser-Schild, damit sie als
+   „das ist dein Weg“ erkennbar ist */
 .current {
   padding: 12px 14px;
-  border: 1px solid var(--edge);
-  border-radius: 12px;
+  border: 2px solid var(--fg);
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+  border-radius: 3px;
+  margin: 4px;
   display: grid;
-  gap: 2px;
+  gap: 4px;
 }
 .current .name {
-  font-size: 19px;
+  font-family: var(--digits);
+  font-size: var(--t-xl);
   font-weight: 700;
+  line-height: 1.15;
 }
 
 .file:focus-within {
@@ -39,11 +46,11 @@
 }
 .place,
 .place-side {
-  min-height: 52px;
-  padding: 6px 12px;
-  border: 1px solid var(--edge);
-  border-radius: 10px;
-  font-size: 16px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 2px solid var(--edge);
+  border-radius: 4px;
+  font-size: var(--t-l);
 }
 .place {
   text-align: left;
@@ -56,11 +63,13 @@
   gap: 2px;
 }
 .place .meta {
-  font-size: 14px;
+  font-size: var(--t-m);
   font-weight: 500;
   color: var(--muted);
 }
 .place-side {
+  font-family: var(--digits);
+  font-weight: 700;
   color: var(--muted);
 }
 .place:disabled {

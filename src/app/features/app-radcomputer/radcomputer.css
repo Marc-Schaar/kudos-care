@@ -2,7 +2,15 @@
    dieselben Variablennamen (--bg, --muted …) mit anderen Werten; hier drin gelten diese.
 
    Nachtmodus: echtes Schwarz, weil OLED-Pixel dann aus sind (Akku).
-   Farbe steht nur für Zustände, nie für Dekoration. */
+   Farbe steht nur für Zustände, nie für Dekoration:
+     --go    Lime (die Kudos-Marke): Aufnahme läuft, Start/Weiter
+     --hold  Verkehrsgelb: Auto-Pause, Abweichung vom Trainingsziel
+     --warn  Verkehrsrot: Route verlassen, Fehler, Verwerfen
+   Der Abbiegehinweis ist ein Wegweiser-Schild (rc-cue-sign): Seine Form zeigt die Richtung.
+
+   Schrift: DIN (auf dem iPhone „DIN Alternate“, ohne Netz vorhanden) für Zahlen, Titel und
+   Beschriftungen, wie auf Straßenschildern; Systemschrift nur für Fließtext. Keine
+   Webfonts: unterwegs darf nichts nachladen. Stufen 13 / 15 / 17 / 21 / 28 px. */
 .rc {
   --bg: #000;
   --fg: #fff;
@@ -10,13 +18,20 @@
   --line: #2e2e2e;
   --edge: #7a7a7a;
   --panel: #161616;
-  --ok: #4ade80;
-  --hold: #ffb400;
-  --warn: #ff6b5e;
+  --go: #c8f060;
+  --go-ink: #000;
+  --hold: #f7b500;
+  --warn: #ff5a4e;
   --digits:
-    'DIN Alternate', Bahnschrift, 'Roboto Condensed', system-ui, -apple-system, 'Helvetica Neue',
-    Arial, sans-serif;
+    'DIN Alternate', 'DIN 1451', Bahnschrift, 'Roboto Condensed', 'Arial Narrow', system-ui,
+    -apple-system, sans-serif;
   --text: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --t-s: 13px;
+  --t-m: 15px;
+  --t-l: 17px;
+  --t-xl: 21px;
+  --t-2xl: 28px;
+  --gutter: 12px;
   color-scheme: dark;
 }
 .rc[data-theme='day'] {
@@ -26,8 +41,10 @@
   --line: #bdbdbd;
   --edge: #6e6e6e;
   --panel: #f0f0f0;
-  --ok: #0a6b2d;
-  --hold: #8a4a00;
+  /* Auf Weiß trägt Lime keinen Text (1,3:1): Flächen bleiben Lime, Schrift wird Oliv. */
+  --go: #3f6200;
+  --go-ink: #fff;
+  --hold: #8a5a00;
   --warn: #b3261e;
   color-scheme: light;
 }
@@ -116,25 +133,28 @@ body.rc-active {
   font-weight: 700;
 }
 
-/* Große Ziele für Handschuhe */
+/* Große Ziele für Handschuhe. Rechteckig wie ein Schild, kaum gerundet. */
 .rc .btn {
-  min-height: 52px;
-  padding: 0 16px;
+  min-height: 56px;
+  padding: 0 18px;
   border: 2px solid var(--edge);
-  border-radius: 12px;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 17px;
+  font-family: var(--digits);
+  font-size: var(--t-l);
   font-weight: 700;
   text-decoration: none;
   text-align: center;
+  line-height: 1.15;
 }
+/* Hauptaktion: Start, Hochladen, Training starten */
 .rc .btn.primary {
-  background: var(--fg);
-  border-color: var(--fg);
-  color: var(--bg);
+  background: var(--go);
+  border-color: var(--go);
+  color: var(--go-ink);
 }
 .rc .btn.danger {
   border-color: var(--warn);
@@ -144,69 +164,131 @@ body.rc-active {
   opacity: 0.4;
 }
 
-/* Scrollbare Seiten (Menü, Auswahl-Listen) */
+/* Scrollbare Seiten (Menü, Unterseiten) */
 .rc .scroll {
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 14px 12px 24px;
+  padding: 16px var(--gutter) 32px;
 }
 .rc .stack {
   display: grid;
   gap: 10px;
 }
+/* Abschnitte: Titel in DIN, darunter eine durchgehende Linie wie eine Fahrbahnmarkierung. */
 .rc .section-title {
-  font-size: 20px;
+  font-family: var(--digits);
+  font-size: var(--t-xl);
   font-weight: 700;
-  margin: 18px 0 8px;
+  line-height: 1.15;
+  margin: 28px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--fg);
 }
 .rc .section-title:first-child {
   margin-top: 0;
 }
 .rc .hint {
-  font-size: 14px;
+  font-size: var(--t-m);
   line-height: 1.45;
   color: var(--muted);
+  max-width: 60ch;
+}
+.rc .hint strong {
+  color: var(--fg);
 }
 
 .rc .form-row {
   display: grid;
-  gap: 4px;
+  gap: 6px;
 }
 .rc .form-row label {
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
 }
 .rc .form-row input:not([type='checkbox']),
 .rc .form-row select {
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 12px;
-  border: 1px solid var(--edge);
-  border-radius: 10px;
+  border: 2px solid var(--edge);
+  border-radius: 4px;
   background: var(--bg);
-  font-size: 17px;
+  font-size: var(--t-l);
   width: 100%;
 }
+.rc .form-row input:not([type='checkbox']):focus,
+.rc .form-row select:focus {
+  border-color: var(--fg);
+  outline: none;
+}
 .rc .form-row .error {
-  font-size: 14px;
+  font-size: var(--t-m);
+  font-weight: 600;
   color: var(--warn);
 }
+/* Ganze Zeile ist das Ziel; das Kästchen ist groß genug, um den Zustand von Weitem zu sehen. */
 .rc .check-row {
-  min-height: 52px;
-  padding: 0 14px;
-  border: 1px solid var(--edge);
-  border-radius: 10px;
+  min-height: 60px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  font-size: 17px;
+  gap: 16px;
+  font-size: var(--t-l);
   font-weight: 600;
+  line-height: 1.25;
 }
 .rc .check-row input {
-  width: 26px;
-  height: 26px;
-  accent-color: var(--fg);
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  width: 32px;
+  height: 32px;
   flex: none;
+  border: 2px solid var(--edge);
+  border-radius: 4px;
+  background: var(--bg) center / 22px no-repeat;
+}
+.rc .check-row input:checked {
+  border-color: var(--fg);
+  background-color: var(--fg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12.5l5 5L20 6.5'/%3E%3C/svg%3E");
+}
+.rc[data-theme='day'] .check-row input:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12.5l5 5L20 6.5'/%3E%3C/svg%3E");
+}
+.rc .check-row input:focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: 2px;
+}
+.rc .stack > .check-row + .check-row {
+  margin-top: -10px;
+}
+
+/* Zustand als Form + Farbe, wie in Kudos Care: Ring aus, gestrichelt sucht,
+   Punkt verbunden, Raute Fehler. */
+.rc .sense {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  display: inline-block;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+}
+.rc .sense[data-state='busy'] {
+  border-style: dashed;
+  border-color: var(--hold);
+}
+.rc .sense[data-state='on'] {
+  border-color: var(--fg);
+  background: var(--fg);
+}
+.rc .sense[data-state='err'] {
+  border: 0;
+  border-radius: 1px;
+  background: var(--warn);
+  transform: rotate(45deg) scale(0.85);
 }

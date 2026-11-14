@@ -16,7 +16,7 @@ import { SettingsStore } from './core/settings-store';
 import { Strava } from './core/strava';
 import { Ticker } from './core/ticker';
 import { Toasts } from './core/toasts';
-import { CueArrow } from './nav/cue-arrow';
+import { CueSign } from './nav/cue-sign';
 import { CueKind } from './nav/nav-models';
 import { RouteGuide } from './nav/route-guide';
 import { WorkoutPlayer, describeTarget } from './workout/workout-player';
@@ -45,7 +45,7 @@ interface NavStrip {
  */
 @Component({
   selector: 'rc-shell',
-  imports: [RouterOutlet, RouterLink, CueArrow],
+  imports: [RouterOutlet, RouterLink, CueSign],
   templateUrl: './radcomputer-shell.html',
   styleUrl: './radcomputer-shell.css',
   host: {

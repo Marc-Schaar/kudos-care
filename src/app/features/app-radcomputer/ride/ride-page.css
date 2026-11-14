@@ -18,22 +18,25 @@
 }
 
 .meta {
+  min-height: 40px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
-  padding: 0 12px;
+  padding: 0 var(--gutter);
   border-top: 1px solid var(--line);
   white-space: nowrap;
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
   color: var(--muted);
 }
 .lapno {
   text-align: right;
+  color: var(--fg);
 }
 :host-context([data-s='running']) .state {
-  color: var(--ok);
+  color: var(--go);
 }
 :host-context([data-s='auto']) .state {
   color: var(--hold);
@@ -42,26 +45,27 @@
   color: var(--fg);
 }
 
+/* Seitenanzeige wie eine Leitlinie: kurze Striche, die aktuelle Seite ein langer. */
 .dots {
   display: flex;
-  gap: 2px;
 }
 .dots button {
-  min-width: 30px;
-  min-height: 36px;
+  min-width: 26px;
+  min-height: 40px;
   display: grid;
   place-items: center;
 }
 .dots button::before {
   content: '';
-  width: 14px;
+  width: 12px;
   height: 4px;
-  border-radius: 2px;
   background: var(--edge);
 }
+.dots button[aria-current='true'] {
+  min-width: 40px;
+}
 .dots button[aria-current='true']::before {
-  width: 24px;
+  width: 30px;
   height: 6px;
-  border-radius: 3px;
   background: var(--fg);
 }

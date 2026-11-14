@@ -5,28 +5,28 @@
       <button
         type="button"
         class="chip"
-        [attr.data-state]="gps.state()"
         [attr.aria-label]="'GPS ' + gpsText() + ' – Standort'"
         (click)="onGps()"
       >
+        <span class="sense" [attr.data-state]="gps.state()"></span>
         GPS <small>{{ gpsText() }}</small>
       </button>
       <button
         type="button"
         class="chip"
-        [attr.data-state]="pwrState()"
         [attr.aria-label]="'PWR ' + pwrText() + ' – Powermeter'"
         (click)="sensors.connect('pwr')"
       >
+        <span class="sense" [attr.data-state]="pwrState()"></span>
         PWR <small>{{ pwrText() }}</small>
       </button>
       <button
         type="button"
         class="chip"
-        [attr.data-state]="hrState()"
         [attr.aria-label]="'HF ' + hrText() + ' – Pulsgurt'"
         (click)="sensors.connect('hr')"
       >
+        <span class="sense" [attr.data-state]="hrState()"></span>
         HF <small>{{ hrText() }}</small>
       </button>
       <span class="clock digits"><span class="sr-only">Uhrzeit </span>{{ clock() }}</span>
@@ -34,15 +34,13 @@
   }
 
   @if (navStrip(); as nav) {
-    <button type="button" class="strip" [class.warn]="nav.off" (click)="openRidePage('map')">
-      <rc-cue-arrow [kind]="nav.kind" />
-      <span class="digits">{{ nav.distance }}</span>
-      <span class="strip-text">{{ nav.text }}</span>
+    <button type="button" class="strip sign" (click)="openRidePage('map')">
+      <rc-cue-sign [kind]="nav.kind" [distance]="nav.distance" [text]="nav.text" [off]="nav.off" />
     </button>
   }
   @if (workoutStrip(); as wo) {
     <button type="button" class="strip" (click)="openRidePage('workout')">
-      <span class="digits">{{ wo.remaining }}</span>
+      <span class="wo-remaining digits">{{ wo.remaining }}</span>
       <span class="strip-text">{{ wo.text }}</span>
     </button>
   }

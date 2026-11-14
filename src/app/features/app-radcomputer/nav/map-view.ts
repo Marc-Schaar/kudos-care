@@ -8,7 +8,7 @@ import { RideView } from '../core/ride-view';
 import { SettingsStore } from '../core/settings-store';
 import { Ticker } from '../core/ticker';
 import { Compass } from './compass';
-import { CueArrow } from './cue-arrow';
+import { CueSign } from './cue-sign';
 import { MapCanvas } from './map-canvas';
 import { RouteGuide } from './route-guide';
 import { RC } from '../core/paths';
@@ -16,27 +16,34 @@ import { RC } from '../core/paths';
 /** Kartenseite der Fahrt: nächster Hinweis, Karte, drei Werte. Routen wählt man im Menü. */
 @Component({
   selector: 'rc-map-view',
-  imports: [MapCanvas, CueArrow, Compass, RouterLink],
+  imports: [MapCanvas, CueSign, Compass, RouterLink],
   template: `
-    <div class="banner" [class.off]="guide.progress()?.offRoute">
+    <div class="banner">
       @if (guide.route(); as route) {
         @if (guide.progress(); as p) {
           @if (p.offRoute) {
-            <rc-cue-arrow kind="uturn" />
-            <span class="cue-dist digits">{{ offDistance() }}</span>
-            <span class="cue-text">Route verlassen. So weit ist sie entfernt.</span>
+            <rc-cue-sign
+              size="large"
+              kind="uturn"
+              [off]="true"
+              [distance]="offDistance()"
+              text="Route verlassen. So weit ist sie entfernt."
+            />
           } @else if (p.nextCue; as cue) {
-            <rc-cue-arrow [kind]="cue.kind" />
-            <span class="cue-dist digits">{{ cueDistance() }}</span>
-            <span class="cue-text">{{ p.arrived ? 'Ziel erreicht' : cue.text }}</span>
+            <rc-cue-sign
+              size="large"
+              [kind]="cue.kind"
+              [distance]="cueDistance()"
+              [text]="p.arrived ? 'Ziel erreicht' : cue.text"
+            />
           }
         } @else {
-          <span class="cue-text">{{ route.name }}: warte auf GPS.</span>
+          <p class="banner-text">{{ route.name }}: warte auf GPS.</p>
         }
       } @else if (guide.busy()) {
-        <span class="cue-text">Route wird berechnet …</span>
+        <p class="banner-text">Route wird berechnet …</p>
       } @else {
-        <span class="cue-text">Keine Route. <a [routerLink]="rc.route">Routenplanung</a></span>
+        <p class="banner-text">Keine Route geladen. <a [routerLink]="rc.route">Route wählen</a></p>
       }
     </div>
 
@@ -110,26 +117,23 @@ import { RC } from '../core/paths';
       grid-template-rows: auto minmax(0, 1fr) auto;
     }
     .banner {
-      min-height: 68px;
-      padding: 6px 12px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      padding: 6px;
       border-bottom: 1px solid var(--line);
     }
-    .banner.off {
-      color: var(--warn);
+    .banner-text {
+      min-height: 64px;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      font-family: var(--digits);
+      font-size: var(--t-l);
+      font-weight: 700;
+      line-height: 1.25;
     }
-    .cue-dist {
-      font-size: 40px;
-      line-height: 1;
-      white-space: nowrap;
-    }
-    .cue-text {
-      font-size: 18px;
-      font-weight: 600;
-      line-height: 1.2;
-      min-width: 0;
+    .banner-text a {
+      margin-left: 0.4em;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
     }
     .map-wrap {
       position: relative;
@@ -148,12 +152,13 @@ import { RC } from '../core/paths';
       justify-items: center;
     }
     .map-btn {
-      width: 52px;
-      height: 52px;
-      border: 2px solid var(--edge);
-      border-radius: 12px;
+      width: 56px;
+      height: 56px;
+      border: 2px solid var(--fg);
+      border-radius: 4px;
       background: var(--bg);
-      font-size: 28px;
+      font-family: var(--digits);
+      font-size: 30px;
       font-weight: 700;
       line-height: 1;
     }
@@ -179,7 +184,7 @@ import { RC } from '../core/paths';
       border-top: 1px solid var(--line);
     }
     .strip > div {
-      padding: 6px 12px;
+      padding: 6px var(--gutter) 8px;
       border-left: 1px solid var(--line);
       min-width: 0;
     }
@@ -187,15 +192,16 @@ import { RC } from '../core/paths';
       border-left: 0;
     }
     .strip dt {
-      font-size: 14px;
-      font-weight: 500;
+      font-family: var(--digits);
+      font-size: var(--t-m);
+      font-weight: 700;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
     }
     .strip dd {
       margin: 2px 0 0;
-      font-size: 30px;
+      font-size: 32px;
       line-height: 1;
       white-space: nowrap;
     }

@@ -21,7 +21,7 @@ import { Component, input } from '@angular/core';
       background: var(--bg);
       min-width: 0;
       min-height: 0;
-      padding: 8px 12px 10px;
+      padding: 8px var(--gutter) 6px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -30,17 +30,21 @@ import { Component, input } from '@angular/core';
       grid-column: 1 / -1;
     }
     .label {
-      font-size: 15px;
-      font-weight: 500;
+      font-family: var(--digits);
+      font-size: var(--t-m);
+      font-weight: 700;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
       gap: 8px;
       white-space: nowrap;
     }
+    .label span {
+      font-weight: 400;
+    }
     .value {
-      line-height: 1;
-      letter-spacing: -0.01em;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
       white-space: nowrap;
       font-size: min(15.5vw, 9.5vh);
     }

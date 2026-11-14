@@ -17,17 +17,18 @@ import { RC } from '../core/paths';
   styles: `
     :host {
       display: block;
-      margin-bottom: 14px;
+      margin-bottom: 20px;
     }
     .back {
-      min-height: 44px;
+      min-height: 48px;
       margin-left: -6px;
-      padding-right: 10px;
+      padding-right: 14px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 16px;
-      font-weight: 600;
+      font-family: var(--digits);
+      font-size: var(--t-l);
+      font-weight: 700;
       color: var(--muted);
       text-decoration: none;
     }
@@ -36,13 +37,14 @@ import { RC } from '../core/paths';
       height: 22px;
       fill: none;
       stroke: currentColor;
-      stroke-width: 2.5;
-      stroke-linecap: round;
-      stroke-linejoin: round;
+      stroke-width: 2.75;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
     }
     h2 {
-      font-size: 26px;
-      line-height: 1.15;
+      font-family: var(--digits);
+      font-size: 34px;
+      line-height: 1;
     }
   `,
 })

@@ -351,6 +351,15 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
   `styles.css`). Kudos und Radcomputer nutzen dieselben Variablennamen (`--bg`, `--muted`,
   `--ok` …) mit anderen Werten — Radcomputer-Regeln deshalb nie ohne `.rc`-Präfix global
   machen. Tag/Nacht setzt die Shell als `data-theme` auf sich, nicht aufs Dokument.
+- **Gestaltung: Straßenschild.** Schrift DIN (`--digits`, auf dem iPhone „DIN Alternate“,
+  offline vorhanden, bewusst keine Webfonts) für Zahlen, Titel, Beschriftungen und Tasten;
+  Systemschrift nur für Fließtext. Farben je eine Aufgabe: `--go` (Lime, die Kudos-Marke) =
+  Aufnahme läuft und Hauptaktion, `--hold` = Auto-Pause/Abweichung vom Trainingsziel,
+  `--warn` = Route verlassen/Fehler. Am Tag ist `--go` Oliv mit `--go-ink` Weiß, Lime trägt
+  auf Weiß keinen Text. Sensorzustand als Form (`.sense`: Ring aus, gestrichelt sucht, Punkt
+  verbunden, Raute Fehler). Der Abbiegehinweis ist **ein** Bauteil, `nav/cue-sign.ts`: ein
+  Wegweiser-Schild, dessen Spitze in die Abbiegerichtung zeigt (Shell-Streifen und Karte),
+  bei verlassener Route rot. Neue Hinweis-Anzeigen nehmen dieses Schild, keine eigene Kopie.
 - **Ein Paket, kein Lazy Loading innerhalb.** `radcomputer.routes.ts` importiert alle Seiten
   statisch: unterwegs ohne Netz darf kein Seitenwechsel an einem fehlenden Chunk scheitern.
 - **Pfade** in `core/paths.ts` (`RC`), analog zum NavigationService.

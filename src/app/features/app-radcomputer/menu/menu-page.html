@@ -3,14 +3,27 @@
 <div class="scroll">
   <h2 class="page-title">Menü</h2>
 
+  <!-- Stand der Fahrt: damit man im Menü nicht vergisst, dass die Aufnahme weiterläuft -->
+  <section class="ride" [attr.data-s]="rideState()" aria-label="Aktuelle Fahrt">
+    <span class="ride-state">{{ rideStateText() }}</span>
+    <span class="ride-num">
+      <span class="digits">{{ rideTime() }}</span>
+      <span class="ride-unit">Fahrzeit</span>
+    </span>
+    <span class="ride-num">
+      <span class="digits">{{ rideKm() }}</span>
+      <span class="ride-unit">km</span>
+    </span>
+  </section>
+
   <nav class="list" aria-label="Menü">
     <a class="item" [routerLink]="rc.route">
       <span class="name">Routenplanung</span>
-      <span class="sub">{{ routeText() }}</span>
+      <span class="sub" [class.set]="guide.route()">{{ routeText() }}</span>
     </a>
     <a class="item" [routerLink]="rc.training">
       <span class="name">Training</span>
-      <span class="sub">{{ workoutText() }}</span>
+      <span class="sub" [class.set]="player.workout()">{{ workoutText() }}</span>
     </a>
     <a class="item" [routerLink]="rc.save">
       <span class="name">Fahrt speichern</span>
@@ -27,45 +40,45 @@
   </nav>
 
   <h3 class="section-title">Sensoren</h3>
-  <div class="list">
-    <button type="button" class="item sensor" [attr.data-state]="gps.state()" (click)="onGps()">
-      <span class="name">GPS</span>
-      <span class="sub">{{ gpsText() }}</span>
+  <div class="sensors">
+    <button type="button" class="sensor" (click)="onGps()">
+      <span class="sensor-head"
+        ><span class="sense" [attr.data-state]="gps.state()"></span>GPS</span
+      >
+      <span class="sub" [attr.data-state]="gps.state()">{{ gpsText() }}</span>
     </button>
-    <button
-      type="button"
-      class="item sensor"
-      [attr.data-state]="pwrState()"
-      (click)="sensors.connect('pwr')"
-    >
-      <span class="name">Powermeter</span>
-      <span class="sub">{{ sensorText[pwrState()] }}</span>
+    <button type="button" class="sensor" (click)="sensors.connect('pwr')">
+      <span class="sensor-head"
+        ><span class="sense" [attr.data-state]="pwrState()"></span>Leistung</span
+      >
+      <span class="sub" [attr.data-state]="pwrState()">{{ sensorText[pwrState()] }}</span>
     </button>
-    <button
-      type="button"
-      class="item sensor"
-      [attr.data-state]="hrState()"
-      (click)="sensors.connect('hr')"
-    >
-      <span class="name">Pulsgurt</span>
-      <span class="sub">{{ sensorText[hrState()] }}</span>
+    <button type="button" class="sensor" (click)="sensors.connect('hr')">
+      <span class="sensor-head"><span class="sense" [attr.data-state]="hrState()"></span>Puls</span>
+      <span class="sub" [attr.data-state]="hrState()">{{ sensorText[hrState()] }}</span>
     </button>
   </div>
 
   <h3 class="section-title">Anzeige</h3>
   <div class="stack">
-    <label class="check-row">
-      GPS, PWR und HF oben zeigen
-      <input
-        type="checkbox"
-        [checked]="s.showStatusBar"
-        (change)="toggle('showStatusBar', $event)"
-      />
-    </label>
-    <label class="check-row">
-      Bedienleiste unten zeigen
-      <input type="checkbox" [checked]="s.showControls" (change)="toggle('showControls', $event)" />
-    </label>
+    <div>
+      <label class="check-row">
+        GPS, Leistung und Puls oben zeigen
+        <input
+          type="checkbox"
+          [checked]="s.showStatusBar"
+          (change)="toggle('showStatusBar', $event)"
+        />
+      </label>
+      <label class="check-row">
+        Bedienleiste unten zeigen
+        <input
+          type="checkbox"
+          [checked]="s.showControls"
+          (change)="toggle('showControls', $event)"
+        />
+      </label>
+    </div>
     <p class="hint">
       Ausgeblendet erscheint die Bedienleiste nach einem Tipp auf die Fahrtseite für ein paar
       Sekunden. Sensoren verbindest du dann hier.
