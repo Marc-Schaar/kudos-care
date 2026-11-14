@@ -1,0 +1,62 @@
+@let workout = player.workout();
+
+@if (workout && player.status() === 'running') {
+  <!-- Laufendes Training: Restzeit groß, Soll und Ist nebeneinander -->
+  <section class="live" aria-label="Laufendes Training">
+    <header class="head">
+      <h2>{{ player.step()?.label }}</h2>
+      <span class="muted digits">{{ stepCount() }}</span>
+    </header>
+
+    <div class="cell remaining">
+      <span class="label">Noch</span>
+      <span class="value digits">{{ remaining() }}</span>
+    </div>
+
+    <div class="pair">
+      <div class="cell">
+        <span class="label">Ziel <span>W</span></span>
+        <span class="value digits small">{{ targetText() }}</span>
+        <span class="sub">{{ targetNote() }}</span>
+      </div>
+      <div class="cell" [attr.data-c]="player.compliance()">
+        <span class="label">Leistung 3 s <span>W</span></span>
+        <span class="value digits">{{ power() }}</span>
+        <span class="verdict">{{ verdict() }}</span>
+      </div>
+    </div>
+
+    <p class="next">
+      @if (clockStopped()) {
+        Pausiert: Die Trainingsuhr steht, bis du weiterfährst.
+      } @else if (player.nextStep(); as next) {
+        Danach {{ next.label }}, {{ fmtTime(next.durationS * 1000) }}, {{ describeTarget(next) }}
+      } @else {
+        Letzter Schritt.
+      }
+    </p>
+
+    <rc-workout-chart
+      [workout]="workout"
+      [stepIndex]="player.stepIndex()"
+      [progress]="player.progress()"
+    />
+  </section>
+} @else if (workout) {
+  <!-- Geladen, aber noch nicht gestartet -->
+  <section class="ready" aria-label="Training bereit">
+    <h2>{{ workout.name }}</h2>
+    <p class="hint">
+      {{ workout.steps.length }} Schritte, {{ fmtTime(workout.totalS * 1000) }}, FTP
+      {{ settings.ftp() }} W.
+      @if (player.status() === 'done') {
+        <strong>Abgeschlossen.</strong>
+      }
+    </p>
+    <rc-workout-chart [workout]="workout" />
+    <button type="button" class="btn primary" (click)="player.start()">
+      {{ player.status() === 'done' ? 'Noch einmal starten' : 'Training starten' }}
+    </button>
+    <a class="btn" [routerLink]="rc.training">Anderes Training</a>
+  </section>
+}

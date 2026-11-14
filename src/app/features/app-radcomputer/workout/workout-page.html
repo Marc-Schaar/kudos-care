@@ -1,0 +1,66 @@
+@let workout = player.workout();
+
+<div class="scroll">
+  <rc-sub-header title="Training" />
+
+  <section class="stack" aria-label="Training">
+    @if (workout) {
+      <h3 class="section-title">{{ workout.name }}</h3>
+      <p class="hint">
+        {{ workout.steps.length }} Schritte, {{ fmtTime(workout.totalS * 1000) }} gesamt, gerechnet
+        mit FTP {{ settings.ftp() }} W.
+        @if (player.status() === 'done') {
+          <strong>Abgeschlossen.</strong>
+        }
+      </p>
+      <rc-workout-chart
+        [workout]="workout"
+        [stepIndex]="player.stepIndex()"
+        [progress]="player.status() === 'running' ? player.progress() : null"
+      />
+
+      @if (player.status() === 'running') {
+        <button type="button" class="btn primary" (click)="showOnRide()">Zur Trainingsseite</button>
+        <div class="pair">
+          <button type="button" class="btn" (click)="player.skip()">Schritt überspringen</button>
+          <button type="button" class="btn" (click)="player.stop()">Training beenden</button>
+        </div>
+      } @else {
+        <button type="button" class="btn primary" (click)="start()">
+          {{ player.status() === 'done' ? 'Training noch einmal starten' : 'Training starten' }}
+        </button>
+      }
+
+      <ol class="steps">
+        @for (step of workout.steps; track $index) {
+          <li [class.current]="player.status() === 'running' && $index === player.stepIndex()">
+            <span>{{ step.label }}</span>
+            <span class="digits">{{ fmtTime(step.durationS * 1000) }}</span>
+            <span class="digits">{{ describeTarget(step) }}</span>
+          </li>
+        }
+      </ol>
+      <button type="button" class="btn" (click)="player.clear()">Training entfernen</button>
+    } @else {
+      <p class="hint">
+        Lade ein geplantes Training aus enduco: im Kalender beim Workout auf „Start/Export“, dann
+        „Weitere Optionen“ und
+        <strong>.zwo</strong> wählen. Auch .erg und .mrc funktionieren. Die Datei muss auf diesem
+        Gerät liegen, zum Beispiel per AirDrop oder in „Dateien“.
+      </p>
+      <p class="hint">Geladen erscheint das Training als eigene Seite in der Fahrt.</p>
+    }
+
+    <label class="btn file">
+      <input type="file" class="sr-only" (change)="onFile($event)" />
+      {{ workout ? 'Anderes Training laden' : 'Trainingsdatei laden' }}
+    </label>
+    @if (demo.active) {
+      <button type="button" class="btn" (click)="loadDemo()">Beispieltraining laden (Demo)</button>
+    }
+    <p class="hint">
+      Prozentwerte aus der Datei werden mit deiner FTP ({{ settings.ftp() }} W) in Watt umgerechnet.
+      <a [routerLink]="rc.settings">FTP ändern</a>
+    </p>
+  </section>
+</div>

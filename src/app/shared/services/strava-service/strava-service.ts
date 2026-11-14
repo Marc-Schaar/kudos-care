@@ -51,6 +51,10 @@ export interface CurrentUser {
   needs_email: boolean;
   weather_consent: boolean;
   ai_consent: boolean;
+  /** Radcomputer: Strava-Recht activity:write erteilt (Upload) */
+  can_upload?: boolean;
+  /** Radcomputer: Strava-Recht read_all erteilt (private Routen) */
+  private_routes?: boolean;
 }
 
 export interface UserSettingsPatch {

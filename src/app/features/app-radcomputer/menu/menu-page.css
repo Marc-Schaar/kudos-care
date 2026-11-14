@@ -1,0 +1,62 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.page-title {
+  font-size: 26px;
+  margin-bottom: 14px;
+}
+
+.list {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+.item {
+  min-height: 64px;
+  padding: 8px 36px 8px 4px;
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  text-align: left;
+  width: 100%;
+}
+/* Pfeil nach rechts: führt auf eine eigene Seite */
+a.item::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -6px;
+  border-right: 2.5px solid var(--muted);
+  border-top: 2.5px solid var(--muted);
+  transform: rotate(45deg);
+}
+.name {
+  font-size: 19px;
+  font-weight: 700;
+}
+.sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sensor[data-state='on'] .sub {
+  color: var(--ok);
+}
+.sensor[data-state='busy'] .sub {
+  color: var(--hold);
+}
+.sensor[data-state='err'] .sub {
+  color: var(--warn);
+}

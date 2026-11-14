@@ -37,6 +37,8 @@ export class NavigationService {
     dashboard: (): RouteCommands => ['/app/dashboard'],
 
     activities: (): RouteCommands => ['/app/activities'],
+    /** Radcomputer am Lenker: eigener Vollbild-Bereich, seine Unterseiten führt er selbst. */
+    radcomputer: (): RouteCommands => ['/app/radcomputer'],
     activity: (activityId: number): RouteCommands => ['/app/activity', activityId],
 
     /** Bike-Liste im Wartungsbereich. */

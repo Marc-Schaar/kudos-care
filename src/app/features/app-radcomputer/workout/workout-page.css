@@ -1,0 +1,36 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.file:focus-within {
+  outline: 3px solid var(--fg);
+  outline-offset: 2px;
+}
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.steps li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5em 7.5em;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 16px;
+}
+.steps li span:not(:first-child) {
+  text-align: right;
+}
+.steps li.current {
+  font-weight: 700;
+}
+.steps li.current span:first-child::before {
+  content: '▸ ';
+}
