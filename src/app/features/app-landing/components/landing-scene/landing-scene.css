@@ -184,9 +184,14 @@
   width: 280vw;
   will-change: transform;
 }
+/* Höchstens bis knapp unter den CTA im Hero: auf niedrigen Bühnen (1024×600) lief der linke
+   Pfosten sonst in den Button. Der Abzug entspricht der Lage von .kc-hero__l plus Text und CTA. */
 .post {
   flex: 0 0 70vw;
-  height: clamp(10rem, 46svh, 30rem);
+  height: min(
+    clamp(10rem, 46svh, 30rem),
+    max(6rem, calc(100svh - var(--hero-top, 0px) - var(--hero-size, 0px) * 2.04 - 12rem))
+  );
   position: relative;
   display: block;
 }

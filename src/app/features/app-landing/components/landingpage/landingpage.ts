@@ -461,14 +461,16 @@ export class Landingpage implements AfterViewInit, OnDestroy {
     const top = frame.offsetTop;
     const shots = this.stackedNow ? SHOTS_STACKED : SHOTS_SPLIT;
     this.shots = shots.map((shot, i) => {
+      const isLast = i === shots.length - 1;
+      const s = isLast ? this.closingScale(shot, w, h, left, top) : shot.s;
       // Das Schlussbild zeigt das ganze Rad: auf schmalen Bühnen nach innen schieben.
-      const halfWidth = (w * shot.s) / 2 / this.stageW;
-      const x = i === shots.length - 1 ? Math.min(shot.x, 0.985 - halfWidth) : shot.x;
+      const halfWidth = (w * s) / 2 / this.stageW;
+      const x = isLast ? Math.min(shot.x, 0.985 - halfWidth) : shot.x;
       return {
         t: shot.t,
-        s: shot.s,
-        tx: x * this.stageW - (left + shot.u * w * shot.s),
-        ty: shot.y * this.stageH - (top + shot.v * h * shot.s),
+        s,
+        tx: x * this.stageW - (left + shot.u * w * s),
+        ty: shot.y * this.stageH - (top + shot.v * h * s),
       };
     });
 
@@ -492,6 +494,41 @@ export class Landingpage implements AfterViewInit, OnDestroy {
 
     const care = this.marks[0]?.querySelector('b:last-child') as HTMLElement | null;
     this.markInset = care ? care.offsetWidth : 0;
+  }
+
+  /**
+   * Maßstab fürs Schlussbild: das Rad steht rechtsbündig neben dem Abschlusstext. Auf Bühnen
+   * zwischen Tablet und Laptop (900×700, 1024×768) lief es bei festem Maßstab unter Text und CTA,
+   * das Etikett "Reifen hinten" lag direkt auf dem Button. Dann wird es kleiner statt
+   * darunterzurutschen. Steht es ohnehin unter dem Text (Hochformat), bleibt der Maßstab.
+   */
+  private closingScale(shot: Shot, w: number, h: number, left: number, top: number): number {
+    if (this.stackedNow) return shot.s;
+    const close = this.host.nativeElement.querySelector<HTMLElement>('.kc-close');
+    if (!close) return shot.s;
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const gap = 1.5 * rem;
+    const textRight = close.offsetLeft + close.offsetWidth + gap;
+    const textBottom = close.offsetTop + close.offsetHeight + gap;
+
+    const rear = this.partEls.find((p) => p.el.dataset['part'] === 'rear-tyre');
+    const labelHalf = rear ? rear.el.offsetWidth / 2 : 0;
+    const labelHeight = rear ? rear.el.offsetHeight + 1.15 * rem : 0;
+
+    const fits = (s: number): boolean => {
+      const ty = shot.y * this.stageH - (top + shot.v * h * s);
+      const bikeTop = Math.min(top + ty, top + ty + (rear?.v ?? 0) * h * s - labelHeight);
+      if (bikeTop >= textBottom) return true;
+      const x = Math.min(shot.x, 0.985 - (w * s) / 2 / this.stageW);
+      const bikeLeft = x * this.stageW - shot.u * w * s;
+      const labelLeft = bikeLeft + (rear?.u ?? 0) * w * s - labelHalf;
+      return Math.min(bikeLeft, labelLeft) >= textRight;
+    };
+
+    // Schrittweise verkleinern, bis es passt; unter 0,6 wird das Rad zu klein für die Etiketten.
+    let s = shot.s;
+    while (s > 0.6 && !fits(s)) s -= 0.01;
+    return s;
   }
 
   private readRoadHeight(): number {
