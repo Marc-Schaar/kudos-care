@@ -142,7 +142,7 @@ export function partRemaining(component: BikeComponent): string {
   return distanceToLimit(component.wear_days!, component.effective_warn_days!, 'days');
 }
 
-function intervalRemaining(interval: MaintenanceInterval): string {
+export function intervalRemaining(interval: MaintenanceInterval): string {
   const kmRatio = interval.interval_km ? interval.km_since / interval.interval_km : null;
   const daysRatio =
     interval.interval_days && interval.days_since != null

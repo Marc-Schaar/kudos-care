@@ -92,7 +92,7 @@ export class RadcomputerShell {
   );
   protected readonly mainLabel = computed(() => {
     const status = this.ride.status();
-    return status === 'running' ? 'Pause' : status === 'paused' ? 'Weiter' : 'Start';
+    return status === 'running' ? 'Pause' : 'Start';
   });
 
   protected readonly onRide = computed(() => this.url().startsWith(RC.ride));
@@ -146,6 +146,15 @@ export class RadcomputerShell {
   protected openRidePage(page: RidePageKey): void {
     this.view.show(page);
     void this.router.navigateByUrl(RC.ride);
+  }
+
+  /**
+   * Stop beendet nicht sofort: Die Fahrt bleibt pausiert, bis sie hochgeladen oder exportiert
+   * ist. Wer sich vertippt hat, fährt mit „Weiter“ einfach fort, es geht nichts verloren.
+   */
+  protected stop(): void {
+    this.ride.persist();
+    void this.router.navigateByUrl(RC.save);
   }
 
   /** Solange man die Leiste benutzt, bleibt sie stehen. */

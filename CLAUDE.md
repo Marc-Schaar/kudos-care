@@ -150,7 +150,9 @@ features/
     SVGs in `public/bike-illustrations/` passen. Keine `vector-effect: non-scaling-stroke`
     auf den Linien: Chrome ignoriert damit `pathLength` und die Einzeichen-Animation zerfällt.
     **Verschleiß-Lineal** (`components/wear-meter`): Marken bei 80/100 %, Skala bis 125 %,
-    darüber eine Spitze; mit `[part]` schraffiert der Wetter-Aufschlag hinter dem Tacho-Stand
+    darüber eine **Bruchkante** (unterbrochene Achse) mit dem Vielfachen der Lebensdauer
+    (`formatTimes()`: „3,5×“, ab 10 ganzzahlig) — vorher endete alles Überfällige in derselben
+    Spitze, 3,5× und 7× sahen gleich aus; mit `[part]` schraffiert der Wetter-Aufschlag hinter dem Tacho-Stand
     (nur wenn die km-Achse die Ampel treibt). `DueItem.remaining` ("noch 709 km",
     "863 km drüber") ist die Zahl, nach der gehandelt wird. `due-row` ist die gemeinsame
     Zeile für Start und Rad-Seite.
@@ -369,6 +371,10 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
   zurück in den Radcomputer. `GET /api/strava/me/` liefert `can_upload`/`private_routes`.
 - **Angular 21 bleibt Pflicht**, solange der Radcomputer aufs iPhone X (Safari 16.6) muss:
   Angular 22 setzt Safari ≥ 17.2 voraus.
+- **Pause → Stop.** Pausiert wird aus „Runde“ die Taste „Weiter“ und aus der Hauptaste
+  „Stop“. Stop beendet nicht sofort, sondern öffnet „Fahrt abschließen“ (`menu/save-page.ts`):
+  erfolgreicher Strava-Upload setzt die Fahrt zurück, nach einem TCX-Export erscheint
+  „Fahrt abschließen“. Bis dahin bleibt sie pausiert und lässt sich mit „Weiter“ fortsetzen.
 - Fahrt, Einstellungen, feste Ziele liegen in `localStorage` unter `radcomputer.*`.
 - `?demo` an der Adresse simuliert GPS und Sensoren (Beispielroute/-training im Menü).
 

@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
+import { Router } from '@angular/router';
 
 import { fmtTime, num } from '../core/format';
 import { RideRecorder } from '../core/ride-recorder';
@@ -15,8 +16,16 @@ import { RC } from '../core/paths';
   imports: [FormField, SubHeader],
   template: `
     <div class="scroll">
-      <rc-sub-header title="Fahrt speichern" />
+      <rc-sub-header [title]="ride.status() === 'idle' ? 'Fahrt speichern' : 'Fahrt abschließen'" />
       <div class="stack">
+        @if (exported() && ride.status() !== 'idle') {
+          <div class="done">
+            <p>Die TCX-Datei ist gesichert. Schließ die Fahrt ab, um eine neue zu starten.</p>
+            <button type="button" class="btn primary" (click)="finish('Fahrt abgeschlossen.')">
+              Fahrt abschließen
+            </button>
+          </div>
+        }
         @if (ride.hasData()) {
           <dl class="facts">
             <div>
@@ -57,7 +66,7 @@ import { RC } from '../core/paths';
               class="btn primary"
               [disabled]="!ride.hasData() || sync.uploading()"
             >
-              {{ sync.uploading() ? 'Lädt hoch …' : 'Zu Strava hochladen' }}
+              {{ sync.uploading() ? 'Lädt hoch …' : 'Abschließen und zu Strava senden' }}
             </button>
           } @else {
             <button
@@ -136,6 +145,13 @@ import { RC } from '../core/paths';
     .btn.danger {
       margin-top: 18px;
     }
+    .done {
+      padding: 12px 0 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .done p {
+      margin: 0 0 10px;
+    }
   `,
 })
 export class SavePage {
@@ -143,6 +159,8 @@ export class SavePage {
   protected readonly sync = inject(RideSync);
   protected readonly strava = inject(Strava);
   private readonly toasts = inject(Toasts);
+  private readonly router = inject(Router);
+  protected readonly exported = signal(false);
   private discardTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly uploadModel = signal({ name: '', commute: false });
@@ -162,16 +180,27 @@ export class SavePage {
     const result = await this.sync.share();
     if (result === 'empty') this.toasts.show('Noch nichts aufgezeichnet.');
     if (result === 'downloaded') this.toasts.show('Fahrt als TCX-Datei gespeichert.');
+    // Nach einem Export nicht sofort beenden: Wer will, lädt dieselbe Fahrt noch zu Strava.
+    if (result === 'downloaded' || result === 'shared') this.exported.set(true);
   }
 
+  /** Ist die Fahrt auf Strava, ist sie abgeschlossen: zurücksetzen, zurück zur Fahrtseite. */
   protected async upload(event: Event): Promise<void> {
     event.preventDefault();
     const { name, commute } = this.uploadModel();
     try {
-      this.toasts.show(await this.sync.upload(name, commute), 6000);
+      this.finish(await this.sync.upload(name, commute));
     } catch (err) {
       this.toasts.show(err instanceof Error ? err.message : 'Upload fehlgeschlagen.', 6000);
     }
+  }
+
+  protected finish(message: string): void {
+    this.ride.reset();
+    this.exported.set(false);
+    this.uploadModel.set({ name: '', commute: false });
+    this.toasts.show(message, 6000);
+    void this.router.navigateByUrl(RC.ride);
   }
 
   /** Zweistufig statt Rückfrage-Dialog: Der fehlt in manchen eingebetteten Browsern. */

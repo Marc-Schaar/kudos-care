@@ -26,7 +26,7 @@ import {
 } from '../../models/maintenance.models';
 import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { BikeService } from '../../services/bike-service/bike-service';
-import { partRemaining } from '../../shared/utils/utils';
+import { intervalRemaining, partRemaining } from '../../shared/utils/utils';
 
 /**
  * Eine Baugruppe: je Platz das montierte Teil und die Alternativen im Regal. Aufziehen ist
@@ -86,6 +86,7 @@ export class AssemblyPage {
   linking = signal(false);
   settingsOpen = signal(false);
   readonly remaining = partRemaining;
+  readonly intervalLeft = intervalRemaining;
 
   /** Aus dem Menü eines Platzes: dessen Blatt schließt, das Teile-Formular geht auf. */
   onAddPart(slot: ComponentSlot) {

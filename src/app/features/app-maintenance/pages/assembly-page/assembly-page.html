@@ -94,13 +94,20 @@
                         </span>
                         <span class="g-row-sub">
                           {{ part.label }} ·
-                          <span class="g-num">{{ part.wear_km | number: '1.0-0' }} km</span>
-                          @if (part.effective_warn_km) {
-                            von
-                            <span class="g-num">{{ part.effective_warn_km | number: '1.0-0' }} km</span>
-                          }
+                          <span class="nw"
+                            ><span class="g-num">{{ part.wear_km | number: '1.0-0' }} km</span>
+                            @if (part.effective_warn_km) {
+                              von
+                              <span class="g-num"
+                                >{{ part.effective_warn_km | number: '1.0-0' }} km</span
+                              >
+                            }</span
+                          >
                           @if (part.wear_days != null && part.effective_warn_days) {
-                            · {{ part.wear_days }} von {{ part.effective_warn_days }} Tagen
+                            ·
+                            <span class="nw"
+                              >{{ part.wear_days }} von {{ part.effective_warn_days }} Tagen</span
+                            >
                           }
                         </span>
                         <app-wear-meter class="part-meter" [part]="part" />
@@ -222,7 +229,17 @@
                 <button type="button" class="g-row part" (click)="editingInterval.set(interval)">
                   <span class="g-dot dot" [class]="interval.status | warnClass"></span>
                   <span class="g-row-main">
-                    <span class="g-row-title">{{ interval.label }}</span>
+                    <span class="part-head">
+                      <span class="g-row-title">{{ interval.label }}</span>
+                      @if (intervalLeft(interval); as left) {
+                        <span
+                          class="g-num left"
+                          [class.soon]="interval.status === 'warn'"
+                          [class.over]="interval.status === 'critical'"
+                          >{{ left }}</span
+                        >
+                      }
+                    </span>
                     <span class="g-row-sub g-num">{{ intervalDetail(interval) }}</span>
                     <app-wear-meter
                       class="part-meter"

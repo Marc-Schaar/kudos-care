@@ -85,14 +85,17 @@ import { WearMeter } from '../wear-meter/wear-meter';
     .remaining {
       flex: none;
       font-size: var(--t-sm);
-      color: var(--muted);
+      font-weight: 500;
+      color: var(--text);
     }
 
     .remaining.soon {
+      font-weight: 600;
       color: var(--warn);
     }
 
     .remaining.over {
+      font-weight: 600;
       color: var(--critical);
     }
 
