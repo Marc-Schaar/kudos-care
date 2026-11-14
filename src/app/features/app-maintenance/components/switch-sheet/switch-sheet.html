@@ -1,36 +1,38 @@
 <app-bottom-sheet [title]="title()" (closed)="closed.emit()">
-  @if (plan(); as p) {
+  @if (plan()) {
     <div class="g-form">
-      <div>
-        <h3 class="g-label">Kommt ans Rad</h3>
-        @for (item of p.activate; track item.id) {
-          <p class="g-row-title">{{ item.name }}</p>
+      <table class="swap">
+        <caption class="sr-only">
+          Was beim Wechsel ans Rad und was in den Keller kommt
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="col-on">Ans Rad</th>
+            <th scope="col" class="col-icon">
+              <app-icon name="arrow-left-right" [size]="16" />
+            </th>
+            <th scope="col" class="col-off">In den Keller</th>
+          </tr>
+        </thead>
+        @for (row of rows(); track row.key) {
+          <tbody>
+            <tr>
+              <th scope="rowgroup" colspan="3" class="where">{{ row.where }}</th>
+            </tr>
+            <tr>
+              <td class="on" [class.none]="!row.on">{{ row.on ?? 'nichts' }}</td>
+              <td aria-hidden="true"></td>
+              <td class="off" [class.none]="!row.off">{{ row.off ?? 'nichts' }}</td>
+            </tr>
+          </tbody>
         }
-      </div>
+      </table>
 
-      @if (p.park.length > 0) {
-        <div>
-          <h3 class="g-label">Kommt in den Keller</h3>
-          @for (item of p.park; track item.id) {
-            <p class="g-row-title">{{ item.name }}</p>
-          }
-          <p class="g-hint">Behält seine Teile und seine Kilometer.</p>
-        </div>
+      @if (parksSomething()) {
+        <p class="g-hint">Was in den Keller kommt, behält seine Teile und seine Kilometer.</p>
       }
 
-      @if (p.mount.length > 0) {
-        <div>
-          <h3 class="g-label">Wechselt mit</h3>
-          @for (item of p.mount; track item.component_id) {
-            <p class="g-row-title">{{ item.slot_name }}: {{ item.label }}</p>
-            @if (item.replaces) {
-              <p class="g-hint">statt {{ item.replaces }}</p>
-            }
-          }
-        </div>
-      }
-
-      @for (item of p.unpaired; track item.component_id) {
+      @for (item of plan()!.unpaired; track item.component_id) {
         <div class="g-note warn">
           {{ item.label }} ({{ item.slot_name }}) gehört zu {{ item.from_assembly }} und bleibt
           drauf, weil hier nichts anderes hinterlegt ist.

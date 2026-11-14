@@ -20,6 +20,29 @@
   margin-top: 1.25rem;
 }
 
+/* Derselbe Maßstab wie die Zeichnung: sie schaltet bei 860 px Innenbreite auf Beschriftung
+   neben dem Rad um (Container-Query in bike-blueprint.css), ihr Rahmen kostet 2 px. Ab dann
+   steht jede Baugruppe samt Ampel in der Zeichnung, und die Liste darunter wäre dieselbe
+   Information ein zweites Mal. Darunter zeigt die Zeichnung nur Nummern, die Liste bleibt. */
+.body {
+  container-type: inline-size;
+}
+
+.in-drawing {
+  display: none;
+  margin-bottom: 0.75rem;
+}
+
+@container (min-width: 862px) {
+  .areas.drawn {
+    display: none;
+  }
+
+  .in-drawing {
+    display: block;
+  }
+}
+
 .legend {
   margin-top: 0.6rem;
 }

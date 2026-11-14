@@ -1,12 +1,17 @@
-<ng-template #measures let-dim let-tachoTop="tachoTop" let-weatherTop="weatherTop">
+<!-- Schmal (compact) passt nur die kurze Form auf die Maßlinie, sonst wird sie abgeschnitten. -->
+<ng-template
+  #measures
+  let-dim
+  let-tachoTop="tachoTop"
+  let-weatherTop="weatherTop"
+  let-compact="compact"
+>
   @if (gap(); as measured) {
-    <div
-      class="dim"
-      [style.left.%]="dim.left"
-      [style.width.%]="dim.width"
-      [style.top.%]="tachoTop"
-    >
-      <span class="dim-text g-num">Tacho {{ measured.km | number: '1.0-0' }} km</span>
+    <div class="dim" [style.left.%]="dim.left" [style.width.%]="dim.width" [style.top.%]="tachoTop">
+      <span class="dim-text g-num"
+        >{{ measured.partName }}{{ compact ? '' : ' laut Tacho' }}
+        {{ measured.km | number: '1.0-0' }} km</span
+      >
     </div>
     <div
       class="dim weather"
@@ -15,8 +20,11 @@
       [style.top.%]="weatherTop"
     >
       <span class="dim-text g-num"
-        >{{ measured.partName }} mit Wetter {{ measured.weatherKm | number: '1.0-0' }} km</span
-      >
+        >mit Wetter {{ measured.weatherKm | number: '1.0-0' }} km
+        @if (!compact) {
+          (+{{ (measured.weatherKm / measured.km - 1) * 100 | number: '1.0-0' }}&nbsp;%)
+        }
+      </span>
     </div>
   }
 </ng-template>
@@ -104,7 +112,12 @@
 
     <ng-container
       [ngTemplateOutlet]="measures"
-      [ngTemplateOutletContext]="{ $implicit: narrowDim(), tachoTop: 85, weatherTop: 95 }"
+      [ngTemplateOutletContext]="{
+        $implicit: narrowDim(),
+        tachoTop: 85,
+        weatherTop: 95,
+        compact: true,
+      }"
     />
   </div>
 

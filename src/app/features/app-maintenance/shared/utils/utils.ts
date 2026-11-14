@@ -127,6 +127,8 @@ function distanceToLimit(used: number, limit: number, unit: 'km' | 'days'): stri
 /**
  * Wie weit ist das Teil, gerechnet über die Achse, die am weitesten ist? Dieselbe Regel wie
  * `wear_ratio` im Backend: km inklusive Wetter-Aufschlag gegen die Tage.
+ * Die Warn-Mails rechnen mit einer Kopie dieser Regel (Backend
+ * `app_notifications/presentation.py::wear_line`), damit Mail und App dieselbe Zahl nennen.
  */
 export function partRemaining(component: BikeComponent): string {
   const usedKm = Math.max(component.wear_km ?? 0, component.weather_wear_km ?? 0);

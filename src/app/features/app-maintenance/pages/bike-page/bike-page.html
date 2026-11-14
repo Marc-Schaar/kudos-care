@@ -40,263 +40,298 @@
         (done)="setupDismissed.set(true); reload()"
       />
     } @else if (garage(); as data) {
-      @if (data.assemblies.length > 0) {
-        <app-bike-blueprint
-          class="drawing"
-          [bikeId]="current.id"
-          [bikeType]="current.bike_type"
-          [assemblies]="data.assemblies"
-        />
-      }
+      <div class="body">
+        @if (data.assemblies.length > 0) {
+          <app-bike-blueprint
+            class="drawing"
+            [bikeId]="current.id"
+            [bikeType]="current.bike_type"
+            [assemblies]="data.assemblies"
+          />
+        }
 
-      <div class="g-split">
-        <div>
-          <!-- Als Nächstes dran -->
-          <section class="g-section">
-            <div class="g-section-head">
-              <h2 class="g-section-title">Als Nächstes dran</h2>
-              @if (criticalCount() > 0 || warnCount() > 0) {
-                <span class="g-sub">
-                  @if (criticalCount() > 0) {
-                    {{ criticalCount() }} überfällig
-                  }
-                  @if (criticalCount() > 0 && warnCount() > 0) {
-                    ·
-                  }
-                  @if (warnCount() > 0) {
-                    {{ warnCount() }} bald
-                  }
-                </span>
+        <div class="g-split">
+          <div>
+            <!-- Als Nächstes dran -->
+            <section class="g-section">
+              <div class="g-section-head">
+                <h2 class="g-section-title">Als Nächstes dran</h2>
+                @if (criticalCount() > 0 || warnCount() > 0) {
+                  <span class="g-sub">
+                    @if (criticalCount() > 0) {
+                      {{ criticalCount() }} überfällig
+                    }
+                    @if (criticalCount() > 0 && warnCount() > 0) {
+                      ·
+                    }
+                    @if (warnCount() > 0) {
+                      {{ warnCount() }} bald
+                    }
+                  </span>
+                }
+              </div>
+              <div class="g-card g-rows">
+                @for (item of due(); track item.key) {
+                  <app-due-row
+                    [item]="item"
+                    (opened)="openDue(item)"
+                    (done)="item.interval && markDone(item.interval)"
+                  />
+                } @empty {
+                  <p class="all-good">
+                    Alles im grünen Bereich. Nichts, worum du dich kümmern müsstest.
+                  </p>
+                }
+              </div>
+              @if (hiddenDueCount() > 0) {
+                <button type="button" class="g-link-btn" (click)="showAllDue.set(true)">
+                  {{ hiddenDueCount() }} weitere anzeigen
+                </button>
+              } @else if (showAllDue()) {
+                <button type="button" class="g-link-btn" (click)="showAllDue.set(false)">
+                  Weniger anzeigen
+                </button>
               }
-            </div>
-            <div class="g-card g-rows">
-              @for (item of due(); track item.key) {
-                <app-due-row
-                  [item]="item"
-                  (opened)="openDue(item)"
-                  (done)="item.interval && markDone(item.interval)"
-                />
-              } @empty {
-                <p class="all-good">Alles im grünen Bereich. Nichts, worum du dich kümmern müsstest.</p>
-              }
-            </div>
-            @if (hiddenDueCount() > 0) {
-              <button type="button" class="g-link-btn" (click)="showAllDue.set(true)">
-                {{ hiddenDueCount() }} weitere anzeigen
-              </button>
-            } @else if (showAllDue()) {
-              <button type="button" class="g-link-btn" (click)="showAllDue.set(false)">
-                Weniger anzeigen
-              </button>
-            }
-            <app-wear-legend class="legend" />
-          </section>
+              <app-wear-legend class="legend" />
+            </section>
 
-          <!-- KI-Zustandsbericht -->
-          <section class="g-section">
-            <div class="g-section-head">
-              <h2 class="g-section-title">Zustandsbericht</h2>
+            <!-- KI-Zustandsbericht -->
+            <section class="g-section">
+              <div class="g-section-head">
+                <h2 class="g-section-title">Zustandsbericht</h2>
+                @if (report(); as text) {
+                  <span class="g-sub g-num">{{ text.generatedAt | date: 'dd.MM.yyyy' }}</span>
+                }
+              </div>
               @if (report(); as text) {
-                <span class="g-sub g-num">{{ text.generatedAt | date: 'dd.MM.yyyy' }}</span>
+                <p class="g-text">{{ text.text }}</p>
+                <button
+                  type="button"
+                  class="g-link-btn"
+                  [disabled]="reportLoading()"
+                  (click)="loadReport(true)"
+                >
+                  {{ reportLoading() ? 'Kudo schreibt…' : 'Neu schreiben lassen' }}
+                </button>
+              } @else {
+                <p class="g-hint explain">
+                  Kudo fasst den Stand aller Teile in ein paar Sätzen zusammen.
+                </p>
+                <button
+                  type="button"
+                  class="g-btn"
+                  [disabled]="reportLoading()"
+                  (click)="loadReport()"
+                >
+                  <app-icon name="sparkles" [size]="16" />
+                  {{ reportLoading() ? 'Kudo schreibt…' : 'Schreiben lassen' }}
+                </button>
               }
-            </div>
-            @if (report(); as text) {
-              <p class="g-text">{{ text.text }}</p>
-              <button
-                type="button"
-                class="g-link-btn"
-                [disabled]="reportLoading()"
-                (click)="loadReport(true)"
-              >
-                {{ reportLoading() ? 'Kudo schreibt…' : 'Neu schreiben lassen' }}
-              </button>
-            } @else {
-              <p class="g-hint explain">Kudo fasst den Stand aller Teile in ein paar Sätzen zusammen.</p>
-              <button type="button" class="g-btn" [disabled]="reportLoading()" (click)="loadReport()">
-                <app-icon name="sparkles" [size]="16" />
-                {{ reportLoading() ? 'Kudo schreibt…' : 'Schreiben lassen' }}
-              </button>
-            }
-          </section>
-        </div>
+            </section>
+          </div>
 
-        <div>
-          <!-- Laufräder -->
-          <section class="g-section">
-            <div class="g-section-head">
-              <h2 class="g-section-title">Laufräder</h2>
-            </div>
-            <div class="g-list">
-              @for (set of wheelSets(); track set.key) {
-                <article class="g-card set">
-                  <header class="set-head">
-                    <h3 class="set-name">{{ set.name }}</h3>
-                    @if (set.fullyOn) {
-                      <span class="g-pill on-bike">Am Rad</span>
-                    } @else if (set.onBike) {
-                      <span class="g-pill on-bike">Teilweise am Rad</span>
-                    } @else {
-                      <span class="g-pill">Im Keller</span>
-                    }
-                  </header>
-
-                  <div class="g-rows set-rows">
-                    @for (wheel of set.wheels; track wheel.id) {
-                      <a class="g-row" [routerLink]="nav.to.assembly(current.id, wheel.id)">
-                        <span class="g-dot" [class]="wheel.worst_status | warnClass"></span>
-                        <span class="g-row-main">
-                          <span class="g-row-title">{{ wheel.group_detail.name }}</span>
-                          <span class="g-row-sub">
-                            {{ partsLabel(wheel.slots.length) }} ·
-                            <span class="g-num">{{ wheel.assembly_km | number: '1.0-0' }} km</span>
-                          </span>
-                        </span>
-                        <app-icon class="g-chevron" name="chevron-right" [size]="18" />
-                      </a>
-                    }
-                  </div>
-
-                  <footer class="set-foot">
-                    <button
-                      type="button"
-                      class="link-summary"
-                      (click)="linkingWheels.set(set.wheels)"
-                    >
-                      @if (linkedLabels(set).length > 0) {
-                        Wechselt mit: {{ linkedLabels(set).join(', ') }}
+          <div>
+            <!-- Laufräder -->
+            <section class="g-section">
+              <div class="g-section-head">
+                <h2 class="g-section-title">Laufräder</h2>
+              </div>
+              <div class="g-list">
+                @for (set of wheelSets(); track set.key) {
+                  <article class="g-card set">
+                    <header class="set-head">
+                      <h3 class="set-name">{{ set.name }}</h3>
+                      @if (set.fullyOn) {
+                        <span class="g-pill on-bike">Am Rad</span>
+                      } @else if (set.onBike) {
+                        <span class="g-pill on-bike">Teilweise am Rad</span>
                       } @else {
-                        Bremsbeläge und Co. koppeln
+                        <span class="g-pill">Im Keller</span>
                       }
-                    </button>
-                    @if (!set.fullyOn) {
-                      <button type="button" class="g-btn primary small" (click)="switching.set(set)">
-                        Aufziehen
+                    </header>
+
+                    <div class="g-rows set-rows">
+                      @for (wheel of set.wheels; track wheel.id) {
+                        <a class="g-row" [routerLink]="nav.to.assembly(current.id, wheel.id)">
+                          <span class="g-dot" [class]="wheel.worst_status | warnClass"></span>
+                          <span class="g-row-main">
+                            <span class="g-row-title">{{ wheel.group_detail.name }}</span>
+                            <span class="g-row-sub">
+                              @if (wheel.slots.length > 0) {
+                                {{ partsLabel(wheel.slots.length) }} ·
+                                <span class="g-num"
+                                  >{{ wheel.assembly_km | number: '1.0-0' }} km</span
+                                >
+                              } @else {
+                                Noch keine Teile eingetragen
+                              }
+                            </span>
+                          </span>
+                          <app-icon class="g-chevron" name="chevron-right" [size]="18" />
+                        </a>
+                      }
+                    </div>
+
+                    <footer class="set-foot">
+                      <button
+                        type="button"
+                        class="link-summary"
+                        (click)="linkingWheels.set(set.wheels)"
+                      >
+                        @if (linkedLabels(set).length > 0) {
+                          Wechselt mit: {{ linkedLabels(set).join(', ') }}
+                        } @else {
+                          Bremsbeläge und Co. koppeln
+                        }
                       </button>
-                    }
-                  </footer>
-                </article>
-              } @empty {
-                <p class="g-empty">Noch keine Laufräder eingetragen.</p>
-              }
-              <button type="button" class="g-btn wide ghost" (click)="addingSet.set(true)">
-                <app-icon name="plus" [size]="16" />
-                Laufradsatz anlegen
-              </button>
-            </div>
-          </section>
-
-          <!-- Baugruppen -->
-          <section class="g-section">
-            <div class="g-section-head">
-              <h2 class="g-section-title">Baugruppen</h2>
-            </div>
-            <div class="g-list">
-              @if (areas().length > 0) {
-                <div class="g-card g-rows">
-                  @for (assembly of areas(); track assembly.id) {
-                    <a class="g-row" [routerLink]="nav.to.assembly(current.id, assembly.id)">
-                      <span class="g-row-main">
-                        <span class="g-row-title">{{ assembly.display_name }}</span>
-                        <span class="g-row-sub">
-                          {{ partsLabel(assembly.slots.length) }}
-                          @if (assembly.intervals.length > 0) {
-                            · {{ assembly.intervals.length }} Pflege
-                          }
-                        </span>
-                      </span>
-                      <span class="g-pill" [class]="assembly.worst_status | warnClass">
-                        {{ assembly.worst_status | warnLabel }}
-                      </span>
-                    </a>
-                  }
-                </div>
-              }
-              <button type="button" class="g-btn wide ghost" (click)="addingAssembly.set(true)">
-                <app-icon name="plus" [size]="16" />
-                Baugruppe hinzufügen
-              </button>
-            </div>
-          </section>
-
-          <!-- Alt-Plätze ohne Baugruppe -->
-          @if (ungrouped().length > 0) {
-            <section class="g-section">
-              <div class="g-section-head">
-                <h2 class="g-section-title">Ohne Baugruppe</h2>
-              </div>
-              <div class="g-card g-rows">
-                @for (slot of ungrouped(); track slot.id) {
-                  <button type="button" class="g-row" (click)="openUngrouped(slot)">
-                    <span class="g-dot" [class]="slot.warn_status | warnClass"></span>
-                    <span class="g-row-main">
-                      <span class="g-row-title">{{ slot.display_name }}</span>
-                      @if (slot.mounted_component; as part) {
-                        <span class="g-row-sub">
-                          {{ part.label }} ·
-                          <span class="g-num">{{ part.wear_km | number: '1.0-0' }} km</span>
-                        </span>
+                      @if (!set.fullyOn) {
+                        <button
+                          type="button"
+                          class="g-btn primary small"
+                          (click)="switching.set(set)"
+                        >
+                          Aufziehen
+                        </button>
                       }
-                    </span>
-                  </button>
+                    </footer>
+                  </article>
+                } @empty {
+                  <p class="g-empty">Noch keine Laufräder eingetragen.</p>
                 }
+                <button type="button" class="g-btn wide ghost" (click)="addingSet.set(true)">
+                  <app-icon name="plus" [size]="16" />
+                  Laufradsatz anlegen
+                </button>
               </div>
             </section>
-          }
 
-          <!-- Gute Teile, deren Laufrad weg ist -->
-          @if (orphans().length > 0) {
+            <!-- Baugruppen -->
             <section class="g-section">
               <div class="g-section-head">
-                <h2 class="g-section-title">Im Regal, ohne Platz</h2>
+                <h2 class="g-section-title">Baugruppen</h2>
               </div>
-              <p class="g-hint explain">
-                Noch gut, aber ihre Baugruppe ist ausgemustert. Tippe ein Teil an, um es umzuziehen.
-              </p>
-              <div class="g-card g-rows">
-                @for (spare of orphans(); track spare.id) {
-                  <button type="button" class="g-row" (click)="openOrphan(spare.id)">
-                    <span class="g-row-main">
-                      <span class="g-row-title">{{ spare.label }}</span>
-                      <span class="g-row-sub">
-                        {{ spare.slot_name }} ·
-                        <span class="g-num">{{ spare.prior_wear_km | number: '1.0-0' }} km</span>
-                      </span>
-                    </span>
-                    <app-icon class="g-chevron" name="chevron-right" [size]="18" />
-                  </button>
-                }
-              </div>
-            </section>
-          }
-
-          <!-- Ausgemustert -->
-          @if (retired().length > 0) {
-            <section class="g-section">
-              <button type="button" class="g-link-btn quiet" (click)="showRetired.set(!showRetired())">
-                {{ showRetired() ? 'Ausgemustertes ausblenden' : 'Ausgemustert (' + retired().length + ')' }}
-              </button>
-              @if (showRetired()) {
-                <div class="g-card g-rows">
-                  @for (assembly of retired(); track assembly.id) {
-                    <div class="retired-row">
+              <div class="g-list">
+                @if (areas().length > 0) {
+                  @if (data.assemblies.length > 0) {
+                    <p class="g-hint in-drawing">Stehen mit ihrem Zustand in der Zeichnung oben.</p>
+                  }
+                  <div class="g-card g-rows areas" [class.drawn]="data.assemblies.length > 0">
+                    @for (assembly of areas(); track assembly.id) {
                       <a class="g-row" [routerLink]="nav.to.assembly(current.id, assembly.id)">
                         <span class="g-row-main">
                           <span class="g-row-title">{{ assembly.display_name }}</span>
                           <span class="g-row-sub">
-                            <span class="g-num">{{ assembly.assembly_km | number: '1.0-0' }} km</span>
-                            · ausgemustert {{ assembly.retired_at | date: 'dd.MM.yyyy' }}
+                            {{ partsLabel(assembly.slots.length) }}
+                            @if (assembly.intervals.length > 0) {
+                              · {{ assembly.intervals.length }} Pflege
+                            }
                           </span>
                         </span>
+                        <span class="g-pill" [class]="assembly.worst_status | warnClass">
+                          {{ assembly.worst_status | warnLabel }}
+                        </span>
                       </a>
-                      <button type="button" class="g-btn small" (click)="restore(assembly)">
-                        Zurückholen
-                      </button>
-                    </div>
+                    }
+                  </div>
+                }
+                <button type="button" class="g-btn wide ghost" (click)="addingAssembly.set(true)">
+                  <app-icon name="plus" [size]="16" />
+                  Baugruppe hinzufügen
+                </button>
+              </div>
+            </section>
+
+            <!-- Alt-Plätze ohne Baugruppe -->
+            @if (ungrouped().length > 0) {
+              <section class="g-section">
+                <div class="g-section-head">
+                  <h2 class="g-section-title">Ohne Baugruppe</h2>
+                </div>
+                <div class="g-card g-rows">
+                  @for (slot of ungrouped(); track slot.id) {
+                    <button type="button" class="g-row" (click)="openUngrouped(slot)">
+                      <span class="g-dot" [class]="slot.warn_status | warnClass"></span>
+                      <span class="g-row-main">
+                        <span class="g-row-title">{{ slot.display_name }}</span>
+                        @if (slot.mounted_component; as part) {
+                          <span class="g-row-sub">
+                            {{ part.label }} ·
+                            <span class="g-num">{{ part.wear_km | number: '1.0-0' }} km</span>
+                          </span>
+                        }
+                      </span>
+                    </button>
                   }
                 </div>
-              }
-            </section>
-          }
+              </section>
+            }
+
+            <!-- Gute Teile, deren Laufrad weg ist -->
+            @if (orphans().length > 0) {
+              <section class="g-section">
+                <div class="g-section-head">
+                  <h2 class="g-section-title">Im Regal, ohne Platz</h2>
+                </div>
+                <p class="g-hint explain">
+                  Noch gut, aber ihre Baugruppe ist ausgemustert. Tippe ein Teil an, um es
+                  umzuziehen.
+                </p>
+                <div class="g-card g-rows">
+                  @for (spare of orphans(); track spare.id) {
+                    <button type="button" class="g-row" (click)="openOrphan(spare.id)">
+                      <span class="g-row-main">
+                        <span class="g-row-title">{{ spare.label }}</span>
+                        <span class="g-row-sub">
+                          {{ spare.slot_name }} ·
+                          <span class="g-num">{{ spare.prior_wear_km | number: '1.0-0' }} km</span>
+                        </span>
+                      </span>
+                      <app-icon class="g-chevron" name="chevron-right" [size]="18" />
+                    </button>
+                  }
+                </div>
+              </section>
+            }
+
+            <!-- Ausgemustert -->
+            @if (retired().length > 0) {
+              <section class="g-section">
+                <button
+                  type="button"
+                  class="g-link-btn quiet"
+                  (click)="showRetired.set(!showRetired())"
+                >
+                  {{
+                    showRetired()
+                      ? 'Ausgemustertes ausblenden'
+                      : 'Ausgemustert (' + retired().length + ')'
+                  }}
+                </button>
+                @if (showRetired()) {
+                  <div class="g-card g-rows">
+                    @for (assembly of retired(); track assembly.id) {
+                      <div class="retired-row">
+                        <a class="g-row" [routerLink]="nav.to.assembly(current.id, assembly.id)">
+                          <span class="g-row-main">
+                            <span class="g-row-title">{{ assembly.display_name }}</span>
+                            <span class="g-row-sub">
+                              <span class="g-num"
+                                >{{ assembly.assembly_km | number: '1.0-0' }} km</span
+                              >
+                              · ausgemustert {{ assembly.retired_at | date: 'dd.MM.yyyy' }}
+                            </span>
+                          </span>
+                        </a>
+                        <button type="button" class="g-btn small" (click)="restore(assembly)">
+                          Zurückholen
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </section>
+            }
+          </div>
         </div>
       </div>
     }

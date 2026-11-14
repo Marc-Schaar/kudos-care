@@ -34,6 +34,11 @@
   height: auto;
   user-select: none;
   -webkit-user-drag: none;
+  /* Die Illustration bringt ihr eigenes Lime mit (Felgen, Tretlager). In der Zeichnung ist
+     Farbe aber Befund: Lime heißt "hier bist du", Rot/Orange heißt Status. Also Tusche. Die
+     Radliste und das Dashboard zeigen dieselben Dateien farbig, deshalb hier per Filter statt
+     in den SVGs. */
+  filter: grayscale(1);
 }
 
 /* ── Hinweislinien ────────────────────────────────────────────────────────── */

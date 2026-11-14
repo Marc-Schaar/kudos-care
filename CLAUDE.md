@@ -149,6 +149,18 @@ features/
     Nummern am Rad plus Liste, die zuerst nur Auffälliges zeigt. Landmarken müssen zu den
     SVGs in `public/bike-illustrations/` passen. Keine `vector-effect: non-scaling-stroke`
     auf den Linien: Chrome ignoriert damit `pathLength` und die Einzeichen-Animation zerfällt.
+    Die Illustration wird in der Zeichnung per `filter: grayscale(1)` zu Tusche: in den SVGs
+    steckt Lime (Felgen, Tretlager), in der Zeichnung ist Farbe aber Befund. Radliste und
+    Dashboard zeigen dieselben Dateien farbig, deshalb nicht in den SVGs ändern. Die
+    Maßlinien heißen nach dem Teil („Kette laut Tacho …", „mit Wetter … (+21 %)"); schmal nur
+    die Kurzform, sonst schneidet die Linie sie ab. Auf der Rad-Seite liegt der Inhalt in
+    einem eigenen Container (`.body`), damit die Baugruppen-Liste genau dann verschwindet,
+    wenn die Zeichnung auf Beschriftung neben dem Rad umschaltet (862px = 860 + Rahmen) —
+    dort stünde sonst jede Baugruppe samt Ampel zweimal.
+    **Laufrad wechseln** (`components/switch-sheet`): die Server-Vorschau als Tauschliste,
+    eine echte `<table>` mit je einer Zeile pro Stelle am Rad („Ans Rad" | „In den Keller").
+    `buildSwapRows()` paart Laufräder über `group_name`, mitwechselnde Teile über den Platz;
+    einseitige Wechsel bleiben als Zeile mit „nichts" stehen.
     **Verschleiß-Lineal** (`components/wear-meter`): Marken bei 80/100 %, Skala bis 125 %,
     darüber eine **Bruchkante** (unterbrochene Achse) mit dem Vielfachen der Lebensdauer
     (`formatTimes()`: „3,5×“, ab 10 ganzzahlig) — vorher endete alles Überfällige in derselben
