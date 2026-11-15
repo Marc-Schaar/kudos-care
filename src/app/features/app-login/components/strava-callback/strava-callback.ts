@@ -62,8 +62,17 @@ export class StravaCallback {
           if (res?.athlete) {
             this.stravaService.setLoggedInUser(res.athlete.id, res.athlete.firstname);
           }
-          const next = this.backToRadcomputer ? this.nav.to.radcomputer() : this.nav.to.dashboard();
-          setTimeout(() => this.nav.goTo(next), 2000);
+          const fallback = this.backToRadcomputer
+            ? this.nav.to.radcomputer()
+            : this.nav.to.dashboard();
+          // Radcomputer-Freigabe hat Vorrang vor einem gemerkten Ziel aus einer Mail.
+          setTimeout(
+            () =>
+              this.backToRadcomputer
+                ? this.nav.goTo(fallback)
+                : this.nav.goToAfterLogin(fallback),
+            2000,
+          );
         },
         error: (err) => {
           this.status.set('error');

@@ -58,6 +58,9 @@ export const routes: Routes = [
       },
       {
         path: 'maintenance',
+        // Ohne Guard landete man über die Links in den Mails (alle zeigen hierher) ohne
+        // Session auf einer leeren Seite mit 401-Toasts, statt auf dem Login.
+        canActivate: [authGuard],
         loadChildren: () => import('./maintenances.routes').then((m) => m.MAINTENANCE_ROUTES),
       },
     ],

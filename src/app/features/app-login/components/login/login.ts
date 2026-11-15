@@ -28,7 +28,7 @@ export class Login implements OnInit {
 
   ngOnInit() {
     this.stravaService.fetchUser().subscribe({
-      next: () => this.nav.goTo(this.nav.to.dashboard()),
+      next: () => this.nav.goToAfterLogin(),
       error: () => this.checking.set(false),
     });
   }
@@ -51,7 +51,7 @@ export class Login implements OnInit {
 
   devLogin() {
     this.stravaService.devLogin().subscribe({
-      next: () => this.nav.goTo(this.nav.to.dashboard()),
+      next: () => this.nav.goToAfterLogin(),
       error: (err) => console.error('Dev-Login fehlgeschlagen', err),
     });
   }

@@ -63,4 +63,47 @@ export class NavigationService {
   goTo(commands: RouteCommands, extras?: NavigationExtras): Promise<boolean> {
     return this.router.navigate(commands, extras);
   }
+
+  /**
+   * Merkt sich, wohin jemand ohne Session wollte (typisch: ein Link aus einer Mail), damit
+   * der Login danach dorthin zurückführt statt pauschal aufs Dashboard.
+   *
+   * localStorage statt sessionStorage: der Login geht über Strava, auf dem Handy oft über
+   * die Strava-App, und kommt dann nicht zwingend im selben Tab zurück.
+   */
+  rememberReturnUrl(url: string | undefined): void {
+    if (!url || !this.isSafeReturnUrl(url)) return;
+    try {
+      localStorage.setItem(RETURN_URL_STORAGE_KEY, url);
+    } catch {
+      // Ohne Storage geht es eben aufs Dashboard.
+    }
+  }
+
+  /** Nach erfolgreichem Login: zum gemerkten Ziel, sonst zum Fallback (Dashboard). */
+  goToAfterLogin(fallback: RouteCommands = this.to.dashboard()): Promise<boolean> {
+    let url: string | null = null;
+    try {
+      url = localStorage.getItem(RETURN_URL_STORAGE_KEY);
+      localStorage.removeItem(RETURN_URL_STORAGE_KEY);
+    } catch {
+      url = null;
+    }
+    if (url && this.isSafeReturnUrl(url)) {
+      return this.router.navigateByUrl(url);
+    }
+    return this.goTo(fallback);
+  }
+
+  /** Nur app-interne Pfade — ein gespeichertes `//fremd.de` wäre ein Open Redirect. */
+  private isSafeReturnUrl(url: string): boolean {
+    return (
+      url.startsWith('/app/') &&
+      !url.startsWith('//') &&
+      !url.startsWith('/app/login') &&
+      !url.startsWith('/app/strava-callback')
+    );
+  }
 }
+
+const RETURN_URL_STORAGE_KEY = 'kudos_care_return_url';
