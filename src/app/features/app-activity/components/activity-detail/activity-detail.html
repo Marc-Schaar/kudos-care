@@ -146,47 +146,13 @@
 
           @if (wearImpact(); as impact) {
             @if (impact.breakdown.distance_km != null) {
-              <p class="g-text lead">
-                @if (impact.breakdown.total_extra_km > 0) {
-                  Wegen des Wetters zählen die
-                  <span class="g-num">{{ impact.breakdown.distance_km | number: '1.0-1' }} km</span>
-                  dieser Fahrt für den Verschleiß wie
-                  <span class="g-num">{{ weightedKm(impact) | number: '1.0-1' }} km</span>.
-                } @else {
-                  Das Wetter hat bei dieser Fahrt nichts zusätzlich gekostet.
-                }
+              <app-wear-impact [breakdown]="impact.breakdown" />
+            } @else {
+              <p class="g-empty">
+                Diese Fahrt ist keinem Rad zugeordnet, deshalb lässt sich kein Verschleiß
+                ausrechnen.
               </p>
             }
-            <div class="g-card g-rows">
-              @for (cat of impact.breakdown.categories; track cat.category) {
-                <div class="impact">
-                  <div class="impact-head">
-                    <span class="g-row-title">{{ cat.category_display }}</span>
-                    <span class="g-pill" [class]="'status-' + impactClass(cat.extra_pct)">
-                      @if (cat.extra_pct > 0) {
-                        +{{ cat.extra_pct }} % durch {{ cat.dominant_driver_display }}
-                      } @else {
-                        kein Aufschlag
-                      }
-                    </span>
-                  </div>
-                  @for (comp of cat.components; track comp.id) {
-                    <div class="impact-part">
-                      <span>{{ comp.name }}</span>
-                      @if (comp.share_of_life_pct != null) {
-                        <span class="g-num">{{ comp.share_of_life_pct | number: '1.0-1' }} %</span>
-                      } @else {
-                        <span class="unknown">keine Lebensdauer</span>
-                      }
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-
-            <p class="g-hint below">
-              Prozent je Teil: wie viel seiner empfohlenen Lebensdauer diese Fahrt verbraucht hat.
-            </p>
 
             @if (impact.summary) {
               <p class="g-text below">{{ impact.summary }}</p>

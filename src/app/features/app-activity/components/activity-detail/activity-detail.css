@@ -75,36 +75,6 @@
 
 /* ── Was die Fahrt gekostet hat ────────────────────────────────────────────── */
 
-.impact {
-  padding: 0.75rem 0.9rem;
-}
-
-.impact-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.15rem 0.75rem;
-  margin-bottom: 0.35rem;
-}
-
-.impact-part {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-size: var(--t-sm);
-  line-height: 1.6;
-  color: var(--muted);
-}
-
-.unknown {
-  font-size: var(--t-xs);
-}
-
-.lead {
-  margin-bottom: 0.75rem;
-}
-
 .below {
   margin-top: 0.75rem;
 }

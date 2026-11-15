@@ -38,6 +38,7 @@ import {
   windVerdict,
 } from '../../models/wind-profile';
 import { WindProfile } from '../wind-profile/wind-profile';
+import { WearImpact } from '../wear-impact/wear-impact';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
@@ -47,7 +48,17 @@ type MapMode = 'wind' | 'rain';
 
 @Component({
   selector: 'app-activity-detail',
-  imports: [Map, WindProfile, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, Icon, RouterLink],
+  imports: [
+    Map,
+    WindProfile,
+    WearImpact,
+    AbsPipe,
+    HeadwindLabelPipe,
+    DatePipe,
+    DecimalPipe,
+    Icon,
+    RouterLink,
+  ],
   providers: [DatePipe],
   templateUrl: './activity-detail.html',
   styleUrl: './activity-detail.css',
@@ -191,17 +202,6 @@ export class ActivityDetail implements OnInit {
         );
       },
     });
-  }
-
-  public weightedKm(impact: WearImpactResponse): number {
-    return (impact.breakdown.distance_km ?? 0) + impact.breakdown.total_extra_km;
-  }
-
-  /** Ampel für den wetterbedingten Aufschlag einer Kategorie. */
-  public impactClass(extraPct: number): 'ok' | 'warn' | 'critical' {
-    if (extraPct >= 30) return 'critical';
-    if (extraPct >= 10) return 'warn';
-    return 'ok';
   }
 
   getActivityDetail(id: number) {

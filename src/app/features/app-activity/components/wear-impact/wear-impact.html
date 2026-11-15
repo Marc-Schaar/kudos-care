@@ -1,0 +1,76 @@
+@if (worst(); as top) {
+  <p class="verdict">
+    <span class="km">{{ distanceKm() | number: '1.1-1' }}</span
+    >&nbsp;km gefahren,
+    <span class="line"
+      >bis zu <span class="km">{{ top.weightedKm | number: '1.1-1' }}</span
+      >&nbsp;km verschlissen.</span
+    >
+  </p>
+  <p class="g-hint why">
+    Am teuersten war sie für den Bereich {{ top.label }}: +{{ top.extraPct }} % durch
+    {{ top.driverLabel }}.
+  </p>
+} @else {
+  <p class="verdict">
+    <span class="km">{{ distanceKm() | number: '1.1-1' }}</span
+    >&nbsp;km gefahren,
+    <span class="line">genauso viel verschlissen.</span>
+  </p>
+  <p class="g-hint why">Das Wetter hat bei dieser Fahrt nichts zusätzlich gekostet.</p>
+}
+
+@if (rows().length) {
+  <div class="scale" [style.--base.%]="baseWidth()">
+    <p class="ridden" aria-hidden="true">
+      <span>gefahren</span>
+    </p>
+
+    <ul class="areas">
+      @for (row of rows(); track row.key; let i = $index) {
+        <li class="area" [style.--i]="i">
+          <div class="area-head">
+            <h3 class="area-name">{{ row.label }}</h3>
+            @if (row.extraPct > 0) {
+              <span class="area-extra g-num">+{{ row.extraPct }} % {{ row.driverLabel }}</span>
+            } @else {
+              <span class="area-extra none">kein Aufschlag</span>
+            }
+          </div>
+
+          <div class="bar" aria-hidden="true">
+            <span class="base"></span>
+            @if (row.extraWidth > 0) {
+              <span
+                class="extra"
+                [class.rain]="row.driver === 'rain'"
+                [style.width.%]="row.extraWidth"
+              ></span>
+            }
+          </div>
+
+          <ul class="parts">
+            @for (part of row.parts; track part.id) {
+              <li class="part">
+                <span class="part-name">{{ part.name }}</span>
+                @if (part.sharePct != null) {
+                  <span class="part-life">{{ part.lifeInRides }}</span>
+                  <span class="part-share g-num">{{ part.sharePct | number: '1.1-1' }} %</span>
+                } @else {
+                  <span class="part-life">keine Lebensdauer hinterlegt</span>
+                }
+              </li>
+            }
+          </ul>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <p class="g-hint key">
+    Der volle Balken sind die gefahrenen Kilometer, der schraffierte Teil kommt durchs Wetter dazu.
+    Prozent je Teil: so viel seiner empfohlenen Lebensdauer hat diese Fahrt verbraucht.
+  </p>
+} @else {
+  <p class="g-empty">Zum Zeitpunkt dieser Fahrt war kein Teil an diesem Rad erfasst.</p>
+}
