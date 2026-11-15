@@ -29,6 +29,7 @@ export interface WearImpactCategory {
   category_display: string;
   multiplier: number;
   extra_pct: number;
+  /** Wetteraufschlag dieser Kategorie in km. Gilt für jedes ihrer Teile, keine Summe darüber. */
   extra_km: number;
   dominant_driver: WearDriver | null;
   dominant_driver_display: string | null;
@@ -45,7 +46,6 @@ export interface WearImpactBreakdown {
   distance_km: number | null;
   conditions: WearImpactConditions;
   categories: WearImpactCategory[];
-  total_extra_km: number;
   component_count: number;
 }
 

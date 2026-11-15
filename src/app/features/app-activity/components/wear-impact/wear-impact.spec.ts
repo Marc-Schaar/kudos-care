@@ -9,7 +9,6 @@ import { WearImpactBreakdown } from '../../models/wear-impact';
 const breakdown: WearImpactBreakdown = {
   distance_km: 48.2,
   conditions: { precipitation: 1.2, temperature: 9, wind_speed: 14 },
-  total_extra_km: 30,
   component_count: 3,
   categories: [
     {
