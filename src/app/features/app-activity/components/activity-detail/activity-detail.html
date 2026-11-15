@@ -127,106 +127,108 @@
       }
     </section>
 
-    <div class="g-split">
-      <div>
-        <section class="g-section">
-          <div class="g-section-head">
-            <h2 class="g-section-title">Was diese Fahrt gekostet hat</h2>
-            @if (wearImpact()) {
-              <button
-                type="button"
-                class="g-link-btn quiet"
-                [disabled]="wearImpactLoading()"
-                (click)="loadWearImpact(true)"
-              >
-                Neu berechnen
-              </button>
-            }
-          </div>
-
-          @if (wearImpact(); as impact) {
-            @if (impact.breakdown.distance_km != null) {
-              <app-wear-impact [breakdown]="impact.breakdown" />
-            } @else {
-              <p class="g-empty">
-                Diese Fahrt ist keinem Rad zugeordnet, deshalb lässt sich kein Verschleiß
-                ausrechnen.
-              </p>
-            }
-
-            @if (impact.summary) {
-              <p class="g-text below">{{ impact.summary }}</p>
-              <p class="g-hint">
-                Kudo · {{ impact.cached ? 'aus dem Speicher' : 'neu geschrieben' }}
-                @if (impact.generated_at) {
-                  · {{ impact.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
-                }
-              </p>
-            } @else if (impact.ai_consent_required) {
-              <p class="g-hint below">
-                Die Zahlen stehen. Kudos Erklärung ist aus, du kannst sie im Benutzermenü
-                einschalten.
-              </p>
-            } @else if (impact.ai_unavailable) {
-              <p class="g-hint below">
-                Die Zahlen stehen, nur Kudos Erklärung ist gerade nicht verfügbar.
-              </p>
-            }
-          } @else if (wearImpactLoading()) {
-            <p class="g-hint">Wird berechnet…</p>
-          } @else if (wearImpactError()) {
-            <p class="g-hint caution">{{ wearImpactError() }}</p>
-            <button type="button" class="g-btn small retry" (click)="loadWearImpact()">
-              Erneut versuchen
-            </button>
-          } @else {
-            <p class="g-hint explain">
-              Welche Teile diese Fahrt wie viel Lebensdauer gekostet hat, mit dem Wetter dieses
-              Tages.
-            </p>
-            <button type="button" class="g-btn" (click)="loadWearImpact()">Ausrechnen</button>
-          }
-        </section>
-
-        <section class="g-section">
-          <div class="g-section-head">
-            <h2 class="g-section-title">Kudos Auswertung</h2>
-            @if (rideSummary()) {
-              <button
-                type="button"
-                class="g-link-btn quiet"
-                [disabled]="rideSummaryLoading()"
-                (click)="loadRideSummary(true)"
-              >
-                Neu schreiben lassen
-              </button>
-            }
-          </div>
-
-          @if (rideSummary(); as sum) {
-            <p class="g-text">{{ sum.summary }}</p>
-            <p class="g-hint">
-              {{ sum.cached ? 'Aus dem Speicher' : 'Neu geschrieben' }} ·
-              {{ sum.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
-            </p>
-          } @else if (rideSummaryLoading()) {
-            <p class="g-hint">Kudo schreibt…</p>
-          } @else if (rideSummaryError()) {
-            <p class="g-hint caution">{{ rideSummaryError() }}</p>
-            <button type="button" class="g-btn small retry" (click)="loadRideSummary()">
-              Erneut versuchen
-            </button>
-          } @else {
-            <p class="g-hint explain">
-              Die Fahrt in ein paar Sätzen, von der KI aus den Zahlen oben.
-            </p>
-            <button type="button" class="g-btn" (click)="loadRideSummary()">
-              <app-icon name="sparkles" [size]="16" />
-              Schreiben lassen
-            </button>
-          }
-        </section>
+    <section class="g-section">
+      <div class="g-section-head">
+        <h2 class="g-section-title">Was diese Fahrt gekostet hat</h2>
+        @if (wearImpact()) {
+          <button
+            type="button"
+            class="g-link-btn quiet"
+            [disabled]="wearImpactLoading()"
+            (click)="loadWearImpact(true)"
+          >
+            Neu berechnen
+          </button>
+        }
       </div>
+
+      @if (wearImpact(); as impact) {
+        @if (impact.breakdown.distance_km != null) {
+          <app-wear-impact class="impact" [breakdown]="impact.breakdown" />
+          <app-wear-trace
+            class="trace"
+            [breakdown]="impact.breakdown"
+            [segments]="windSegments()"
+            [rideKm]="data.distance_km"
+            [(active)]="activeSegment"
+          />
+        } @else {
+          <p class="g-empty">
+            Diese Fahrt ist keinem Rad zugeordnet, deshalb lässt sich kein Verschleiß ausrechnen.
+          </p>
+        }
+
+        @if (impact.summary) {
+          <p class="g-text below">{{ impact.summary }}</p>
+          <p class="g-hint">
+            Kudo · {{ impact.cached ? 'aus dem Speicher' : 'neu geschrieben' }}
+            @if (impact.generated_at) {
+              · {{ impact.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
+            }
+          </p>
+        } @else if (impact.ai_consent_required) {
+          <p class="g-hint below">
+            Die Zahlen stehen. Kudos Erklärung ist aus, du kannst sie im Benutzermenü einschalten.
+          </p>
+        } @else if (impact.ai_unavailable) {
+          <p class="g-hint below">
+            Die Zahlen stehen, nur Kudos Erklärung ist gerade nicht verfügbar.
+          </p>
+        }
+      } @else if (wearImpactLoading()) {
+        <p class="g-hint">Wird berechnet…</p>
+      } @else if (wearImpactError()) {
+        <p class="g-hint caution">{{ wearImpactError() }}</p>
+        <button type="button" class="g-btn small retry" (click)="loadWearImpact()">
+          Erneut versuchen
+        </button>
+      } @else {
+        <p class="g-hint explain">
+          Welche Teile diese Fahrt wie viel Lebensdauer gekostet hat, mit dem Wetter dieses Tages.
+        </p>
+        <button type="button" class="g-btn" (click)="loadWearImpact()">Ausrechnen</button>
+      }
+    </section>
+
+    <div class="g-split">
+      <section class="g-section">
+        <div class="g-section-head">
+          <h2 class="g-section-title">Kudos Auswertung</h2>
+          @if (rideSummary()) {
+            <button
+              type="button"
+              class="g-link-btn quiet"
+              [disabled]="rideSummaryLoading()"
+              (click)="loadRideSummary(true)"
+            >
+              Neu schreiben lassen
+            </button>
+          }
+        </div>
+
+        @if (rideSummary(); as sum) {
+          <p class="g-text">{{ sum.summary }}</p>
+          <p class="g-hint">
+            {{ sum.cached ? 'Aus dem Speicher' : 'Neu geschrieben' }} ·
+            {{ sum.generated_at | date: 'dd.MM.yyyy, HH:mm' }}
+          </p>
+        } @else if (rideSummaryLoading()) {
+          <p class="g-hint">Kudo schreibt…</p>
+        } @else if (rideSummaryError()) {
+          <p class="g-hint caution">{{ rideSummaryError() }}</p>
+          <button type="button" class="g-btn small retry" (click)="loadRideSummary()">
+            Erneut versuchen
+          </button>
+        } @else {
+          <p class="g-hint explain">
+            Die Fahrt in ein paar Sätzen, von der KI aus den Zahlen oben.
+          </p>
+          <button type="button" class="g-btn" (click)="loadRideSummary()">
+            <app-icon name="sparkles" [size]="16" />
+            Schreiben lassen
+          </button>
+        }
+      </section>
 
       <section class="g-section">
         <div class="g-section-head">

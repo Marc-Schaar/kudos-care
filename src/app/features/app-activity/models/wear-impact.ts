@@ -34,6 +34,11 @@ export interface WearImpactCategory {
   dominant_driver: WearDriver | null;
   dominant_driver_display: string | null;
   components: WearImpactComponent[];
+  /**
+   * `extra_km` auf die Windabschnitte verteilt, Index = `wind_segments` `properties.index`.
+   * Die Summe ist `extra_km`. Leer, wenn die Fahrt keine Abschnitte hat.
+   */
+  segment_extra_km?: number[];
 }
 
 export interface WearImpactConditions {

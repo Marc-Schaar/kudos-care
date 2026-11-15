@@ -156,7 +156,13 @@ features/
     Wind") erscheint nur bei `wind_source = stream`.
     `wind_source` steuert den Hinweis darunter: `coarse` = grobe Start-Ziel-Schätzung,
     `none` = keine Winddaten, Route neutral (Normalfall vor dem `recompute_wind`-Backfill).
-    Karte „Was diese Fahrt gekostet hat" = `GET activities/<id>/wear-impact/`.
+    Karte „Was diese Fahrt gekostet hat" = `GET activities/<id>/wear-impact/`, volle Breite.
+    Darin **Verschleiß-Verlauf** (`components/wear-trace`, Logik in `models/wear-trace.ts`,
+    getestet): gefahrene km gegen Verschleiß über die Distanz, schraffiert der Aufschlag
+    (blau nur bei Regen, wie `wear-impact`). Liest `segment_extra_km` aus dem Backend und
+    rechnet selbst nichts; endet auf gefahren + `extra_km`, also derselben Zahl wie der
+    Satz der Aufschlüsselung. Teilt `activeSegment` mit Karte und Windprofil, und hat
+    dieselben Spaltenbreiten wie das Windprofil, damit beide Zeichenflächen bündig stehen.
   app-maintenance/               — Kern-Domäne: Bikes → Baugruppen → Elemente, Verschleiß
     services/bike-service, pipes/(km, warn-class, warn-label)
     models/maintenance.models.ts — BikeList/BikeDetail, BikeAssembly, ComponentGroupCatalog,

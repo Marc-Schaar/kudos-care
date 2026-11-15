@@ -71,7 +71,9 @@ export class WearImpact {
         extraPct: Math.max(cat.extra_pct, 0),
         driver: cat.extra_pct > 0 ? cat.dominant_driver : null,
         driverLabel: cat.extra_pct > 0 ? cat.dominant_driver_display : null,
-        weightedKm: this.distanceKm() * multiplier,
+        // Aus `extra_km`, nicht aus dem gerundeten Prozentwert: der Verlauf darunter
+        // (`app-wear-trace`) endet auf gefahren + `extra_km`, beide müssen dieselbe Zahl nennen.
+        weightedKm: this.distanceKm() + Math.max(cat.extra_km, 0),
         extraWidth: ((multiplier - 1) / this.scale()) * 100,
         parts: cat.components.map(partLine),
       };

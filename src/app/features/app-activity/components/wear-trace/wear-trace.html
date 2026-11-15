@@ -1,0 +1,77 @@
+@if (category(); as cat) {
+  <div class="head">
+    <h3 class="title">Wo der Aufschlag entstand</h3>
+    @if (categories().length > 1) {
+      <div class="g-switch" role="group" aria-label="Bereich für den Verlauf">
+        @for (c of categories(); track c.category) {
+          <button
+            type="button"
+            [attr.aria-pressed]="c.category === selectedKey()"
+            (click)="select(c.category)"
+          >
+            {{ c.category_display }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <p class="readout" aria-hidden="true">{{ sentence() }}</p>
+
+  <div class="frame">
+    <div class="axis" aria-hidden="true">
+      <span class="side top"
+        >verschlissen<b class="g-num">{{ totalWear() | number: '1.1-1' }} km</b></span
+      >
+    </div>
+
+    <div
+      #plot
+      class="plot"
+      tabindex="0"
+      role="slider"
+      [attr.aria-label]="'Verschleiß ' + cat.category_display + ' entlang der Strecke'"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="points().length - 1"
+      [attr.aria-valuenow]="active() ?? 0"
+      [attr.aria-valuetext]="sentence()"
+      (pointerdown)="onPointer($event, plot)"
+      (pointermove)="onPointer($event, plot)"
+      (pointerleave)="onLeave($event)"
+      (keydown)="onKey($event)"
+    >
+      <span class="guide" aria-hidden="true"></span>
+      <span
+        class="gap"
+        [class.rain]="rain()"
+        [style.clip-path]="gapClip()"
+        aria-hidden="true"
+      ></span>
+
+      <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+        <line class="ridden" x1="0" y1="100" x2="1000" [attr.y2]="riddenEndY()" />
+        <path class="wear" [attr.d]="wearPath()" />
+      </svg>
+
+      <span class="base" aria-hidden="true"></span>
+      @if (cursor(); as c) {
+        <span class="cursor" [style.left.%]="c.x" aria-hidden="true"></span>
+        <span class="dot" [style.left.%]="c.x" [style.top.%]="c.y" aria-hidden="true"></span>
+      }
+    </div>
+
+    <div class="ruler" aria-hidden="true">
+      @for (tick of ticks(); track tick.km) {
+        <span class="tick g-num" [style.left.%]="tick.x" [class.first]="$first">
+          {{ tick.km | number: '1.0-0' }}
+        </span>
+      }
+      <span class="tick g-num end">{{ totalKm() | number: '1.0-1' }} km</span>
+    </div>
+  </div>
+
+  <p class="g-hint key">
+    Die dünne Linie sind die gefahrenen Kilometer, die kräftige der Verschleiß. Wo sie
+    auseinanderlaufen, hat das Wetter etwas gekostet.
+  </p>
+}

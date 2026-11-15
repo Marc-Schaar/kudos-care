@@ -79,6 +79,17 @@
   margin-top: 0.75rem;
 }
 
+/* Der Abschnitt läuft über die volle Breite, damit der Verlauf unter dem Windprofil
+   bündig steht. Die Balken brauchen die Breite nicht und bleiben lesbar schmal. */
+.impact {
+  display: block;
+  max-width: 46rem;
+}
+
+.trace {
+  margin-top: 2rem;
+}
+
 .explain {
   margin-bottom: 0.75rem;
 }

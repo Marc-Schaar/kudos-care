@@ -39,6 +39,7 @@ import {
 } from '../../models/wind-profile';
 import { WindProfile } from '../wind-profile/wind-profile';
 import { WearImpact } from '../wear-impact/wear-impact';
+import { WearTrace } from '../wear-trace/wear-trace';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
@@ -52,6 +53,7 @@ type MapMode = 'wind' | 'rain';
     Map,
     WindProfile,
     WearImpact,
+    WearTrace,
     AbsPipe,
     HeadwindLabelPipe,
     DatePipe,
