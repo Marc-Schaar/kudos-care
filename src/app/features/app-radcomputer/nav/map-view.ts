@@ -12,11 +12,12 @@ import { CueSign } from './cue-sign';
 import { MapCanvas } from './map-canvas';
 import { RouteGuide } from './route-guide';
 import { RC } from '../core/paths';
+import { WindBadge } from '../wind/wind-badge';
 
 /** Kartenseite der Fahrt: nächster Hinweis, Karte, drei Werte. Routen wählt man im Menü. */
 @Component({
   selector: 'rc-map-view',
-  imports: [MapCanvas, CueSign, Compass, RouterLink],
+  imports: [MapCanvas, CueSign, Compass, RouterLink, WindBadge],
   template: `
     <div class="banner">
       @if (guide.route(); as route) {
@@ -59,6 +60,7 @@ import { RC } from '../core/paths';
         [theme]="settings.value().theme"
         [label]="mapLabel()"
       />
+      <rc-wind-badge class="wind" [headingUp]="settings.value().headingUp" />
       <div class="map-buttons">
         <rc-compass
           [heading]="gps.heading()"
@@ -142,6 +144,11 @@ import { RC } from '../core/paths';
     rc-map {
       position: absolute;
       inset: 0;
+    }
+    .wind {
+      position: absolute;
+      left: 8px;
+      top: 8px;
     }
     .map-buttons {
       position: absolute;

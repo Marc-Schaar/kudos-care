@@ -27,6 +27,30 @@
     }
   </div>
 
+  <h2 class="section-title">Wind</h2>
+  <div class="stack">
+    <p class="hint">
+      Für die Windanzeige schickt Kudos Care deinen ungefähren Standort (auf etwa 1 km gerundet)
+      an den Wetterdienst Open-Meteo. Dieselbe Einwilligung gilt für das Wetter deiner Fahrten in
+      Kudos Care.
+    </p>
+    @if (wind.consent()) {
+      <p class="hint">Wetterdaten sind freigegeben.</p>
+      <button type="button" class="btn" (click)="setWeatherConsent(false)" [disabled]="saving()">
+        Freigabe widerrufen
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="btn primary"
+        (click)="setWeatherConsent(true)"
+        [disabled]="saving()"
+      >
+        Wetterdaten erlauben
+      </button>
+    }
+  </div>
+
   <h2 class="section-title">Darstellung</h2>
   <div class="stack">
     <div class="form-row">

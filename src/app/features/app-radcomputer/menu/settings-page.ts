@@ -1,12 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormField, form, max, min, required } from '@angular/forms/signals';
 
+import { StravaService } from '../../../shared/services/strava-service/strava-service';
 import { AudioFeedback } from '../core/audio-feedback';
 import { ScreenWake } from '../core/screen-wake';
 import { Sensors } from '../core/sensors';
 import { SettingsStore } from '../core/settings-store';
 import { Strava } from '../core/strava';
 import { Toasts } from '../core/toasts';
+import { Wind } from '../core/wind';
 import { SubHeader } from './sub-header';
 
 @Component({
@@ -22,6 +24,25 @@ export class SettingsPage {
   protected readonly sensors = inject(Sensors);
   protected readonly audio = inject(AudioFeedback);
   private readonly toasts = inject(Toasts);
+  private readonly kudos = inject(StravaService);
+  protected readonly wind = inject(Wind);
+  protected readonly saving = signal(false);
+
+  /** Einwilligung wie im Kudos-Menü, siehe `app_auth/consent.py` im Backend. */
+  protected setWeatherConsent(enabled: boolean): void {
+    this.saving.set(true);
+    this.kudos.updateSettings({ weather_consent: enabled }).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toasts.show(enabled ? 'Wetterdaten freigegeben.' : 'Freigabe widerrufen.');
+        if (enabled) this.wind.refresh();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toasts.show('Einstellung konnte nicht gespeichert werden.');
+      },
+    });
+  }
 
   /** Das Formular schreibt direkt in die Einstellungen; der Speicher sichert jede Änderung. */
   protected readonly form = form(this.settings.value, (path) => {

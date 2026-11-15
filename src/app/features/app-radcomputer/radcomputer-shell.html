@@ -47,7 +47,12 @@
 </header>
 
 <main>
-  <router-outlet />
+  <div class="outlet">
+    <router-outlet />
+  </div>
+  @if (showWindBar()) {
+    <rc-wind-bar />
+  }
 </main>
 
 <!-- Wie am Edge: Menü, Runde, Start. Ausgeblendet erscheint die Leiste nach einem Tipp auf die

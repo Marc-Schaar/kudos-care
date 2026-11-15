@@ -16,9 +16,11 @@ import { SettingsStore } from './core/settings-store';
 import { Strava } from './core/strava';
 import { Ticker } from './core/ticker';
 import { Toasts } from './core/toasts';
+import { Wind } from './core/wind';
 import { CueSign } from './nav/cue-sign';
 import { CueKind } from './nav/nav-models';
 import { RouteGuide } from './nav/route-guide';
+import { WindBar } from './wind/wind-bar';
 import { WorkoutPlayer, describeTarget } from './workout/workout-player';
 
 const SENSOR_TEXT: Record<SensorState, string> = {
@@ -45,7 +47,7 @@ interface NavStrip {
  */
 @Component({
   selector: 'rc-shell',
-  imports: [RouterOutlet, RouterLink, CueSign],
+  imports: [RouterOutlet, RouterLink, CueSign, WindBar],
   templateUrl: './radcomputer-shell.html',
   styleUrl: './radcomputer-shell.css',
   host: {
@@ -68,6 +70,7 @@ export class RadcomputerShell {
   private readonly ticker = inject(Ticker);
   private readonly router = inject(Router);
   private readonly demo = inject(DemoDriver);
+  private readonly wind = inject(Wind);
 
   private readonly url = toSignal(
     this.router.events.pipe(
@@ -104,6 +107,9 @@ export class RadcomputerShell {
     () => !this.controlsFloating() || this.view.revealed(),
   );
 
+  /** Windbalken am Rand: auf allen Fahrtseiten, sobald Winddaten vorliegen. */
+  protected readonly showWindBar = computed(() => this.onRide() && this.wind.current() != null);
+
   /** Nächster Abbiegehinweis, sichtbar überall außer auf der Kartenseite. */
   protected readonly navStrip = computed<NavStrip | null>(() => {
     const p = this.guide.progress();
@@ -137,10 +143,14 @@ export class RadcomputerShell {
   constructor() {
     this.demo.start();
     this.strava.check();
+    this.wind.setActive(true);
     // Solange der Radcomputer offen ist, soll die Seite darunter nicht mitscrollen oder federn.
     const body = inject(DOCUMENT).body;
     body.classList.add('rc-active');
-    inject(DestroyRef).onDestroy(() => body.classList.remove('rc-active'));
+    inject(DestroyRef).onDestroy(() => {
+      body.classList.remove('rc-active');
+      this.wind.setActive(false);
+    });
   }
 
   protected openRidePage(page: RidePageKey): void {

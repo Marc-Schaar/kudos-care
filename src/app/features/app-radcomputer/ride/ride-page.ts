@@ -11,9 +11,10 @@ import { SettingsStore } from '../core/settings-store';
 import { MapView } from '../nav/map-view';
 import { WorkoutLive } from '../workout/workout-live';
 import { WorkoutPlayer } from '../workout/workout-player';
+import { WindTile } from '../wind/wind-tile';
 import { DataField } from './data-field';
 
-type FieldKey =
+type ValueKey =
   | 'speed'
   | 'power3s'
   | 'hr'
@@ -24,19 +25,25 @@ type FieldKey =
   | 'avgPower'
   | 'maxPower'
   | 'ascent'
-  | 'altitude'
   | 'elapsed'
   | 'lapPower'
   | 'lapTime'
   | 'lapDist'
   | 'lapSpeed';
 
-interface FieldDef {
-  key: FieldKey;
+interface ValueFieldDef {
+  key: ValueKey;
   label: string;
   unit?: string;
   size?: 'wide' | 'hero';
 }
+
+/** Eigene Kachel mit Pfeil, Gegen-/Rückenwind und Stärke, siehe rc-wind-tile. */
+interface WindFieldDef {
+  key: 'wind';
+}
+
+type FieldDef = ValueFieldDef | WindFieldDef;
 
 interface RidePageDef {
   key: RidePageKey;
@@ -66,7 +73,7 @@ const PAGES: readonly RidePageDef[] = [
       { key: 'avgPower', label: 'Ø Leistung', unit: 'W' },
       { key: 'maxPower', label: 'Max. Leistung', unit: 'W' },
       { key: 'ascent', label: 'Anstieg', unit: 'm' },
-      { key: 'altitude', label: 'Höhe', unit: 'm' },
+      { key: 'wind' },
       { key: 'elapsed', label: 'Gesamtzeit', size: 'wide' },
     ],
   },
@@ -95,7 +102,7 @@ const STATE_TEXT: Record<RideDisplayState, string> = {
 
 @Component({
   selector: 'rc-ride-page',
-  imports: [DataField, MapView, WorkoutLive],
+  imports: [DataField, MapView, WorkoutLive, WindTile],
   template: `
     @let current = page();
     <div class="body">
@@ -109,12 +116,16 @@ const STATE_TEXT: Record<RideDisplayState, string> = {
         @default {
           <section class="grid" [attr.aria-label]="'Datenseite ' + current.name">
             @for (field of current.fields; track field.key) {
-              <rc-data-field
-                [label]="field.label"
-                [unit]="field.unit ?? ''"
-                [value]="values()[field.key]"
-                [size]="field.size ?? 'normal'"
-              />
+              @if (field.key === 'wind') {
+                <rc-wind-tile />
+              } @else {
+                <rc-data-field
+                  [label]="field.label"
+                  [unit]="field.unit ?? ''"
+                  [value]="values()[field.key]"
+                  [size]="field.size ?? 'normal'"
+                />
+              }
             }
           </section>
         }
@@ -166,7 +177,7 @@ export class RidePage {
     return state === 'idle' && hidden ? 'Bereit – tippen für Start' : STATE_TEXT[state];
   });
 
-  protected readonly values = computed<Record<FieldKey, string>>(() => {
+  protected readonly values = computed<Record<ValueKey, string>>(() => {
     const stats = this.ride.stats();
     const lap = this.ride.currentLap();
     const speed = this.gps.speed();
@@ -183,7 +194,6 @@ export class RidePage {
       avgPower: num(stats.pwrN ? stats.pwrSum / stats.pwrN : null),
       maxPower: num(stats.pwrN ? stats.pwrMax : null),
       ascent: num(stats.ascentM),
-      altitude: num(this.gps.position()?.alt),
       elapsed: fmtTime(stats.startedAt ? this.ticker.now() - stats.startedAt : 0),
       lapPower: num(lap.pwrN ? lap.pwrSum / lap.pwrN : null),
       lapTime: fmtTime(lapMs),

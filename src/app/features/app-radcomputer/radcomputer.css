@@ -6,6 +6,8 @@
      --go    Lime (die Kudos-Marke): Aufnahme läuft, Start/Weiter
      --hold  Verkehrsgelb: Auto-Pause, Abweichung vom Trainingsziel
      --warn  Verkehrsrot: Route verlassen, Fehler, Verwerfen
+     --head / --tail  Wind: rot bremst (Gegenwind), grün schiebt (Rückenwind). Grün statt
+             Lime, damit Rückenwind nicht wie „Aufnahme läuft“ aussieht.
    Der Abbiegehinweis ist ein Wegweiser-Schild (rc-cue-sign): Seine Form zeigt die Richtung.
 
    Schrift: DIN (auf dem iPhone „DIN Alternate“, ohne Netz vorhanden) für Zahlen, Titel und
@@ -22,6 +24,8 @@
   --go-ink: #000;
   --hold: #f7b500;
   --warn: #ff5a4e;
+  --head: #ff5a4e;
+  --tail: #3ddc84;
   --digits:
     'DIN Alternate', 'DIN 1451', Bahnschrift, 'Roboto Condensed', 'Arial Narrow', system-ui,
     -apple-system, sans-serif;
@@ -46,6 +50,8 @@
   --go-ink: #fff;
   --hold: #8a5a00;
   --warn: #b3261e;
+  --head: #b3261e;
+  --tail: #1b7a3a;
   color-scheme: light;
 }
 

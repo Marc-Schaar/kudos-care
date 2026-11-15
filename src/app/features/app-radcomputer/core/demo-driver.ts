@@ -13,6 +13,7 @@ import { RideRecorder } from './ride-recorder';
 import { Sensors } from './sensors';
 import { SettingsStore } from './settings-store';
 import { buildTcx } from './tcx';
+import { Wind } from './wind';
 
 const M_PER_DEG_LAT = 111320;
 
@@ -31,6 +32,7 @@ export class DemoDriver {
   private readonly player = inject(WorkoutPlayer);
   private readonly audio = inject(AudioFeedback);
   private readonly settings = inject(SettingsStore);
+  private readonly wind = inject(Wind);
 
   readonly active = new URLSearchParams(this.doc.location.search).has('demo');
 
@@ -56,6 +58,15 @@ export class DemoDriver {
     this.sensors.setState('pwr', 'on');
     this.sensors.setState('hr', 'on');
     this.startedAt = Date.now();
+    // Westwind, wie meist in Deutschland: auf der Beispielroute mal von der Seite, mal von hinten.
+    this.wind.simulate({
+      speed_kmh: 18,
+      gusts_kmh: 31,
+      direction_deg: 250,
+      observed_at: null,
+      lat: this.lat,
+      lon: this.lon,
+    });
     setInterval(() => this.step(), 1000);
     // Zugriff für automatische Tests und zum Ausprobieren in der Konsole.
     Object.assign(this.doc.defaultView ?? {}, {
@@ -68,6 +79,7 @@ export class DemoDriver {
         settings: this.settings,
         gps: this.gps,
         sensors: this.sensors,
+        wind: this.wind,
         buildTcx,
       },
     });

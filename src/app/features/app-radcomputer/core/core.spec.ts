@@ -3,6 +3,7 @@ import { fmtDistance, fmtTime, num, speakDistance, speakDuration } from './forma
 import { angleDiff, bearing, haversine } from './geo';
 import { Lap, RideStats, TrackPoint } from './models';
 import { buildTcx } from './tcx';
+import { compassPoint, relativeWind, windWord } from './wind';
 
 describe('Bluetooth-Parser', () => {
   it('liest Leistung und Kurbeldaten hinter allen optionalen Feldern', () => {
@@ -105,5 +106,50 @@ describe('TCX-Export', () => {
 
   it('liefert ohne Aufzeichnung nichts', () => {
     expect(buildTcx([], laps, stats)).toBeNull();
+  });
+});
+
+describe('Wind', () => {
+  it('zerlegt den Wind in Gegen- und Rückenwind', () => {
+    // Nach Norden fahren, Wind aus Norden: voll von vorn.
+    const head = relativeWind(0, 20, 0);
+    expect(head.kind).toBe('head');
+    expect(head.head).toBeCloseTo(20);
+    expect(head.cross).toBeCloseTo(0);
+    // Dieselbe Strecke zurück: voll von hinten.
+    const tail = relativeWind(0, 20, 180);
+    expect(tail.kind).toBe('tail');
+    expect(tail.head).toBeCloseTo(-20);
+  });
+
+  it('rechnet über die Nordrichtung hinweg', () => {
+    // Kurs 350°, Wind aus 10°: 20° von rechts vorn.
+    const r = relativeWind(10, 20, 350);
+    expect(r.kind).toBe('head');
+    expect(r.fromDeg).toBeCloseTo(20);
+    expect(r.cross).toBeGreaterThan(0);
+  });
+
+  it('nennt Wind von der Seite Seitenwind, mit der richtigen Seite', () => {
+    const right = relativeWind(90, 20, 0);
+    expect(right.kind).toBe('cross');
+    expect(right.cross).toBeCloseTo(20);
+    expect(relativeWind(270, 20, 0).cross).toBeCloseTo(-20);
+    // 60° von vorn spürt man noch als Gegenwind.
+    expect(relativeWind(60, 20, 0).kind).toBe('head');
+  });
+
+  it('zählt Windstille nicht als Gegen- oder Rückenwind', () => {
+    expect(relativeWind(0, 0.5, 0).kind).toBe('cross');
+  });
+
+  it('benennt Himmelsrichtung und Stärke', () => {
+    expect(compassPoint(0)).toBe('N');
+    expect(compassPoint(225)).toBe('SW');
+    expect(compassPoint(350)).toBe('N');
+    expect(compassPoint(-90)).toBe('W');
+    expect(windWord(3)).toBe('still');
+    expect(windWord(18)).toBe('mäßig');
+    expect(windWord(45)).toBe('stürmisch');
   });
 });
