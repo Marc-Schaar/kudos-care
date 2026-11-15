@@ -22,6 +22,8 @@ export class RideSync {
   private readonly strava = inject(Strava);
 
   readonly uploading = signal(false);
+  /** Für die Anzeige am Knopf: erst geht die Datei raus, dann wartet Strava aufs Verarbeiten. */
+  readonly phase = signal<'idle' | 'sending' | 'processing'>('idle');
 
   private buildFile(): File | null {
     const { track, laps, stats } = this.ride.snapshot();
@@ -68,8 +70,10 @@ export class RideSync {
     form.append('commute', commute ? '1' : '0');
 
     this.uploading.set(true);
+    this.phase.set('sending');
     try {
       let state = await this.strava.upload(form);
+      this.phase.set('processing');
       // Strava verarbeitet im Hintergrund, meist in wenigen Sekunden.
       for (
         let i = 0;
@@ -90,6 +94,7 @@ export class RideSync {
         : 'Fahrt hochgeladen. Strava verarbeitet sie noch.';
     } finally {
       this.uploading.set(false);
+      this.phase.set('idle');
     }
   }
 }
