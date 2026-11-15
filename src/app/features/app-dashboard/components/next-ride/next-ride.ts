@@ -6,6 +6,7 @@ import { NextRideForecast } from '../../../app-maintenance/models/maintenance.mo
 import { WarnClassPipe } from '../../../app-maintenance/pipes/warn-class/warn-class-pipe';
 import { DueItem } from '../../../app-maintenance/shared/utils/utils';
 import { buildForecast } from './forecast';
+import { buildWeather } from './weather';
 
 /**
  * Die Prognose auf der Startseite: wann fährst du voraussichtlich wieder, und was solltest du bis
@@ -30,6 +31,7 @@ export class NextRide {
   due = input.required<DueItem[]>();
 
   view = computed(() => buildForecast(this.forecast(), this.due()));
+  weather = computed(() => buildWeather(this.forecast().weather));
 
   link(item: DueItem) {
     return this.nav.to.assembly(this.bikeId(), item.assembly.id);

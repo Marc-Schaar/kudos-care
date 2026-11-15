@@ -42,6 +42,39 @@
         </div>
       }
 
+      @let w = weather();
+      @if (w.kind === 'ready') {
+        <section class="weather" [attr.aria-label]="'Wetter am ' + (v.date | date: 'EEEE')">
+          <p class="weather-head">
+            @if (w.condition) {
+              <span class="condition">{{ w.condition }}</span>
+            }
+            <span class="temperature">{{ w.temperature }}</span>
+          </p>
+          <p class="weather-facts">
+            @if (w.rain) {
+              <span>{{ w.rain }}</span>
+            }
+            <span class="wind">
+              @if (w.arrow !== null) {
+                <svg class="arrow" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                  <path
+                    [attr.transform]="'rotate(' + w.arrow + ' 16 16)'"
+                    d="M16 3 L25 15 H19 V29 H13 V15 H7 Z"
+                  />
+                </svg>
+              }
+              {{ w.windLabel }}, <span>{{ w.wind }}</span>
+            </span>
+          </p>
+          <p class="weather-wear" [class.status-warn]="w.tone === 'warn'">{{ w.wear }}</p>
+        </section>
+      } @else if (w.kind === 'consent') {
+        <p class="g-hint weather-consent">
+          Das Wetter am Fahrtag steht hier, sobald du im Profilmenü die Wetterdaten erlaubst.
+        </p>
+      }
+
       <p class="g-hint basis">{{ v.basis }}</p>
     </div>
 

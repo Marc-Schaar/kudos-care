@@ -142,6 +142,78 @@
   max-width: 60ch;
 }
 
+/* ── Wetter am Fahrtag ───────────────────────────────────────────────────────
+   Randnotiz unter der Maßlinie, wie in der Vorhersage-Mail. Strich und Windpfeil im
+   Wetter-Blau (`--rain`, siehe Tokens: Blau ist nur Wetter), die Zahlen ruhig; Ampelfarbe
+   trägt nur der Satz über den Verschleiß, weil nur er etwas über das Rad sagt. */
+
+.weather {
+  max-width: 46ch;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 1rem;
+  padding: 0.15rem 0 0.15rem 0.9rem;
+  border-left: 2px solid var(--rain);
+}
+
+.weather-head {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.temperature {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.weather-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 1.1rem;
+  margin: 0.2rem 0 0;
+  font-size: var(--t-sm);
+  color: var(--muted);
+}
+
+.wind {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.arrow {
+  width: 0.95em;
+  height: 0.95em;
+  flex: none;
+}
+
+.arrow path {
+  fill: var(--rain);
+}
+
+.weather-wear {
+  margin: 0.45rem 0 0;
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.weather-wear.status-warn {
+  color: var(--warn);
+}
+
+.weather-consent {
+  max-width: 60ch;
+  margin-bottom: 0.75rem;
+}
+
 /* ── Prüfliste ─────────────────────────────────────────────────────────────── */
 
 .checks-title {

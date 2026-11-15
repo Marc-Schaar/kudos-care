@@ -119,7 +119,12 @@ features/
     nur Schlüssel + `status_today`/`status_then`; Titel, Baugruppe und Restwert kommen aus
     den vorhandenen `DueItem`s (`part-<id>`/`interval-<id>`), damit ein Teil nicht an zwei
     Stellen verschieden heißt. Gelistet wird nur, was die Fahrt **neu** über eine Grenze
-    schiebt — schon heute Fälliges steht in "Als Nächstes dran". Die **Maßlinie ist
+    schiebt — schon heute Fälliges steht in "Als Nächstes dran". Unter der Maßlinie
+    steht der **Wetterbericht für den Fahrtag** (`weather.ts`, getestet) als Randnotiz im
+    Wetter-Blau `--rain`: Wetter im Fahrfenster plus ein Satz, was es fürs Rad heißt
+    (serverseitig formuliert, `forecast.weather.report.wear.text`). Gleiche Wortwahl wie
+    die Vorhersage-Mail (`presentation.py::weather_note` im Backend) — beide nachziehen.
+    Nur `consent_required` bekommt einen Hinweis, andere Gründe ohne Bericht bleiben still. Die **Maßlinie ist
     zeitmaßstäblich** bis `RULER_DAYS` (14), darüber Bruchkante wie beim Verschleiß-Lineal;
     links Lime = heute, rechts die Ampel-Form des Rads am Fahrtag. Bei `is_overdue`
     (Pause) keine Linie und kein "heute", sondern "Nach deinem Rhythmus wärst du schon

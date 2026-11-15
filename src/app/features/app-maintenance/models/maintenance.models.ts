@@ -523,4 +523,42 @@ export interface NextRideForecast {
   rides_considered?: number;
   last_ride?: string;
   items: NextRideItem[];
+  /** Fehlt ohne Prognose. */
+  weather?: RideDayWeather;
+}
+
+/** Warum es keinen Wetterbericht gibt; nur `consent_required` kann der Nutzer ändern. */
+export type RideDayWeatherStatus =
+  | 'ok'
+  | 'consent_required'
+  | 'out_of_range'
+  | 'no_location'
+  | 'unavailable';
+
+/** Wetter im Fahrfenster (8–20 Uhr Ortszeit) am voraussichtlichen Fahrtag. */
+export interface RideDayWeatherReport {
+  date: string;
+  condition: string | null;
+  weather_code: number | null;
+  temp_min: number;
+  temp_max: number;
+  precipitation_mm: number;
+  precipitation_probability: number | null;
+  wind_kmh: number;
+  gusts_kmh: number | null;
+  /** Meteorologisch: woher der Wind kommt, 0 = Nord. */
+  wind_direction_deg: number | null;
+  wind_from: string | null;
+  /** Was das Wetter fürs Rad bedeutet, gerechnet mit der Wetter-Verschleiß-Formel. */
+  wear: {
+    extra_pct: number;
+    category: ComponentCategory | null;
+    driver: 'rain' | 'heat' | 'cold' | 'wind' | null;
+    text: string;
+  };
+}
+
+export interface RideDayWeather {
+  status: RideDayWeatherStatus;
+  report: RideDayWeatherReport | null;
 }
