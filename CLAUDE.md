@@ -112,6 +112,18 @@ features/
     des dringendsten Rads (Umschalter bei mehreren), "Als Nächstes dran" mit `Erledigt`,
     Strichliste und letzte Fahrten. Lädt dafür `assemblies/` je aktivem Rad; ein Rad, das
     nicht lädt, blendet die übrigen nicht aus.
+    **Nächste Fahrt** (`components/next-ride`, Logik in `forecast.ts`, getestet) unter der
+    Zeichnung: "In 3 Tagen fährst du wahrscheinlich wieder, rund 46 km" plus "Vor der
+    nächsten Fahrt prüfen". Daten aus `GET bikes/<id>/next-ride/`, getrennt von
+    `assemblies/` geladen (Zugabe, darf die Zeichnung nicht aufhalten). Der Server liefert
+    nur Schlüssel + `status_today`/`status_then`; Titel, Baugruppe und Restwert kommen aus
+    den vorhandenen `DueItem`s (`part-<id>`/`interval-<id>`), damit ein Teil nicht an zwei
+    Stellen verschieden heißt. Gelistet wird nur, was die Fahrt **neu** über eine Grenze
+    schiebt — schon heute Fälliges steht in "Als Nächstes dran". Die **Maßlinie ist
+    zeitmaßstäblich** bis `RULER_DAYS` (14), darüber Bruchkante wie beim Verschleiß-Lineal;
+    links Lime = heute, rechts die Ampel-Form des Rads am Fahrtag. Bei `is_overdue`
+    (Pause) keine Linie und kein "heute", sondern "Nach deinem Rhythmus wärst du schon
+    wieder dran". Ohne genug Fahrten ein leiser Hinweis, wie viele noch fehlen.
   app-activity/                 — Strava Activity List/Detail, Map, Wetter-Overlay
     pipes/headwind-label, services/activity-service
     `models/ride-insights.ts` liest aus `GET /activities/` (liefert `track` als WKT und

@@ -11,7 +11,11 @@
           class="ruler"
           role="img"
           [attr.aria-label]="
-            'Noch ' + ruler.days + (ruler.days === 1 ? ' Tag' : ' Tage') + ' bis ' + (v.date | date: 'EEEE, d. MMMM')
+            'Noch ' +
+            ruler.days +
+            (ruler.days === 1 ? ' Tag' : ' Tage') +
+            ' bis ' +
+            (v.date | date: 'EEEE, d. MMMM')
           "
         >
           <div class="track" [class.short]="ruler.span < 0.4" [style.--span]="ruler.span">

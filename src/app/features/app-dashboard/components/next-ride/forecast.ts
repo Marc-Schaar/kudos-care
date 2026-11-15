@@ -1,7 +1,4 @@
-import {
-  NextRideForecast,
-  WarnStatus,
-} from '../../../app-maintenance/models/maintenance.models';
+import { NextRideForecast, WarnStatus } from '../../../app-maintenance/models/maintenance.models';
 import { DueItem } from '../../../app-maintenance/shared/utils/utils';
 
 /**
