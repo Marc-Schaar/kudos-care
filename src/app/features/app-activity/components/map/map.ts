@@ -6,10 +6,11 @@ import {
   OnDestroy,
   effect,
   input,
+  model,
 } from '@angular/core';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { WindSegmentCollection, WindSegmentProperties } from '../../models/wind-segments';
+import { WindSegmentCollection } from '../../models/wind-segments';
 
 /**
  * Streckenkarte mit abschnittsweiser Einfärbung nach Gegenwind bzw. Niederschlag.
@@ -38,10 +39,14 @@ export class Map implements AfterViewInit, OnDestroy {
   maxAbsHeadwind = input<number>(0);
   /** Stärkster Niederschlag dieser Fahrt. */
   maxPrecipitation = input<number>(0);
+  /**
+   * Hervorgehobener Abschnitt (`properties.index`), geteilt mit dem Windprofil. Die Zahlen
+   * dazu stehen im Satz über dem Profil, nicht in einem Popup auf der Karte.
+   */
+  active = model<number | null>(null);
 
   private map!: maplibregl.Map;
   private pendingData: WindSegmentCollection | null = null;
-  private popup: maplibregl.Popup | null = null;
 
   /**
    * Farben aus den globalen Design-Tokens statt hartkodiert, damit Karte und
@@ -52,6 +57,7 @@ export class Map implements AfterViewInit, OnDestroy {
     critical: this.cssVar('--critical', '#f43f5e'),
     muted: this.cssVar('--muted', '#8a8e9d'),
     rain: this.cssVar('--rain', '#38bdf8'),
+    text: this.cssVar('--text', '#e8e9ec'),
   };
 
   constructor() {
@@ -73,10 +79,45 @@ export class Map implements AfterViewInit, OnDestroy {
         this.maxAbsHeadwind(),
         this.maxPrecipitation(),
       );
-      if (this.map?.getLayer('route-line')) {
-        this.map.setPaintProperty('route-line', 'line-color', expression);
+      for (const layer of ['route-line', 'route-active']) {
+        if (this.map?.getLayer(layer)) this.map.setPaintProperty(layer, 'line-color', expression);
       }
     });
+
+    effect(() => {
+      const index = this.active();
+      const filter = this.activeFilter(index);
+      for (const layer of ['route-active-casing', 'route-active']) {
+        if (this.map?.getLayer(layer)) this.map.setFilter(layer, filter);
+      }
+      const ring = this.map?.getSource('route-active-ring') as maplibregl.GeoJSONSource | undefined;
+      ring?.setData(this.ringData(index));
+    });
+  }
+
+  /**
+   * Ein Ring um die Mitte des aktiven Abschnitts. Abschnitte aus dem GPS-Stream sind oft nur
+   * ein paar Dutzend Meter lang: ohne Ring fände man die hervorgehobene Stelle nicht.
+   */
+  private ringData(index: number | null): GeoJSON.FeatureCollection {
+    const feature = this.segments()?.features.find((f) => f.properties.index === index);
+    const coords = feature?.geometry.coordinates ?? [];
+    if (index == null || !coords.length) return { type: 'FeatureCollection', features: [] };
+    return {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Point', coordinates: coords[Math.floor(coords.length / 2)] },
+        },
+      ],
+    };
+  }
+
+  /** Ohne aktiven Abschnitt passt der Filter auf nichts, die Ebenen bleiben leer. */
+  private activeFilter(index: number | null): maplibregl.FilterSpecification {
+    return ['==', ['get', 'index'], index ?? -1];
   }
 
   private cssVar(name: string, fallback: string): string {
@@ -105,7 +146,6 @@ export class Map implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.popup?.remove();
     this.map?.remove();
   }
 
@@ -135,7 +175,54 @@ export class Map implements AfterViewInit, OnDestroy {
           ),
         },
       });
-      this.registerSegmentPopup();
+      // Der aktive Abschnitt liegt über der Strecke: ein heller Rand, darin seine eigene Farbe.
+      this.map.addLayer({
+        id: 'route-active-casing',
+        type: 'line',
+        source: 'route',
+        filter: this.activeFilter(this.active()),
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-width': 11, 'line-color': this.colors.text },
+      });
+      this.map.addLayer({
+        id: 'route-active',
+        type: 'line',
+        source: 'route',
+        filter: this.activeFilter(this.active()),
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-width': 6,
+          'line-color': this.lineColorExpression(
+            this.mode(),
+            this.maxAbsHeadwind(),
+            this.maxPrecipitation(),
+          ),
+        },
+      });
+      this.map.addSource('route-active-ring', {
+        type: 'geojson',
+        data: this.ringData(this.active()),
+      });
+      this.map.addLayer({
+        id: 'route-active-ring',
+        type: 'circle',
+        source: 'route-active-ring',
+        paint: {
+          'circle-radius': 13,
+          'circle-color': 'rgba(0, 0, 0, 0)',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': this.colors.text,
+        },
+      });
+      // Unsichtbar und breit: die Trefferfläche für Finger, die 4-px-Linie trifft man nicht.
+      this.map.addLayer({
+        id: 'route-hit',
+        type: 'line',
+        source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-width': 24, 'line-opacity': 0 },
+      });
+      this.registerSegmentPointer();
     }
 
     this.fitBoundsToSegments(data);
@@ -182,53 +269,29 @@ export class Map implements AfterViewInit, OnDestroy {
       : this.windLineColorExpression(maxAbsHeadwind);
   }
 
-  /** Klick auf einen Abschnitt zeigt dessen konkrete Zahlen statt nur einer Farbe. */
-  private registerSegmentPopup(): void {
-    this.map.on('click', 'route-line', (event) => {
-      const feature = event.features?.[0];
-      if (!feature) return;
+  /**
+   * Zeigen auf die Strecke wählt den Abschnitt, Tippen ebenso (am Touchscreen gibt es kein
+   * Zeigen). Tippen daneben hebt die Auswahl wieder auf.
+   */
+  private registerSegmentPointer(): void {
+    const pick = (event: maplibregl.MapLayerMouseEvent) => {
+      const index = event.features?.[0]?.properties?.['index'];
+      if (typeof index === 'number' && index !== this.active()) this.active.set(index);
+    };
+    this.map.on('mousemove', 'route-hit', pick);
+    this.map.on('click', 'route-hit', pick);
 
-      const props = feature.properties as unknown as WindSegmentProperties;
-      this.popup?.remove();
-      this.popup = new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
-        .setLngLat(event.lngLat)
-        .setHTML(this.popupHtml(props))
-        .addTo(this.map);
-    });
-
-    this.map.on('mouseenter', 'route-line', () => {
+    this.map.on('mouseenter', 'route-hit', () => {
       this.map.getCanvas().style.cursor = 'pointer';
     });
-    this.map.on('mouseleave', 'route-line', () => {
+    this.map.on('mouseleave', 'route-hit', () => {
       this.map.getCanvas().style.cursor = '';
+      this.active.set(null);
     });
-  }
-
-  private popupHtml(props: WindSegmentProperties): string {
-    const headwind = props.headwind;
-    const label = headwind == null ? 'Wind' : headwind > 0 ? 'Gegenwind' : 'Rückenwind';
-    const value = headwind == null ? '–' : `${Math.abs(headwind).toFixed(1)} km/h`;
-
-    const rows = [
-      `<strong>${label}: ${value}</strong>`,
-      props.wind_direction != null
-        ? `Wind aus ${this.compass(props.wind_direction)} (${Math.round(props.wind_direction)}°)`
-        : null,
-      props.bearing != null ? `Fahrtrichtung ${this.compass(props.bearing)}` : null,
-      props.precipitation ? `Niederschlag ${props.precipitation.toFixed(1)} mm/h` : null,
-    ].filter(Boolean);
-
-    // Inline-Styles statt Komponenten-CSS: MapLibre hängt das Popup-Markup selbst in
-    // den DOM, ohne Angulars Encapsulation-Attribut — Komponentenstile griffen nicht.
-    return (
-      `<div style="font-family:'DM Mono',monospace;font-size:0.72rem;line-height:1.5;">` +
-      `${rows.join('<br>')}</div>`
-    );
-  }
-
-  private compass(degrees: number): string {
-    const points = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
-    return points[Math.round((degrees % 360) / 45) % 8];
+    this.map.on('click', (event) => {
+      const hit = this.map.queryRenderedFeatures(event.point, { layers: ['route-hit'] });
+      if (!hit.length) this.active.set(null);
+    });
   }
 
   private fitBoundsToSegments(data: WindSegmentCollection): void {

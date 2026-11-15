@@ -50,52 +50,23 @@
   border-radius: var(--r-m);
 }
 
-/* ── Farbskala ─────────────────────────────────────────────────────────────── */
-
-.scale {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 1.25rem;
+/* Wie der Befund auf der Startseite, eine Stufe leiser: der Titel ist hier der Name der Fahrt. */
+.verdict {
   margin-top: 0.6rem;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
-.scale .g-hint {
-  flex-basis: 100%;
+.profile {
+  margin-top: 1rem;
 }
 
-.scale-key {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: var(--t-sm);
-}
-
-.ramp {
-  display: inline-block;
-  width: 3rem;
-  height: 0.5rem;
-  border-radius: 2px;
-}
-
-.ramp-critical {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--critical) 20%, var(--muted)),
-    var(--critical)
-  );
-}
-
-.ramp-ok {
-  background: linear-gradient(to right, color-mix(in srgb, var(--ok) 20%, var(--muted)), var(--ok));
-}
-
-.ramp-rain {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--rain) 20%, var(--muted)),
-    var(--rain)
-  );
+.how {
+  max-width: 68ch;
+  margin-top: 0.75rem;
 }
 
 .caution {
@@ -128,6 +99,10 @@
 
 .unknown {
   font-size: var(--t-xs);
+}
+
+.lead {
+  margin-bottom: 0.75rem;
 }
 
 .below {

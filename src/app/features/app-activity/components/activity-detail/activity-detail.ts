@@ -16,15 +16,10 @@ import {
   ChartOptions,
   LineController,
   LineElement,
-  BarController,
-  BarElement,
   PointElement,
   LinearScale,
-  Title,
   CategoryScale,
   Tooltip,
-  Legend,
-  Filler,
 } from 'chart.js';
 import { ActivityDetailModel } from '../../models/activity-detail-model';
 import { RideSummary } from '../../models/ride-summary';
@@ -35,29 +30,24 @@ import { AbsPipe } from '../../../../shared/pipes/abs/abs-pipe';
 import { HeadwindLabelPipe } from '../../pipes/headwind-label/headwind-label-pipe';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { formatDuration, mean } from '../../models/ride-insights';
+import {
+  hasProfileData,
+  profileSegments,
+  RAIN_SCALE_FLOOR_MM,
+  verdictSentence,
+  windVerdict,
+} from '../../models/wind-profile';
+import { WindProfile } from '../wind-profile/wind-profile';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { NavigationService } from '../../../../shared/services/navigation-service/navigation-service';
 
-Chart.register(
-  LineController,
-  LineElement,
-  BarController,
-  BarElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-);
+Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip);
 
 type MapMode = 'wind' | 'rain';
-type ClimateMode = 'temperature' | 'rain';
 
 @Component({
   selector: 'app-activity-detail',
-  imports: [Map, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, Icon, RouterLink],
+  imports: [Map, WindProfile, AbsPipe, HeadwindLabelPipe, DatePipe, DecimalPipe, Icon, RouterLink],
   providers: [DatePipe],
   templateUrl: './activity-detail.html',
   styleUrl: './activity-detail.css',
@@ -69,13 +59,13 @@ export class ActivityDetail implements OnInit {
   private datePipe = inject(DatePipe);
   public activityService = inject(ActivityService);
 
-  @ViewChild('climateChart') climateChartRef!: ElementRef;
-  @ViewChild('windChart') windChartRef!: ElementRef;
+  @ViewChild('climateChart') climateChartRef?: ElementRef;
 
   public loading = signal(false);
   public error = signal<string | null>(null);
-  public climateMode = signal<ClimateMode>('temperature');
   public mapMode = signal<MapMode>('wind');
+  /** Abschnitt, auf den gerade gezeigt wird, geteilt zwischen Karte und Windprofil. */
+  public activeSegment = signal<number | null>(null);
 
   /**
    * Bezugsgrößen der relativen Farbskala. Bewusst aus den Karten-Abschnitten und
@@ -85,6 +75,22 @@ export class ActivityDetail implements OnInit {
   public windSegments = computed(() => this.activityService.activityData()?.wind_segments ?? null);
 
   public windSource = computed(() => this.windSegments()?.wind_source ?? 'none');
+
+  private rideKm = computed(() => this.activityService.activityData()?.distance_km ?? null);
+
+  private profileRows = computed(() => profileSegments(this.windSegments(), this.rideKm()));
+
+  public hasProfile = computed(() => hasProfileData(this.profileRows(), this.mapMode()));
+
+  /**
+   * Der Befund-Satz unter dem Titel. Nur bei abschnittsgenauen Daten: die grobe
+   * Start-Ziel-Schätzung kennt nur eine Richtung und würde "42 von 42 km" behaupten.
+   */
+  public verdict = computed(() => {
+    if (this.windSource() !== 'stream') return null;
+    const verdict = windVerdict(this.profileRows());
+    return verdict ? verdictSentence(verdict) : null;
+  });
 
   public maxAbsHeadwind = computed(() =>
     (this.windSegments()?.features ?? []).reduce(
@@ -96,7 +102,7 @@ export class ActivityDetail implements OnInit {
   public maxPrecipitation = computed(() =>
     (this.windSegments()?.features ?? []).reduce(
       (max, f) => Math.max(max, f.properties.precipitation ?? 0),
-      0,
+      RAIN_SCALE_FLOOR_MM,
     ),
   );
 
@@ -119,8 +125,6 @@ export class ActivityDetail implements OnInit {
   public wearImpactError = signal<string | null>(null);
 
   private climateChart: Chart | undefined;
-  private windChart: Chart | undefined;
-  private currentWeatherData: Partial<WeatherTimeline> | null = null;
 
   private readonly muted = getComputedStyle(document.documentElement)
     .getPropertyValue('--muted')
@@ -134,12 +138,6 @@ export class ActivityDetail implements OnInit {
   private readonly surface2 = getComputedStyle(document.documentElement)
     .getPropertyValue('--surface2')
     .trim();
-  private readonly critical = getComputedStyle(document.documentElement)
-    .getPropertyValue('--critical')
-    .trim();
-  private readonly ok = getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
-  private readonly rain =
-    getComputedStyle(document.documentElement).getPropertyValue('--rain').trim() || '#38bdf8';
 
   ngOnInit(): void {
     Chart.defaults.font.family = "'DM Mono', monospace";
@@ -154,6 +152,7 @@ export class ActivityDetail implements OnInit {
       this.rideSummaryError.set(null);
       this.wearImpact.set(null);
       this.wearImpactError.set(null);
+      this.activeSegment.set(null);
       this.getActivityDetail(id);
     });
   }
@@ -194,6 +193,10 @@ export class ActivityDetail implements OnInit {
     });
   }
 
+  public weightedKm(impact: WearImpactResponse): number {
+    return (impact.breakdown.distance_km ?? 0) + impact.breakdown.total_extra_km;
+  }
+
   /** Ampel für den wetterbedingten Aufschlag einer Kategorie. */
   public impactClass(extraPct: number): 'ok' | 'warn' | 'critical' {
     if (extraPct >= 30) return 'critical';
@@ -219,117 +222,26 @@ export class ActivityDetail implements OnInit {
   }
 
   private renderCharts(weatherData: Partial<WeatherTimeline>) {
-    if (!weatherData.time?.length) return;
-    this.currentWeatherData = weatherData;
-    this.renderClimateSection(weatherData);
-    this.renderWindChart(weatherData);
+    if (!weatherData.time?.length || !this.climateChartRef) return;
+    this.renderTemperatureChart(weatherData);
   }
 
   private timeLabels(times: string[] | undefined): string[] {
     return (times ?? []).map((t) => this.datePipe.transform(t, 'HH:mm') ?? t);
   }
 
-  public setClimateMode(mode: ClimateMode) {
-    if (this.climateMode() === mode) return;
-    this.climateMode.set(mode);
-    if (this.currentWeatherData) {
-      this.renderClimateSection(this.currentWeatherData);
-    }
-  }
-
   public setMapMode(mode: MapMode) {
     this.mapMode.set(mode);
   }
 
-  private renderClimateSection(weatherData: Partial<WeatherTimeline>) {
-    if (this.climateMode() === 'rain') {
-      this.renderRainChart(weatherData);
-    } else {
-      this.renderTemperatureChart(weatherData);
-    }
-  }
-
-  private renderWindChart(weatherData: Partial<WeatherTimeline>) {
-    const headwindValues = weatherData.headwind ?? [];
-    // Gemeinsame Skala mit der Karte: sonst bedeutet dieselbe Farbintensität in
-    // Chart und Karte unterschiedliche Windstärken. Die Stundenwerte gehen mit ein,
-    // damit die Skala auch beim groben Fallback ohne Abschnitte gültig bleibt.
-    const maxAbsHeadwind = headwindValues.reduce(
-      (max: number, v) => (v == null ? max : Math.max(max, Math.abs(v))),
-      this.maxAbsHeadwind(),
-    );
-
-    this.windChart?.destroy();
-    this.windChart = new Chart(this.windChartRef.nativeElement, {
-      type: 'line',
-      data: {
-        labels: this.timeLabels(weatherData.time),
-        datasets: [
-          {
-            label: 'Wind (km/h)',
-            data: weatherData.wind_speed_10m ?? [],
-            borderColor: this.muted,
-            backgroundColor: this.muted,
-            borderWidth: 1.5,
-            pointRadius: 0,
-            tension: 0.2,
-          },
-          {
-            label: 'Gegenwind (km/h)',
-            data: headwindValues,
-            borderColor: this.critical,
-            borderWidth: 2,
-            segment: {
-              borderColor: (ctx) => this.windSegmentColor(ctx.p1.parsed.y, maxAbsHeadwind),
-              backgroundColor: (ctx) => this.windSegmentFill(ctx.p1.parsed.y, maxAbsHeadwind),
-            },
-            fill: { target: 'origin' },
-            pointRadius: 0,
-            tension: 0.2,
-          },
-        ],
-      },
-      options: this.chartOptions({ legend: true }),
-    });
-  }
-
-  private renderRainChart(weatherData: Partial<WeatherTimeline>) {
-    const precipitationValues = weatherData.precipitation ?? [];
-    // Gemeinsame Skala mit der Karte, siehe renderWindChart().
-    const maxPrecipitation = precipitationValues.reduce(
-      (max: number, v) => (v == null ? max : Math.max(max, Math.abs(v))),
-      this.maxPrecipitation(),
-    );
-
-    this.climateChart?.destroy();
-    this.climateChart = new Chart(this.climateChartRef.nativeElement, {
-      type: 'line',
-      data: {
-        labels: this.timeLabels(weatherData.time),
-        datasets: [
-          {
-            label: 'Niederschlag (mm)',
-            data: precipitationValues,
-            borderColor: this.rain,
-            borderWidth: 2,
-            segment: {
-              borderColor: (ctx) => this.rainSegmentColor(ctx.p1.parsed.y, maxPrecipitation),
-              backgroundColor: (ctx) => this.rainSegmentFill(ctx.p1.parsed.y, maxPrecipitation),
-            },
-            fill: { target: 'origin' },
-            pointRadius: 0,
-            tension: 0.2,
-          },
-        ],
-      },
-      options: this.chartOptions({ fromZero: true }),
-    });
-  }
-
+  /**
+   * Nur noch die Temperatur über die Zeit. Gegenwind und Regen zeigt das Windprofil über die
+   * Distanz, aus denselben Abschnitten wie die Karte; ein zweites Diagramm über Stunden
+   * erzählte dasselbe in einer anderen Achse und lief optisch auseinander.
+   */
   private renderTemperatureChart(weatherData: Partial<WeatherTimeline>) {
     this.climateChart?.destroy();
-
-    this.climateChart = new Chart(this.climateChartRef.nativeElement, {
+    this.climateChart = new Chart(this.climateChartRef!.nativeElement, {
       type: 'line',
       data: {
         labels: this.timeLabels(weatherData.time),
@@ -349,11 +261,8 @@ export class ActivityDetail implements OnInit {
     });
   }
 
-  /**
-   * Gemeinsame Optik der Diagramme: dünne Linien, waagerechtes Raster im Hintergrund, Fadenkreuz
-   * mit Tooltip über die volle Höhe. Eine Legende nur bei zwei Reihen, sonst sagt es die Überschrift.
-   */
-  private chartOptions(options: { legend?: boolean; fromZero?: boolean } = {}): ChartOptions<'line'> {
+  /** Dünne Linie, waagerechtes Raster im Hintergrund, Fadenkreuz mit Tooltip über die volle Höhe. */
+  private chartOptions(): ChartOptions<'line'> {
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -366,18 +275,13 @@ export class ActivityDetail implements OnInit {
           ticks: { color: this.muted, maxTicksLimit: 6 },
         },
         y: {
-          beginAtZero: options.fromZero ?? false,
           grid: { color: this.border },
           border: { display: false },
-          ticks: { color: this.muted, maxTicksLimit: 5 },
+          ticks: { color: this.muted, maxTicksLimit: 5, callback: (value) => `${value} °` },
         },
       },
       plugins: {
-        legend: {
-          display: options.legend ?? false,
-          align: 'start',
-          labels: { color: this.muted, boxWidth: 12, boxHeight: 2 },
-        },
+        legend: { display: false },
         tooltip: {
           backgroundColor: this.surface2,
           titleColor: this.text,
@@ -390,42 +294,6 @@ export class ActivityDetail implements OnInit {
         },
       },
     };
-  }
-
-  /** Farbintensität relativ zum stärksten Wert dieser Fahrt statt fixer Schwellenwerte. */
-  private relativeIntensity(val: number | undefined | null, maxAbs: number): number {
-    if (val == null || maxAbs <= 0) return 0;
-    return Math.min(1, Math.abs(val) / maxAbs);
-  }
-
-  private windSegmentColor(val: number | undefined | null, maxAbs: number): string {
-    if (val == null) return this.muted;
-    const base = val >= 0 ? this.critical : this.ok;
-    const intensity = this.relativeIntensity(val, maxAbs);
-    const mixPercent = Math.round(20 + intensity * 80);
-    return `color-mix(in srgb, ${base} ${mixPercent}%, ${this.muted})`;
-  }
-
-  private windSegmentFill(val: number | undefined | null, maxAbs: number): string {
-    if (val == null) return 'transparent';
-    const base = val >= 0 ? this.critical : this.ok;
-    const intensity = this.relativeIntensity(val, maxAbs);
-    const alphaPercent = Math.round(6 + intensity * 24);
-    return `color-mix(in srgb, ${base} ${alphaPercent}%, transparent)`;
-  }
-
-  private rainSegmentColor(val: number | undefined | null, maxAbs: number): string {
-    if (val == null) return this.muted;
-    const intensity = this.relativeIntensity(val, maxAbs);
-    const mixPercent = Math.round(20 + intensity * 80);
-    return `color-mix(in srgb, ${this.rain} ${mixPercent}%, ${this.muted})`;
-  }
-
-  private rainSegmentFill(val: number | undefined | null, maxAbs: number): string {
-    if (val == null) return 'transparent';
-    const intensity = this.relativeIntensity(val, maxAbs);
-    const alphaPercent = Math.round(6 + intensity * 24);
-    return `color-mix(in srgb, ${this.rain} ${alphaPercent}%, transparent)`;
   }
 
   public formatDuration = formatDuration;

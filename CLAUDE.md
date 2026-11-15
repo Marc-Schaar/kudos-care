@@ -120,14 +120,23 @@ features/
     und Fahrtenliste. **Achtung:** der Endpoint liefert alle Fahrten samt Track ohne
     Pagination (~5 kB je Fahrt) — bei großen Konten im Backend kürzen, dann hier anpassen.
     Die Karte nutzt OpenFreeMap `dark`/`positron` passend zum Farbmodus (die bunte
-    `liberty` erschlug die Einfärbung). Wind-Chart in **km/h** (Open-Meteo-Default; die
-    Beschriftung sagte früher m/s).
+    `liberty` erschlug die Einfärbung). Wind in **km/h** (Open-Meteo-Default).
     Die Karte (`components/map`) rendert die **fertigen `wind_segments` vom Backend**
     und interpoliert selbst nichts mehr. Früher schnitt sie den vereinfachten Track in
     Segmente und verteilte die Stundenwerte über den Segment-Index — das war falsch,
-    weil RDP in Kurven viele und auf Geraden wenige Punkte behält. Chart, Karte und
-    Kopfzeilen-Ø teilen sich jetzt eine relative Farbskala (`maxAbsHeadwind`/
-    `maxPrecipitation` aus `activity-detail`), womit auch die Legende endlich stimmt.
+    weil RDP in Kurven viele und auf Geraden wenige Punkte behält.
+    **Windprofil** (`components/wind-profile`, Logik in `models/wind-profile.ts`, getestet):
+    die Fahrt über die Distanz abgerollt wie ein Höhenprofil, Gegenwind über, Rückenwind
+    unter der Nulllinie, im Regen-Modus Niederschlag. Ersetzt die früheren Stunden-Charts für
+    Wind und Regen (gleiche Aussage, andere Achse, liefen optisch auseinander); rechts bleibt
+    nur Temperatur. Profil und Karte teilen sich `activeSegment` (`properties.index`, beidseitig
+    gebunden): Zeigen/Tippen auf Balken oder Strecke hebt die Stelle auf der Karte mit Ring
+    hervor, die Zahlen stehen **im Satz über dem Profil**, das Karten-Popup ist entfallen. Die
+    km-Achse wird auf Stravas `distance_km` gestreckt, sonst nennt die Seite zwei Längen
+    (GPS-Abschnitte summieren sich anders). Wind ist relativ zur Fahrt skaliert, Regen mit
+    Untergrenze `RAIN_SCALE_FLOOR_MM` (sonst sieht Niesel wie Wolkenbruch aus) — Karte und
+    Profil müssen dieselbe Skala benutzen. Der Befund-Satz im Kopf ("18 von 42 km gegen den
+    Wind") erscheint nur bei `wind_source = stream`.
     `wind_source` steuert den Hinweis darunter: `coarse` = grobe Start-Ziel-Schätzung,
     `none` = keine Winddaten, Route neutral (Normalfall vor dem `recompute_wind`-Backfill).
     Karte „Was diese Fahrt gekostet hat" = `GET activities/<id>/wear-impact/`.

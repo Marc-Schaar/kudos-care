@@ -26,6 +26,9 @@
           · {{ data.bike_name }}
         }
       </p>
+      @if (verdict()) {
+        <p class="verdict">{{ verdict() }}</p>
+      }
     </header>
 
     <dl class="g-stats stats">
@@ -87,33 +90,38 @@
             [mode]="mapMode()"
             [maxAbsHeadwind]="maxAbsHeadwind()"
             [maxPrecipitation]="maxPrecipitation()"
+            [(active)]="activeSegment"
           ></app-map>
         </div>
-        <div class="scale">
-          @if (mapMode() === 'wind') {
-            <span class="scale-key"><i class="ramp ramp-critical"></i>Gegenwind</span>
-            <span class="scale-key"><i class="ramp ramp-ok"></i>Rückenwind</span>
-            <p class="g-hint">
-              Je kräftiger die Farbe, desto stärker der Wind, gemessen an der stärksten Stelle dieser
-              Fahrt. Abschnitt anklicken für Windrichtung und Fahrtrichtung.
-            </p>
-          } @else {
-            <span class="scale-key"><i class="ramp ramp-rain"></i>Niederschlag</span>
-            <p class="g-hint">
-              Je kräftiger die Farbe, desto mehr Regen, gemessen an der stärksten Stelle dieser Fahrt.
-            </p>
-          }
-          @if (windSource() === 'coarse') {
-            <p class="g-hint caution">
-              Für diese Fahrt liegen keine GPS-Detaildaten vor. Der Wind ist als grobe
-              Start-Ziel-Schätzung dargestellt, nicht abschnittsweise.
-            </p>
-          } @else if (windSource() === 'none') {
-            <p class="g-hint caution">
-              Für diese Fahrt liegen keine Winddaten vor, die Strecke wird neutral dargestellt.
-            </p>
-          }
-        </div>
+        @if (hasProfile()) {
+          <app-wind-profile
+            class="profile"
+            [segments]="windSegments()"
+            [mode]="mapMode()"
+            [rideKm]="data.distance_km"
+            [(active)]="activeSegment"
+          />
+          <p class="g-hint how">
+            Auf einen Balken oder die Strecke zeigen, um den Abschnitt auf der Karte zu finden.
+            @if (mapMode() === 'wind') {
+              Je kräftiger die Farbe, desto stärker der Wind, gemessen an der stärksten Stelle
+              dieser Fahrt.
+            } @else {
+              Je kräftiger die Farbe, desto mehr Regen. Die Skala reicht mindestens bis 1 mm/h,
+              damit Niesel nicht wie ein Wolkenbruch aussieht.
+            }
+          </p>
+        }
+        @if (windSource() === 'coarse') {
+          <p class="g-hint caution how">
+            Für diese Fahrt liegen keine GPS-Detaildaten vor. Der Wind ist als grobe
+            Start-Ziel-Schätzung dargestellt, nicht abschnittsweise.
+          </p>
+        } @else if (windSource() === 'none') {
+          <p class="g-hint caution how">
+            Für diese Fahrt liegen keine Winddaten vor, die Strecke wird neutral dargestellt.
+          </p>
+        }
       } @else {
         <p class="g-empty">Keine Streckendaten verfügbar.</p>
       }
@@ -137,6 +145,18 @@
           </div>
 
           @if (wearImpact(); as impact) {
+            @if (impact.breakdown.distance_km != null) {
+              <p class="g-text lead">
+                @if (impact.breakdown.total_extra_km > 0) {
+                  Wegen des Wetters zählen die
+                  <span class="g-num">{{ impact.breakdown.distance_km | number: '1.0-1' }} km</span>
+                  dieser Fahrt für den Verschleiß wie
+                  <span class="g-num">{{ weightedKm(impact) | number: '1.0-1' }} km</span>.
+                } @else {
+                  Das Wetter hat bei dieser Fahrt nichts zusätzlich gekostet.
+                }
+              </p>
+            }
             <div class="g-card g-rows">
               @for (cat of impact.breakdown.categories; track cat.category) {
                 <div class="impact">
@@ -164,15 +184,9 @@
               }
             </div>
 
-            @if (impact.breakdown.total_extra_km > 0) {
-              <p class="g-hint below">
-                Das Wetter schlägt
-                <span class="g-num">{{ impact.breakdown.total_extra_km | number: '1.0-2' }} km</span>
-                auf die gefahrenen
-                <span class="g-num">{{ impact.breakdown.distance_km | number: '1.0-1' }} km</span>
-                auf. Prozent: Anteil an der Lebensdauer des Teils.
-              </p>
-            }
+            <p class="g-hint below">
+              Prozent je Teil: wie viel seiner empfohlenen Lebensdauer diese Fahrt verbraucht hat.
+            </p>
 
             @if (impact.summary) {
               <p class="g-text below">{{ impact.summary }}</p>
@@ -184,7 +198,8 @@
               </p>
             } @else if (impact.ai_consent_required) {
               <p class="g-hint below">
-                Die Zahlen stehen. Kudos Erklärung ist aus, du kannst sie im Benutzermenü einschalten.
+                Die Zahlen stehen. Kudos Erklärung ist aus, du kannst sie im Benutzermenü
+                einschalten.
               </p>
             } @else if (impact.ai_unavailable) {
               <p class="g-hint below">
@@ -200,7 +215,8 @@
             </button>
           } @else {
             <p class="g-hint explain">
-              Welche Teile diese Fahrt wie viel Lebensdauer gekostet hat, mit dem Wetter dieses Tages.
+              Welche Teile diese Fahrt wie viel Lebensdauer gekostet hat, mit dem Wetter dieses
+              Tages.
             </p>
             <button type="button" class="g-btn" (click)="loadWearImpact()">Ausrechnen</button>
           }
@@ -235,7 +251,9 @@
               Erneut versuchen
             </button>
           } @else {
-            <p class="g-hint explain">Die Fahrt in ein paar Sätzen, von der KI aus den Zahlen oben.</p>
+            <p class="g-hint explain">
+              Die Fahrt in ein paar Sätzen, von der KI aus den Zahlen oben.
+            </p>
             <button type="button" class="g-btn" (click)="loadRideSummary()">
               <app-icon name="sparkles" [size]="16" />
               Schreiben lassen
@@ -244,55 +262,18 @@
         </section>
       </div>
 
-      <div>
-        <section class="g-section">
-          <div class="g-section-head">
-            <h2 class="g-section-title">
-              {{ climateMode() === 'rain' ? 'Regen' : 'Temperatur' }}
-            </h2>
-            <div class="g-switch" role="group" aria-label="Wetter-Diagramm">
-              <button
-                type="button"
-                [attr.aria-pressed]="climateMode() === 'temperature'"
-                (click)="setClimateMode('temperature')"
-              >
-                Temperatur
-              </button>
-              <button
-                type="button"
-                [attr.aria-pressed]="climateMode() === 'rain'"
-                (click)="setClimateMode('rain')"
-              >
-                Regen
-              </button>
-            </div>
+      <section class="g-section">
+        <div class="g-section-head">
+          <h2 class="g-section-title">Temperatur</h2>
+        </div>
+        @if (data.weather_timeline.temperature_2m?.length) {
+          <div class="chart-wrap">
+            <canvas #climateChart></canvas>
           </div>
-          @if (data.weather_timeline.time?.length) {
-            <div class="chart-wrap">
-              <canvas #climateChart></canvas>
-            </div>
-          } @else {
-            <p class="g-empty">Keine Wetterdaten verfügbar.</p>
-          }
-        </section>
-
-        <section class="g-section">
-          <div class="g-section-head">
-            <h2 class="g-section-title">Wind</h2>
-          </div>
-          @if (data.weather_timeline.time?.length) {
-            <div class="chart-wrap">
-              <canvas #windChart></canvas>
-            </div>
-            <div class="scale">
-              <span class="scale-key"><i class="ramp ramp-critical"></i>Gegenwind</span>
-              <span class="scale-key"><i class="ramp ramp-ok"></i>Rückenwind</span>
-            </div>
-          } @else {
-            <p class="g-empty">Keine Wetterdaten verfügbar.</p>
-          }
-        </section>
-      </div>
+        } @else {
+          <p class="g-empty">Keine Wetterdaten verfügbar.</p>
+        }
+      </section>
     </div>
   } @else if (!loading() && !error()) {
     <p class="g-empty">Diese Fahrt gibt es nicht.</p>
