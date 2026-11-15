@@ -169,3 +169,9 @@
 .tally {
   margin-bottom: 1rem;
 }
+
+/* ── Nächste Fahrt ─────────────────────────────────────────────────────────── */
+
+.next-ride {
+  margin-top: 2.5rem;
+}

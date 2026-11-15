@@ -16,6 +16,7 @@ import {
   AssembliesResponse,
   BikeList,
   MaintenanceInterval,
+  NextRideForecast,
 } from '../../../app-maintenance/models/maintenance.models';
 import { WarnClassPipe } from '../../../app-maintenance/pipes/warn-class/warn-class-pipe';
 import { BikeService } from '../../../app-maintenance/services/bike-service/bike-service';
@@ -24,6 +25,7 @@ import {
   DueItem,
   relevantDue,
 } from '../../../app-maintenance/shared/utils/utils';
+import { NextRide } from '../next-ride/next-ride';
 import { buildVerdict, BikeDue } from './verdict';
 
 /** Wie viele Posten die Startseite zeigt. Alles Weitere liegt auf der Rad-Seite. */
@@ -46,6 +48,7 @@ const RECENT_RIDES = 5;
     DecimalPipe,
     DueRow,
     Icon,
+    NextRide,
     RideRow,
     RideTally,
     RouterLink,
@@ -71,6 +74,8 @@ export class Dashboard implements OnInit {
 
   /** Null, solange die Räder noch laden: dann gibt es noch keinen Befund, auch keinen leeren. */
   private garages = signal<Map<number, AssembliesResponse> | null>(null);
+  /** Prognose je Rad. Fehlt ein Eintrag, fehlt nur die Prognose, nicht das Rad. */
+  private forecasts = signal<Map<number, NextRideForecast>>(new Map());
   public ridesLoading = signal(true);
   public loading = computed(() => this.garages() === null);
 
@@ -106,7 +111,14 @@ export class Dashboard implements OnInit {
     return (bike && this.garages()?.get(bike.id)?.assemblies) || [];
   });
 
-  private focusDue = computed(() => relevantDue(buildDueList(this.focusAssemblies())));
+  /** Alles am Rad, ungefiltert: die Prognose sucht darin auch Posten, die heute noch weit weg sind. */
+  public focusAllDue = computed(() => buildDueList(this.focusAssemblies()));
+  private focusDue = computed(() => relevantDue(this.focusAllDue()));
+
+  public focusForecast = computed(() => {
+    const bike = this.focusBike();
+    return (bike && this.forecasts().get(bike.id)) || null;
+  });
   public due = computed(() => this.focusDue().slice(0, DUE_LIMIT));
   public moreDue = computed(() => this.focusDue().length - this.due().length);
 
@@ -139,6 +151,7 @@ export class Dashboard implements OnInit {
       .pipe(
         switchMap((bikes) => {
           const active = bikes.filter((bike) => !bike.retired);
+          this.loadForecasts(active);
           return active.length ? forkJoin(active.map((bike) => this.loadGarage(bike))) : of([]);
         }),
         map((pairs) => new Map(pairs.filter((pair): pair is [number, AssembliesResponse] => !!pair[1]))),
@@ -153,6 +166,23 @@ export class Dashboard implements OnInit {
     return this.bikeService.fetchAssemblies(bike.id).pipe(
       map((garage): [number, AssembliesResponse | null] => [bike.id, garage]),
       catchError(() => of<[number, null]>([bike.id, null])),
+    );
+  }
+
+  /** Getrennt von den Baugruppen: die Prognose ist Zugabe und darf die Zeichnung nicht aufhalten. */
+  private loadForecasts(bikes: BikeList[]) {
+    if (!bikes.length) return;
+    forkJoin(
+      bikes.map((bike) =>
+        this.bikeService.fetchNextRide(bike.id).pipe(
+          map((forecast): [number, NextRideForecast | null] => [bike.id, forecast]),
+          catchError(() => of<[number, null]>([bike.id, null])),
+        ),
+      ),
+    ).subscribe((pairs) =>
+      this.forecasts.set(
+        new Map(pairs.filter((pair): pair is [number, NextRideForecast] => !!pair[1])),
+      ),
     );
   }
 

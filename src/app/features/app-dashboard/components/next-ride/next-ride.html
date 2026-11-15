@@ -1,0 +1,74 @@
+@let v = view();
+@if (v.kind === 'pending') {
+  <p class="g-empty pending">{{ v.sentence }}</p>
+} @else {
+  <div class="layout">
+    <div class="forecast">
+      <h2 class="g-title sentence">{{ v.sentence }}</h2>
+
+      @if (v.ruler; as ruler) {
+        <div
+          class="ruler"
+          role="img"
+          [attr.aria-label]="
+            'Noch ' + ruler.days + (ruler.days === 1 ? ' Tag' : ' Tage') + ' bis ' + (v.date | date: 'EEEE, d. MMMM')
+          "
+        >
+          <div class="track" [class.short]="ruler.span < 0.4" [style.--span]="ruler.span">
+            <span class="start" aria-hidden="true"></span>
+            @for (tick of ruler.ticks; track $index) {
+              <span class="tick" [style.left.%]="tick * 100" aria-hidden="true"></span>
+            }
+            @if (ruler.broken) {
+              <span class="break" aria-hidden="true"></span>
+            }
+            <span class="g-dot end" [class]="v.tone | warnClass" aria-hidden="true"></span>
+
+            <span class="label today" aria-hidden="true">heute</span>
+            <span class="label count g-num" aria-hidden="true">
+              {{ ruler.days }} {{ ruler.days === 1 ? 'Tag' : 'Tage' }}
+            </span>
+            <span class="label ride" aria-hidden="true">
+              <span class="ride-date">{{ v.date | date: 'EEE d. MMM' }}</span>
+              @if (v.km) {
+                <span class="g-num ride-km">≈ {{ v.km }} km</span>
+              }
+            </span>
+          </div>
+        </div>
+      }
+
+      <p class="g-hint basis">{{ v.basis }}</p>
+    </div>
+
+    <div class="checks">
+      <h3 class="checks-title">Vor der nächsten Fahrt prüfen</h3>
+      @if (v.checks.length > 0) {
+        <div class="g-card g-rows">
+          @for (check of v.checks; track check.item.key) {
+            <a class="g-row check" [routerLink]="link(check.item)">
+              <span class="g-dot" [class]="check.then | warnClass"></span>
+              <span class="g-row-main">
+                <span class="g-row-title">{{ check.item.title }}</span>
+                <span class="g-row-sub">
+                  {{ check.item.where }}
+                  @if (check.item.remaining) {
+                    · jetzt <span class="g-num">{{ check.item.remaining }}</span>
+                  }
+                </span>
+              </span>
+              <span class="change" [class]="check.then | warnClass">{{ check.change }}</span>
+            </a>
+          }
+        </div>
+      } @else {
+        <p class="g-hint nothing">
+          Bis dahin wird nichts Neues fällig.
+          @if (v.alreadyDue > 0) {
+            Was schon jetzt fällig ist, steht unter „Als Nächstes dran“.
+          }
+        </p>
+      }
+    </div>
+  </div>
+}

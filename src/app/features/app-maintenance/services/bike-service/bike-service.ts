@@ -25,6 +25,7 @@ import {
   KudoModelCandidate,
   KudoSetupSuggestion,
   MaintenanceInterval,
+  NextRideForecast,
   UpdateComponentPayload,
   WeatherWearExplanation,
 } from '../../models/maintenance.models';
@@ -82,6 +83,11 @@ export class BikeService {
    * KI-Zustandsbericht ueber alle montierten Komponenten eines Bikes.
    * Serverseitig gecacht; `refresh` erzwingt eine Neugenerierung.
    */
+  /** Prognose fürs Dashboard: wann fährt man wieder, was wird bis dahin fällig. */
+  fetchNextRide(bikeId: number) {
+    return this.http.get<NextRideForecast>(`${this.baseUrl}/bikes/${bikeId}/next-ride/`);
+  }
+
   fetchConditionReport(bikeId: number, refresh = false) {
     const params = refresh ? '?refresh=true' : '';
     return this.http.get<BikeConditionReport>(

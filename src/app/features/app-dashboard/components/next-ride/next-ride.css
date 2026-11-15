@@ -1,0 +1,181 @@
+:host {
+  display: block;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem 3rem;
+  align-items: start;
+}
+
+/* Dieselben Spalten wie `.g-split` darunter, damit die Kanten durchlaufen. */
+@media (min-width: 1160px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+
+.sentence {
+  max-width: 24ch;
+}
+
+/* ── Maßlinie ────────────────────────────────────────────────────────────────
+   Wie die Maßlinien der Werkstattzeichnung: dünne Tuschelinie, Endstriche, Beschriftung
+   darüber und darunter. Links "heute" in Lime (hier bist du), rechts die Ampel-Form des Rads
+   am Fahrtag. */
+
+.ruler {
+  /* Platz für die Beschriftung über und unter der Linie, rechts für Punkt und Datum. */
+  padding: 1.9rem 0.6rem 2.1rem 0;
+}
+
+.track {
+  position: relative;
+  width: calc(var(--span, 1) * 100%);
+  min-width: 4.5rem;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.start {
+  position: absolute;
+  left: 0;
+  top: -0.6rem;
+  width: 2px;
+  height: 1.2rem;
+  background: var(--accent);
+}
+
+.tick {
+  position: absolute;
+  top: -0.25rem;
+  width: 1px;
+  height: 0.5rem;
+  background: var(--border-strong);
+}
+
+/* Bruchkante: die Linie ist bei RULER_DAYS abgeschnitten, nicht zu Ende. */
+.break {
+  position: absolute;
+  right: 1.25rem;
+  top: -0.55rem;
+  width: 0.45rem;
+  height: 1.1rem;
+  background: var(--bg);
+  border-inline: 1px solid var(--border-strong);
+  transform: skewX(-20deg);
+}
+
+.end.g-dot {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 0.95rem;
+  height: 0.95rem;
+  transform: translate(50%, -50%);
+}
+
+.label {
+  position: absolute;
+  font-size: var(--t-sm);
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.today {
+  left: 0;
+  bottom: 0.85rem;
+  color: var(--text);
+}
+
+.count {
+  left: 50%;
+  top: 0.6rem;
+  transform: translateX(-50%);
+}
+
+.ride {
+  right: 0;
+  bottom: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.ride-date {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.ride-km {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 1.45rem);
+}
+
+/* Kurze Linie: über ihr ist kein Platz für zwei Beschriftungen, also steht der Fahrtag rechts
+   neben dem Punkt, mit den km in derselben Zeile. */
+.short .ride {
+  left: calc(100% + 1rem);
+  right: auto;
+  top: 50%;
+  bottom: auto;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.6rem;
+  transform: translateY(-50%);
+}
+
+.short .ride-km {
+  position: static;
+}
+
+.basis {
+  max-width: 60ch;
+}
+
+/* ── Prüfliste ─────────────────────────────────────────────────────────────── */
+
+.checks-title {
+  margin-bottom: 0.6rem;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.check {
+  align-items: flex-start;
+}
+
+.check > .g-dot {
+  margin-top: 0.35rem;
+}
+
+.change {
+  flex: none;
+  align-self: center;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.change.status-warn {
+  color: var(--warn);
+}
+
+.change.status-critical {
+  color: var(--critical);
+}
+
+.nothing {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.pending {
+  text-align: left;
+}

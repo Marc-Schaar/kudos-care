@@ -104,6 +104,17 @@
     <a class="g-btn primary" [routerLink]="nav.to.bikes()">Rad anlegen</a>
   }
 
+  @if (focusBike(); as bike) {
+    @if (focusAssemblies().length > 0 && focusForecast(); as forecast) {
+      <app-next-ride
+        class="next-ride"
+        [bikeId]="bike.id"
+        [forecast]="forecast"
+        [due]="focusAllDue()"
+      />
+    }
+  }
+
   <div class="g-split">
     @if (focusBike(); as bike) {
       @if (focusAssemblies().length > 0) {

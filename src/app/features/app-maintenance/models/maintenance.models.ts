@@ -498,3 +498,29 @@ export interface KudoSetupSuggestion {
 
 /** Vorbelegung je Baugruppe, wie der Stepper sie an die Checkliste durchreicht. */
 export type KudoPrefill = ReadonlyMap<number, KudoGroupSuggestion>;
+
+// ── Prognose: nächste Fahrt ─────────────────────────────────────────────────
+
+/** Ein Posten, der zur nächsten Fahrt mindestens bald fällig ist. Titel & Co. kommen aus `assemblies/`. */
+export interface NextRideItem {
+  kind: 'part' | 'interval';
+  /** Component- bzw. Interval-Id, passt zu `DueItem.key` (`part-<id>` / `interval-<id>`). */
+  id: number;
+  status_today: WarnStatus;
+  status_then: WarnStatus;
+}
+
+/** `GET maintenance/bikes/<id>/next-ride/`. Ohne genug Fahrten ist `predicted_date` null. */
+export interface NextRideForecast {
+  min_rides: number;
+  ride_count: number;
+  predicted_date: string | null;
+  days_until?: number;
+  /** Nach dem eigenen Rhythmus schon überfällig (Pause): dann ist `predicted_date` heute. */
+  is_overdue?: boolean;
+  predicted_km?: number | null;
+  median_gap_days?: number;
+  rides_considered?: number;
+  last_ride?: string;
+  items: NextRideItem[];
+}
