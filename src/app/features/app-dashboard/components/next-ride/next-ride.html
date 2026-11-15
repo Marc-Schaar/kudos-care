@@ -31,7 +31,7 @@
             <span class="label ride" aria-hidden="true">
               <span class="ride-date">{{ v.date | date: 'EEE d. MMM' }}</span>
               @if (v.km) {
-                <span class="g-num ride-km">≈ {{ v.km }} km</span>
+                <span class="g-num ride-km">≈ {{ v.km }}</span>
               }
             </span>
           </div>
@@ -63,7 +63,7 @@
         </div>
       } @else {
         <p class="g-hint nothing">
-          Bis dahin wird nichts Neues fällig.
+          Mit dieser Fahrt wird nichts Neues fällig.
           @if (v.alreadyDue > 0) {
             Was schon jetzt fällig ist, steht unter „Als Nächstes dran“.
           }

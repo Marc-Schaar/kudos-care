@@ -34,7 +34,8 @@ export type ForecastView =
       kind: 'ready';
       sentence: string;
       date: string;
-      km: number | null;
+      /** "46 km", gerundet wie im Satz; leer, wenn die Strecke unbekannt ist. */
+      km: string;
       ruler: ForecastRuler | null;
       /** Wie das Rad am Fahrtag dasteht: die Form am Ende der Linie. */
       tone: WarnStatus;
@@ -121,7 +122,7 @@ export function buildForecast(forecast: NextRideForecast, due: DueItem[]): Forec
     kind: 'ready',
     sentence,
     date: forecast.predicted_date,
-    km: distance,
+    km: distance ? km(distance) : '',
     ruler: forecast.is_overdue ? null : buildRuler(days),
     tone,
     checks,

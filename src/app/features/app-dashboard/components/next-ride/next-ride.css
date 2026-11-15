@@ -17,7 +17,12 @@
 }
 
 .sentence {
-  max-width: 24ch;
+  max-width: 30ch;
+}
+
+/* Ohne Maßlinie (Pause, heute) braucht die Herkunftszeile eigenen Abstand zum Satz. */
+.sentence + .basis {
+  margin-top: 0.75rem;
 }
 
 /* ── Maßlinie ────────────────────────────────────────────────────────────────
@@ -27,6 +32,7 @@
 
 .ruler {
   /* Platz für die Beschriftung über und unter der Linie, rechts für Punkt und Datum. */
+  margin-top: 0.75rem;
   padding: 1.9rem 0.6rem 2.1rem 0;
 }
 
