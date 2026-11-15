@@ -613,3 +613,111 @@
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
 }
+
+/* ── Rad | Keller ──────────────────────────────────────────────────────────────
+   Die eine Linie, an der sich der Wechsel abspielt: links, was am Rad ist, rechts, was im
+   Keller liegt. Strich-Punkt wie die Mittellinie einer Zeichnung — sie ist die Achse, um
+   die getauscht wird. Am Rad trägt Fläche und Lime-Kante ("hier bist du"), der Keller nur
+   eine gestrichelte Kontur: da, aber gerade nicht in Gebrauch. Was davon in Bewegung ist,
+   regelt `.g-cross-*`; mehr Bewegung gibt es im Bereich nicht. */
+
+.g-axis {
+  --axis-line: repeating-linear-gradient(
+    to bottom,
+    var(--border-strong) 0 14px,
+    transparent 14px 18px,
+    var(--border-strong) 18px 20px,
+    transparent 20px 24px
+  );
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.g-axis::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 50%;
+  width: 1px;
+  background: var(--axis-line);
+}
+
+.g-axis-knot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--muted);
+}
+
+.g-side-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.g-side-title .g-sub {
+  font-family: var(--font-text);
+  font-weight: 400;
+}
+
+.g-tag {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-m);
+  box-shadow:
+    inset 2px 0 0 var(--accent),
+    var(--edge);
+}
+
+.g-tag.keller {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.g-tag-name {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+/* Hinüber: je nach Seite von rechts bzw. links herein. Beantwortet immer eine Handlung. */
+@media (prefers-reduced-motion: no-preference) {
+  .g-cross-in-left {
+    animation: cross-from-right 0.46s var(--ease-out) both;
+  }
+
+  .g-cross-in-right {
+    animation: cross-from-left 0.46s var(--ease-out) both;
+  }
+}
+
+@keyframes cross-from-right {
+  from {
+    opacity: 0.25;
+    transform: translateX(calc(100% + 2.5rem));
+  }
+}
+
+@keyframes cross-from-left {
+  from {
+    opacity: 0.25;
+    transform: translateX(calc(-100% - 2.5rem));
+  }
+}

@@ -1,5 +1,6 @@
-/* Die Tauschliste: je Stelle am Rad eine Zeile, links was ankommt, rechts was geht.
-   Eine echte Tabelle, weil es eine ist — Screenreader lesen "Ans Rad: Carbon vorne". */
+/* Die Tauschliste: dieselbe Linie wie auf der Rad-Seite, links am Rad, rechts im Keller.
+   Eine echte Tabelle, weil es eine ist — Screenreader lesen "Am Rad: Carbon vorne". Beim
+   Wechseln tauschen die Einträge die Seite; die Spalten bleiben, wo sie sind. */
 .swap {
   width: 100%;
   border-collapse: collapse;
@@ -7,67 +8,100 @@
 }
 
 .swap thead th {
-  padding: 0 0 0.4rem;
-  font-size: var(--t-sm);
-  font-weight: 500;
-  color: var(--muted);
+  padding: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  line-height: 1.15;
   text-align: left;
-  border-bottom: 1px solid var(--border-strong);
 }
 
-.swap .col-icon {
-  width: 2rem;
-  text-align: center;
+.swap thead .col-keller {
+  color: var(--muted);
 }
 
-.swap .col-icon app-icon {
-  display: inline-flex;
-  vertical-align: middle;
+.col-axis {
+  width: 2.5rem;
 }
 
 .where {
-  padding: 0.7rem 0 0.15rem;
-  font-size: var(--t-xs);
+  padding: 0.75rem 0 0.3rem;
+  font-size: var(--t-sm);
   font-weight: 400;
   color: var(--muted);
   text-align: left;
 }
 
-.on,
-.off {
-  padding: 0 0 0.7rem;
+.cell {
+  padding: 0 0 0.25rem;
+  vertical-align: top;
+}
+
+/* Die Achse läuft als ein Strich durch alle Zeilen, auch durch die mit dem Ort: genau in
+   der Mitte, weil beide Spalten gleich breit sind. */
+.swap tbody {
+  background: repeating-linear-gradient(
+      to bottom,
+      var(--border-strong) 0 14px,
+      transparent 14px 18px,
+      var(--border-strong) 18px 20px,
+      transparent 20px 24px
+    )
+    no-repeat 50% 0 / 1px 100%;
+}
+
+.axis {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.dir {
+  padding: 0.25rem 0;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* Ein Eintrag ist ein kleines Etikett — am Rad mit Fläche und Kante, im Keller nur Kontur. */
+.item {
+  display: block;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-s);
   font-weight: 600;
   line-height: 1.3;
-  vertical-align: top;
   overflow-wrap: anywhere;
 }
 
-tbody + tbody .where {
-  border-top: 1px solid var(--border);
+.rad .item {
+  background: var(--surface2);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
-/* Was ans Rad kommt, trägt den Akzent: "hier bist du" gleich "das ist gleich dran". */
-.on {
-  padding-left: 0.6rem;
-  border-left: 2px solid var(--accent);
-  color: var(--text);
-}
-
-/* Was geht, tritt zurück — es verschwindet nicht, es liegt nur im Keller. */
-.off {
+.keller .item {
+  border-style: dashed;
   font-weight: 500;
   color: var(--muted);
 }
 
-.on.none,
-.off.none {
+.item.none {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
   font-weight: 400;
   font-style: italic;
   color: var(--muted);
 }
 
-.on.none {
-  border-left-color: var(--border);
+.done {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text);
+}
+
+.done app-icon {
+  color: var(--accent);
 }
 
 .sr-only {
@@ -77,8 +111,4 @@ tbody + tbody .where {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-.swap thead .col-on {
-  padding-left: calc(0.6rem + 2px);
 }

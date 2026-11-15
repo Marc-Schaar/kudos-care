@@ -15,6 +15,7 @@ import { DueRow } from '../../components/due-row/due-row';
 import { IntervalSheet } from '../../components/interval-sheet/interval-sheet';
 import { LinksSheet } from '../../components/links-sheet/links-sheet';
 import { PartSheet } from '../../components/part-sheet/part-sheet';
+import { RadKeller } from '../../components/rad-keller/rad-keller';
 import { SwitchSheet } from '../../components/switch-sheet/switch-sheet';
 import { WearLegend } from '../../components/wear-meter/wear-meter';
 import { WheelsetSheet } from '../../components/wheelset-sheet/wheelset-sheet';
@@ -29,17 +30,17 @@ import { WarnClassPipe } from '../../pipes/warn-class/warn-class-pipe';
 import { WarnLabelPipe } from '../../pipes/warn-label/warn-label-pipe';
 import { BikeService } from '../../services/bike-service/bike-service';
 import {
+  BoardEntry,
+  buildBoard,
   buildDueList,
-  buildWheelSets,
   DueItem,
   partsLabel,
   relevantDue,
-  WheelSet,
 } from '../../shared/utils/utils';
 
 /**
- * Wie viele Posten "Als Nächstes dran" zunächst zeigt. Mehr schiebt die Laufräder aus dem
- * Bild, und deren Wechsel ist der häufigste Grund, diese Seite zu öffnen.
+ * Wie viele Posten "Als Nächstes dran" zunächst zeigt. Die Liste steht neben den Baugruppen
+ * und soll sie nicht aus dem Bild schieben.
  */
 const DUE_LIMIT = 3;
 
@@ -50,8 +51,8 @@ interface OpenPart {
 }
 
 /**
- * Ein Rad auf einer Seite: die Zeichnung, was als Nächstes ansteht, die Laufradsätze mit dem
- * Wechsel und die übrigen Baugruppen. Eine Baugruppe hat ihre eigene Seite; alles andere geht
+ * Ein Rad auf einer Seite: die Zeichnung, darunter Rad | Keller mit dem Wechsel, was als
+ * Nächstes ansteht und die übrigen Baugruppen. Eine Baugruppe hat ihre eigene Seite; alles andere geht
  * direkt hier in einem Blatt auf.
  */
 @Component({
@@ -68,6 +69,7 @@ interface OpenPart {
     IntervalSheet,
     LinksSheet,
     PartSheet,
+    RadKeller,
     RouterLink,
     Skeleton,
     SwitchSheet,
@@ -98,7 +100,7 @@ export class BikePage {
   addingSet = signal(false);
   addingAssembly = signal(false);
   openPart = signal<OpenPart | null>(null);
-  switching = signal<WheelSet | null>(null);
+  switching = signal<BoardEntry | null>(null);
   linkingWheels = signal<BikeAssembly[] | null>(null);
   editingInterval = signal<MaintenanceInterval | null>(null);
 
@@ -125,7 +127,9 @@ export class BikePage {
       this.garage()!.ungrouped_slots.length === 0,
   );
 
-  wheelSets = computed(() => buildWheelSets(this.live()));
+  board = computed(() =>
+    buildBoard(this.garage()?.assemblies ?? [], this.garage()?.parked_assemblies ?? []),
+  );
 
   areas = computed(() =>
     (this.garage()?.assemblies ?? []).filter((assembly) => assembly.group_detail.kind === 'area'),
@@ -152,7 +156,7 @@ export class BikePage {
   ungrouped = computed(() => this.garage()?.ungrouped_slots ?? []);
 
   /** Die Namen der gekoppelten Teile — die Sätze zeigen, was mitwechselt. */
-  private partLabels = computed(() => {
+  partLabels = computed(() => {
     const labels = new Map<number, string>();
     for (const assembly of this.live()) {
       for (const slot of assembly.slots) {
@@ -200,20 +204,6 @@ export class BikePage {
     this.editingBike.set(false);
     this.report.set(null);
     this.reload();
-  }
-
-  linkedLabels(set: WheelSet): string[] {
-    const labels = this.partLabels();
-    return set.wheels.flatMap((wheel) =>
-      wheel.linked_component_ids
-        .map((id) => labels.get(id))
-        .filter((label): label is string => !!label),
-    );
-  }
-
-  /** Das Laufrad, über das der Wechsel läuft: eins, das noch nicht am Rad ist. */
-  switchTarget(set: WheelSet): BikeAssembly {
-    return set.wheels.find((wheel) => !wheel.is_active) ?? set.wheels[0];
   }
 
   openDue(item: DueItem) {
@@ -272,9 +262,9 @@ export class BikePage {
     });
   }
 
-  onSwitchWantsLinks(set: WheelSet) {
+  onSwitchWantsLinks(entry: BoardEntry) {
     this.switching.set(null);
-    this.linkingWheels.set(set.wheels);
+    this.linkingWheels.set(entry.members);
   }
 
   onBikeDeleted() {

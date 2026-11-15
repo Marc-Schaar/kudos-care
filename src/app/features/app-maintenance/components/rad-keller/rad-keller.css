@@ -1,0 +1,156 @@
+:host {
+  display: block;
+  container-type: inline-size;
+}
+
+/* Schmal: Rad oben, Keller unten, die Achse liegt quer dazwischen. */
+.rk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.axis {
+  height: 3rem;
+}
+
+.axis::before {
+  inset: 50% 0 auto 0;
+  width: auto;
+  height: 1px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--border-strong) 0 14px,
+    transparent 14px 18px,
+    var(--border-strong) 18px 20px,
+    transparent 20px 24px
+  );
+}
+
+.axis .g-axis-knot {
+  transform: rotate(90deg);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Breit genug für zwei Etiketten nebeneinander: die Achse steht senkrecht. */
+@container (min-width: 40rem) {
+  .rk {
+    grid-template-columns: minmax(0, 1fr) 3.5rem minmax(0, 1fr);
+  }
+
+  .axis {
+    height: auto;
+    align-items: flex-start;
+    padding-top: 3.25rem;
+  }
+
+  .axis::before {
+    inset: 0 auto 0 50%;
+    width: 1px;
+    height: auto;
+    background: var(--axis-line);
+  }
+
+  .axis .g-axis-knot {
+    transform: none;
+  }
+
+  /* "Im Keller" steht bündig an der Achse wie "Am Rad" am Rand. */
+  .keller .g-side-title {
+    color: var(--muted);
+  }
+}
+
+.tag-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem 0.5rem;
+}
+
+.members {
+  border-top: 1px solid var(--border);
+}
+
+.keller .members,
+.keller .tag-foot {
+  border-top-style: dashed;
+}
+
+.tag-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.25rem 0.6rem 0.25rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.tag-links {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--t-sm);
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.tag-links:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.tag-links.static {
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+
+/* Ein freier Platz im Keller: gleiche Kontur wie ein Satz dort, nur leer. */
+.free {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.75rem 0.9rem;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-m);
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.12s var(--ease-out),
+    color 0.12s var(--ease-out);
+}
+
+.free:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.free:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.free-title {
+  display: block;
+  font-weight: 500;
+  color: var(--text);
+}

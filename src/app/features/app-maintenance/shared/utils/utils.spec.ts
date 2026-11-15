@@ -6,6 +6,7 @@ import {
   MaintenanceInterval,
 } from '../../models/maintenance.models';
 import {
+  buildBoard,
   buildDueList,
   buildWheelSets,
   dayParam,
@@ -56,6 +57,48 @@ function slot(id: number, mounted: BikeComponent | null, template = id): Compone
     retired_components: [],
   } as unknown as ComponentSlot;
 }
+
+describe('buildBoard', () => {
+  const area = (id: number, group: number, overrides: Partial<BikeAssembly> = {}) =>
+    wheel(id, { group, group_detail: { kind: 'area', sort_order: 9 }, ...overrides } as never);
+
+  it('stellt den Satz am Rad links, den im Keller rechts', () => {
+    const board = buildBoard(
+      [
+        wheel(1, { name: 'Carbon vorne', is_active: true, linked_assembly_ids: [2] }),
+        wheel(2, { name: 'Carbon hinten', is_active: true, linked_assembly_ids: [1] }),
+      ],
+      [
+        wheel(3, { name: 'Alu vorne', linked_assembly_ids: [4] }),
+        wheel(4, { name: 'Alu hinten', linked_assembly_ids: [3] }),
+      ],
+    );
+    expect(board.rad.map((e) => e.name)).toEqual(['Carbon']);
+    expect(board.keller.map((e) => e.name)).toEqual(['Alu']);
+    expect(board.keller[0].target.id).toBe(3);
+  });
+
+  it('wechselt bei einem halb aufgezogenen Satz über das fehlende Laufrad', () => {
+    const board = buildBoard(
+      [wheel(1, { name: 'Carbon vorne', is_active: true, linked_assembly_ids: [2] })],
+      [wheel(2, { name: 'Carbon hinten', linked_assembly_ids: [1] })],
+    );
+    expect(board.rad[0].partial).toBe(true);
+    expect(board.rad[0].target.id).toBe(2);
+  });
+
+  it('zeigt Bereiche nur, wenn es eine Alternative im Keller gibt', () => {
+    const board = buildBoard(
+      [
+        area(10, 7, { is_active: true, display_name: 'Alu-Beläge' }),
+        area(11, 8, { is_active: true }),
+      ],
+      [area(12, 7, { display_name: 'Carbon-Beläge' })],
+    );
+    expect(board.rad.map((e) => e.key)).toEqual(['a10']);
+    expect(board.keller[0].instead).toBe('Alu-Beläge');
+  });
+});
 
 describe('buildWheelSets', () => {
   it('fasst gekoppelte Laufräder zu einem Satz zusammen', () => {

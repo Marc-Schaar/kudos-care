@@ -1,5 +1,48 @@
+<ng-template #fresh>
+  <div class="g-tag preview-tag" [class.keller]="!landsOnBike()">
+    <span class="g-tag-name">{{ previewName() }}</span>
+    <span class="g-row-sub">{{ previewSides() || 'Keine Laufräder gewählt' }}</span>
+  </div>
+</ng-template>
+
+<ng-template #current>
+  @if (currentSet(); as name) {
+    <div class="g-tag preview-tag" [class.keller]="landsOnBike()">
+      <span class="g-tag-name">{{ name }}</span>
+      <span class="g-row-sub">{{ landsOnBike() ? 'kommt in den Keller' : 'bleibt drauf' }}</span>
+    </div>
+  }
+</ng-template>
+
 <app-bottom-sheet title="Neuer Laufradsatz" (closed)="closed.emit()">
   <form class="g-form" (ngSubmit)="save()">
+    <!-- Wohin der Satz kommt, an derselben Linie wie auf der Rad-Seite -->
+    <div class="preview" aria-live="polite">
+      <div class="preview-side">
+        <span class="g-label">Am Rad</span>
+        @if (landsOnBike()) {
+          <div [class.g-cross-in-left]="moved()"><ng-container [ngTemplateOutlet]="fresh" /></div>
+        } @else {
+          <ng-container [ngTemplateOutlet]="current" />
+        }
+      </div>
+      <div class="g-axis" aria-hidden="true">
+        <span class="g-axis-knot"><app-icon name="arrow-left-right" [size]="14" /></span>
+      </div>
+      <div class="preview-side">
+        <span class="g-label">Im Keller</span>
+        @if (!landsOnBike()) {
+          <div [class.g-cross-in-right]="moved()">
+            <ng-container [ngTemplateOutlet]="fresh" />
+          </div>
+        } @else if (currentSet()) {
+          <div [class.g-cross-in-right]="moved()">
+            <ng-container [ngTemplateOutlet]="current" />
+          </div>
+        }
+      </div>
+    </div>
+
     <label class="g-field">
       <span class="g-label">Name</span>
       <input
@@ -11,26 +54,39 @@
       />
     </label>
 
-    <div class="g-field">
-      <span class="g-label">Welche Laufräder?</span>
-      <label class="g-check">
-        <input type="checkbox" name="front" [(ngModel)]="front" />
-        <span>Vorderrad</span>
-      </label>
-      <label class="g-check">
-        <input type="checkbox" name="rear" [(ngModel)]="rear" />
-        <span>Hinterrad</span>
-      </label>
-    </div>
+    <fieldset class="g-field sides">
+      <legend class="g-label">Welche Laufräder?</legend>
+      <div class="g-two">
+        <label class="side-tile" [class.on]="front()">
+          <input type="checkbox" name="front" [(ngModel)]="front" />
+          <span>Vorderrad</span>
+        </label>
+        <label class="side-tile" [class.on]="rear()">
+          <input type="checkbox" name="rear" [(ngModel)]="rear" />
+          <span>Hinterrad</span>
+        </label>
+      </div>
+    </fieldset>
 
     <label class="g-field">
       <span class="g-label">Seit wann gehört er dir?</span>
-      <input class="g-input" type="date" name="installedAt" [max]="today" [(ngModel)]="installedAt" />
+      <input
+        class="g-input"
+        type="date"
+        name="installedAt"
+        [max]="today"
+        [(ngModel)]="installedAt"
+      />
     </label>
 
     @if (hasWheelOnBike()) {
       <label class="g-check">
-        <input type="checkbox" name="mountNow" [(ngModel)]="mountNow" />
+        <input
+          type="checkbox"
+          name="mountNow"
+          [ngModel]="mountNow()"
+          (ngModelChange)="setMountNow($event)"
+        />
         <span>
           Gleich aufziehen
           <span class="g-row-sub">Sonst kommt er erstmal in den Keller und sammelt keine km.</span>
@@ -39,7 +95,8 @@
     }
 
     <p class="g-hint">
-      Die üblichen Teile werden mit angelegt. Marken und Modelle trägst du danach direkt am Teil ein.
+      Die üblichen Teile werden mit angelegt. Marken und Modelle trägst du danach direkt am Teil
+      ein.
     </p>
 
     <div class="g-actions">

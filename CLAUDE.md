@@ -189,8 +189,21 @@ features/
     einem eigenen Container (`.body`), damit die Baugruppen-Liste genau dann verschwindet,
     wenn die Zeichnung auf Beschriftung neben dem Rad umschaltet (862px = 860 + Rahmen) —
     dort stünde sonst jede Baugruppe samt Ampel zweimal.
+    **Rad | Keller** ist die eine Linie, an der sich Wechseln und Anlegen abspielen
+    (Bausteine `.g-axis`/`.g-tag`/`.g-cross-in-*` in `garage.css`): links am Rad (Fläche,
+    Lime-Kante), rechts im Keller (nur gestrichelte Kontur), dazwischen eine
+    Strich-Punkt-Achse. `components/rad-keller` steht auf der Rad-Seite in voller Breite
+    unter der Zeichnung; `buildBoard()` (`utils.ts`, getestet) nimmt alle Laufradsätze und
+    **nur die Bereiche, von denen es eine zweite Instanz gibt** (z.B. zwei „Bremse hinten") —
+    geparkte Bereiche waren vorher auf der Rad-Seite unsichtbar. Dieselbe Linie wiederholt
+    sich als Lage-Leiste auf der Baugruppen-Seite (diese Instanz + ihre Geschwister), als
+    Live-Vorschau im `wheelset-sheet` (der neue Satz steht auf der Seite, wo er landet) und in
+    der Checkliste (angehakt = Rad-Optik, nicht angehakt = Keller-Optik).
     **Laufrad wechseln** (`components/switch-sheet`): die Server-Vorschau als Tauschliste,
-    eine echte `<table>` mit je einer Zeile pro Stelle am Rad („Ans Rad" | „In den Keller").
+    eine echte `<table>` mit den Spalten „Am Rad" | „Im Keller", die den **aktuellen** Stand
+    zeigt; nach dem Wechsel ziehen die Einträge über die Achse (die einzige Animation des
+    Bereichs, `CROSS_HOLD_MS`), erst dann schließt das Blatt. Schließen während des Haltens
+    gilt als fertig gewechselt (`close()` → `switched`), sonst bliebe die Seite ungeladen.
     `buildSwapRows()` paart Laufräder über `group_name`, mitwechselnde Teile über den Platz;
     einseitige Wechsel bleiben als Zeile mit „nichts" stehen.
     **Verschleiß-Lineal** (`components/wear-meter`): Marken bei 80/100 %, Skala bis 125 %,

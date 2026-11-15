@@ -50,6 +50,21 @@
           />
         }
 
+        <!-- Rad | Keller: der häufigste Grund, diese Seite zu öffnen -->
+        <section class="g-section board">
+          <div class="g-section-head">
+            <h2 class="g-section-title">Wechseln</h2>
+          </div>
+          <app-rad-keller
+            [board]="board()"
+            [bikeId]="current.id"
+            [partLabels]="partLabels()"
+            (switch)="switching.set($event)"
+            (link)="linkingWheels.set($event.members)"
+            (addSet)="addingSet.set(true)"
+          />
+        </section>
+
         <div class="g-split">
           <div>
             <!-- Als Nächstes dran -->
@@ -131,80 +146,6 @@
           </div>
 
           <div>
-            <!-- Laufräder -->
-            <section class="g-section">
-              <div class="g-section-head">
-                <h2 class="g-section-title">Laufräder</h2>
-              </div>
-              <div class="g-list">
-                @for (set of wheelSets(); track set.key) {
-                  <article class="g-card set">
-                    <header class="set-head">
-                      <h3 class="set-name">{{ set.name }}</h3>
-                      @if (set.fullyOn) {
-                        <span class="g-pill on-bike">Am Rad</span>
-                      } @else if (set.onBike) {
-                        <span class="g-pill on-bike">Teilweise am Rad</span>
-                      } @else {
-                        <span class="g-pill">Im Keller</span>
-                      }
-                    </header>
-
-                    <div class="g-rows set-rows">
-                      @for (wheel of set.wheels; track wheel.id) {
-                        <a class="g-row" [routerLink]="nav.to.assembly(current.id, wheel.id)">
-                          <span class="g-dot" [class]="wheel.worst_status | warnClass"></span>
-                          <span class="g-row-main">
-                            <span class="g-row-title">{{ wheel.group_detail.name }}</span>
-                            <span class="g-row-sub">
-                              @if (wheel.slots.length > 0) {
-                                {{ partsLabel(wheel.slots.length) }} ·
-                                <span class="g-num"
-                                  >{{ wheel.assembly_km | number: '1.0-0' }} km</span
-                                >
-                              } @else {
-                                Noch keine Teile eingetragen
-                              }
-                            </span>
-                          </span>
-                          <app-icon class="g-chevron" name="chevron-right" [size]="18" />
-                        </a>
-                      }
-                    </div>
-
-                    <footer class="set-foot">
-                      <button
-                        type="button"
-                        class="link-summary"
-                        (click)="linkingWheels.set(set.wheels)"
-                      >
-                        @if (linkedLabels(set).length > 0) {
-                          Wechselt mit: {{ linkedLabels(set).join(', ') }}
-                        } @else {
-                          Bremsbeläge und Co. koppeln
-                        }
-                      </button>
-                      @if (!set.fullyOn) {
-                        <button
-                          type="button"
-                          class="g-btn primary small"
-                          (click)="switching.set(set)"
-                        >
-                          Aufziehen
-                        </button>
-                      }
-                    </footer>
-                  </article>
-                } @empty {
-                  <p class="g-empty">Noch keine Laufräder eingetragen.</p>
-                }
-                <button type="button" class="g-btn wide ghost" (click)="addingSet.set(true)">
-                  <app-icon name="plus" [size]="16" />
-                  Laufradsatz anlegen
-                </button>
-              </div>
-            </section>
-
             <!-- Baugruppen -->
             <section class="g-section">
               <div class="g-section-head">
@@ -378,13 +319,13 @@
     />
   }
 
-  @if (switching(); as set) {
+  @if (switching(); as entry) {
     <app-switch-sheet
-      [target]="switchTarget(set)"
-      [title]="set.name + ' aufziehen'"
+      [target]="entry.target"
+      [title]="entry.name + ' aufziehen'"
       (closed)="switching.set(null)"
       (switched)="afterChange()"
-      (editLinks)="onSwitchWantsLinks(set)"
+      (editLinks)="onSwitchWantsLinks(entry)"
     />
   }
 

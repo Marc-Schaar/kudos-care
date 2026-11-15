@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable, of, switchMap } from 'rxjs';
@@ -9,7 +10,8 @@ import {
   CreateAssemblyPayload,
 } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
-import { dayParam, todayIso } from '../../shared/utils/utils';
+import { buildBoard, dayParam, todayIso } from '../../shared/utils/utils';
+import { Icon } from '../../../../shared/components/icon/icon';
 import { BottomSheet } from '../bottom-sheet/bottom-sheet';
 
 /**
@@ -19,8 +21,9 @@ import { BottomSheet } from '../bottom-sheet/bottom-sheet';
  */
 @Component({
   selector: 'app-wheelset-sheet',
-  imports: [BottomSheet, FormsModule],
+  imports: [BottomSheet, FormsModule, Icon, NgTemplateOutlet],
   templateUrl: './wheelset-sheet.html',
+  styleUrl: './wheelset-sheet.css',
 })
 export class WheelsetSheet {
   bikeId = input.required<number>();
@@ -51,6 +54,31 @@ export class WheelsetSheet {
   hasWheelOnBike = computed(() =>
     this.garage().assemblies.some((assembly) => assembly.group_detail.kind === 'assembly'),
   );
+
+  // ── Vorschau an der Linie ──────────────────────────────────────────────────
+
+  /** Wo der neue Satz landet: ans Rad, wenn dort keiner ist oder er gleich drauf soll. */
+  landsOnBike = computed(() => !this.hasWheelOnBike() || this.mountNow());
+  /** Erst animieren, wenn jemand "Gleich aufziehen" angefasst hat, nicht beim Öffnen. */
+  moved = signal(false);
+
+  previewName = computed(() => this.name().trim() || 'Neuer Satz');
+  previewSides = computed(() =>
+    [this.front() && 'Vorderrad', this.rear() && 'Hinterrad'].filter(Boolean).join(' und '),
+  );
+
+  /** Der Satz, der gerade am Rad ist — er wandert beim Aufziehen in den Keller. */
+  currentSet = computed(
+    () =>
+      buildBoard(this.garage().assemblies, this.garage().parked_assemblies).rad.find(
+        (entry) => entry.kind === 'wheelset',
+      )?.name ?? null,
+  );
+
+  setMountNow(value: boolean) {
+    this.moved.set(true);
+    this.mountNow.set(value);
+  }
 
   canSave = computed(() => this.name().trim().length > 0 && (this.front() || this.rear()));
 

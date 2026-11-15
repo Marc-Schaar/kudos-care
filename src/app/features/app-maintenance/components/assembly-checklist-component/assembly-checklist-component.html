@@ -193,9 +193,9 @@
 
   <div class="checklist-actions">
     @if (showSkip()) {
-      <button type="button" class="btn-cancel" (click)="skipped.emit()">Überspringen</button>
+      <button type="button" class="g-btn ghost" (click)="skipped.emit()">Überspringen</button>
     }
-    <button type="submit" class="btn-save" [disabled]="saving() || selectedCount() === 0">
+    <button type="submit" class="g-btn primary" [disabled]="saving() || selectedCount() === 0">
       {{ saving() ? 'Wird angelegt…' : saveLabel() + ' (' + selectedCount() + ')' }}
     </button>
   </div>

@@ -1,0 +1,98 @@
+<ng-template #tag let-entry let-inKeller="inKeller">
+  <article class="g-tag" [class.keller]="inKeller">
+    <header class="tag-head">
+      <h4 class="g-tag-name">{{ entry.name }}</h4>
+      @if (entry.partial) {
+        <span class="g-sub">nur teilweise</span>
+      }
+    </header>
+
+    <div class="g-rows members">
+      <!-- "Laufrad vorne" statt "Carbon vorne": der Satzname steht schon darüber. -->
+      @for (member of entry.members; track member.id) {
+        <a class="g-row" [routerLink]="nav.to.assembly(bikeId(), member.id)">
+          <span class="g-dot" [class]="member.worst_status | warnClass"></span>
+          <span class="g-row-main">
+            <span class="g-row-title">{{ member.group_detail.name }}</span>
+            <span class="g-row-sub">
+              <span class="g-num">{{ member.assembly_km | number: '1.0-0' }} km</span>
+              @if (entry.partial && !member.is_active) {
+                · im Keller
+              }
+            </span>
+          </span>
+          <app-icon class="g-chevron" name="chevron-right" [size]="18" />
+        </a>
+      }
+    </div>
+
+    <!-- Ein Bereich am Rad ohne Kopplung und ohne Knopf braucht keine leere Leiste. -->
+    @if (entry.kind === 'wheelset' || entry.instead || inKeller || entry.partial) {
+      <footer class="tag-foot">
+        @if (entry.kind === 'wheelset') {
+          <button type="button" class="tag-links" (click)="link.emit(entry)">
+            @if (linked(entry).length > 0) {
+              Wechselt mit {{ linked(entry).join(', ') }}
+            } @else {
+              Bremsbeläge und Co. koppeln
+            }
+          </button>
+        } @else if (entry.instead) {
+          <span class="tag-links static">Statt {{ entry.instead }}</span>
+        } @else {
+          <span class="tag-links static"></span>
+        }
+        @if (inKeller || entry.partial) {
+          <button type="button" class="g-btn primary small" (click)="switch.emit(entry)">
+            <app-icon name="arrow-left-right" [size]="15" />
+            Aufziehen
+          </button>
+        }
+      </footer>
+    }
+  </article>
+</ng-template>
+
+<div class="rk" role="group" aria-label="Was am Rad ist und was im Keller liegt">
+  <section class="side rad" aria-labelledby="rk-rad">
+    <h3 class="g-side-title" id="rk-rad">Am Rad</h3>
+    <div class="stack">
+      @for (entry of board().rad; track entry.key) {
+        <ng-container *ngTemplateOutlet="tag; context: { $implicit: entry, inKeller: false }" />
+      } @empty {
+        <p class="g-empty">Noch kein Laufradsatz am Rad.</p>
+      }
+    </div>
+  </section>
+
+  <div class="g-axis axis" aria-hidden="true">
+    <span class="g-axis-knot"><app-icon name="arrow-left-right" [size]="15" /></span>
+  </div>
+
+  <section class="side keller" aria-labelledby="rk-keller">
+    <h3 class="g-side-title" id="rk-keller">
+      Im Keller
+      @if (board().keller.length > 0) {
+        <span class="g-sub">sammelt keine km</span>
+      }
+    </h3>
+    <div class="stack">
+      @for (entry of board().keller; track entry.key) {
+        <ng-container *ngTemplateOutlet="tag; context: { $implicit: entry, inKeller: true }" />
+      }
+      <button type="button" class="free" (click)="addSet.emit()">
+        <app-icon name="plus" [size]="18" />
+        <span>
+          <span class="free-title">Laufradsatz anlegen</span>
+          <span class="g-row-sub">
+            @if (board().keller.length === 0) {
+              Ein zweiter Satz, z.B. für den Winter, wartet hier aufs Aufziehen.
+            } @else {
+              Kommt erstmal hierher.
+            }
+          </span>
+        </span>
+      </button>
+    </div>
+  </section>
+</div>

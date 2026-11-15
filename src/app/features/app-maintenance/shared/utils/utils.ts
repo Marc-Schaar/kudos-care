@@ -96,6 +96,83 @@ export function buildWheelSets(assemblies: BikeAssembly[]): WheelSet[] {
   return sets.sort((a, b) => Number(b.onBike) - Number(a.onBike));
 }
 
+// ── Rad | Keller ─────────────────────────────────────────────────────────────
+
+/** Ein Stück auf der Tafel: ein Laufradsatz oder eine Baugruppe mit Alternative. */
+export interface BoardEntry {
+  key: string;
+  name: string;
+  kind: 'wheelset' | 'area';
+  members: BikeAssembly[];
+  /** Worüber der Wechsel läuft: ein Mitglied, das noch nicht am Rad ist. */
+  target: BikeAssembly;
+  status: WarnStatus;
+  /** Nur ein Teil des Satzes ist am Rad (z.B. nur das Vorderrad getauscht). */
+  partial: boolean;
+  /** Bei Bereichen im Keller: was am Rad gerade an dieser Stelle sitzt. */
+  instead: string | null;
+}
+
+export interface Board {
+  rad: BoardEntry[];
+  keller: BoardEntry[];
+}
+
+/**
+ * Teilt alles, was sich wechseln lässt, an der Linie zwischen Rad und Keller auf.
+ * Laufradsätze immer; Bereiche (Bremse, Cockpit) nur, wenn es von ihnen eine zweite Instanz
+ * gibt — eine Bremse ohne Alternative hat im Keller nichts zu suchen und steht nur unter
+ * Baugruppen.
+ */
+export function buildBoard(active: BikeAssembly[], parked: BikeAssembly[]): Board {
+  const board: Board = { rad: [], keller: [] };
+
+  for (const set of buildWheelSets([...active, ...parked])) {
+    const entry: BoardEntry = {
+      key: `w${set.key}`,
+      name: set.name,
+      kind: 'wheelset',
+      members: set.wheels,
+      target: set.wheels.find((wheel) => !wheel.is_active) ?? set.wheels[0],
+      status: set.status,
+      partial: set.onBike && !set.fullyOn,
+      instead: null,
+    };
+    (set.onBike ? board.rad : board.keller).push(entry);
+  }
+
+  const parkedAreas = parked.filter((assembly) => assembly.group_detail.kind === 'area');
+  const groupsWithAlternative = new Set(parkedAreas.map((assembly) => assembly.group));
+  const activeByGroup = new Map(
+    active
+      .filter((assembly) => assembly.group_detail.kind === 'area')
+      .map((assembly) => [assembly.group, assembly]),
+  );
+
+  for (const [group, assembly] of activeByGroup) {
+    if (!groupsWithAlternative.has(group)) continue;
+    board.rad.push(areaEntry(assembly, null));
+  }
+  for (const assembly of parkedAreas) {
+    board.keller.push(areaEntry(assembly, activeByGroup.get(assembly.group)?.display_name ?? null));
+  }
+
+  return board;
+}
+
+function areaEntry(assembly: BikeAssembly, instead: string | null): BoardEntry {
+  return {
+    key: `a${assembly.id}`,
+    name: assembly.display_name,
+    kind: 'area',
+    members: [assembly],
+    target: assembly,
+    status: assembly.worst_status,
+    partial: false,
+    instead,
+  };
+}
+
 // ── Was als Nächstes dran ist ────────────────────────────────────────────────
 
 export interface DueItem {
@@ -119,7 +196,9 @@ const formatCount = (value: number): string => Math.round(value).toLocaleString(
 function distanceToLimit(used: number, limit: number, unit: 'km' | 'days'): string {
   const left = Math.round(limit - used);
   const label = (count: number): string =>
-    unit === 'km' ? `${formatCount(count)} km` : `${formatCount(count)} ${count === 1 ? 'Tag' : 'Tage'}`;
+    unit === 'km'
+      ? `${formatCount(count)} km`
+      : `${formatCount(count)} ${count === 1 ? 'Tag' : 'Tage'}`;
   if (left === 0) return 'jetzt fällig';
   return left > 0 ? `noch ${label(left)}` : `${label(-left)} drüber`;
 }

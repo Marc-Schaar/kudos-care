@@ -30,13 +30,61 @@
       </button>
     </header>
 
-    @if (asm.is_parked) {
-      <div class="g-note warn state">
-        <span>Liegt im Keller. Solange sammeln die Teile keine Kilometer.</span>
-        <button type="button" class="g-btn primary small" (click)="switching.set(true)">
-          Aufziehen
-        </button>
-      </div>
+    <!-- Wo sie gerade ist, und was auf der anderen Seite der Linie liegt -->
+    @if (!asm.is_retired && (asm.is_parked || siblings().length > 0)) {
+      <section class="lage" aria-label="Wo diese Baugruppe gerade ist">
+        <div class="lage-side">
+          <span class="g-label">Am Rad</span>
+          @if (asm.is_active) {
+            <div class="g-tag lage-tag here">
+              <span class="g-tag-name">{{ asm.display_name }}</span>
+              <span class="g-row-sub">
+                diese hier
+                @if (onBikeSince(); as since) {
+                  · seit {{ since | date: 'dd.MM.yyyy' : 'UTC' }}
+                }
+              </span>
+            </div>
+          } @else if (onBikeAlt(); as alt) {
+            <a class="g-tag lage-tag" [routerLink]="nav.to.assembly(bikeId(), alt.id)">
+              <span class="g-tag-name">{{ alt.display_name }}</span>
+              <span class="g-row-sub g-num">{{ alt.assembly_km | number: '1.0-0' }} km</span>
+            </a>
+          } @else {
+            <p class="g-hint lage-none">Gerade nichts an dieser Stelle.</p>
+          }
+        </div>
+
+        <div class="g-axis lage-axis" aria-hidden="true">
+          <span class="g-axis-knot"><app-icon name="arrow-left-right" [size]="14" /></span>
+        </div>
+
+        <div class="lage-side">
+          <span class="g-label">Im Keller</span>
+          @if (asm.is_parked) {
+            <div class="g-tag keller lage-tag here">
+              <span class="g-tag-name">{{ asm.display_name }}</span>
+              <span class="g-row-sub"> diese hier · sammelt keine km </span>
+              <button type="button" class="g-btn primary small" (click)="switching.set(asm)">
+                <app-icon name="arrow-left-right" [size]="15" />
+                Aufziehen
+              </button>
+            </div>
+          }
+          @for (alt of kellerAlts(); track alt.id) {
+            <div class="g-tag keller lage-tag">
+              <a class="lage-link" [routerLink]="nav.to.assembly(bikeId(), alt.id)">
+                <span class="g-tag-name">{{ alt.display_name }}</span>
+                <span class="g-row-sub g-num">{{ alt.assembly_km | number: '1.0-0' }} km</span>
+              </a>
+              <button type="button" class="g-btn small" (click)="switching.set(alt)">
+                <app-icon name="arrow-left-right" [size]="15" />
+                Aufziehen
+              </button>
+            </div>
+          }
+        </div>
+      </section>
     }
     @if (asm.is_retired) {
       <div class="g-note state">
@@ -101,8 +149,8 @@
                               <span class="g-num"
                                 >{{ part.effective_warn_km | number: '1.0-0' }} km</span
                               >
-                            }</span
-                          >
+                            }
+                          </span>
                           @if (part.wear_days != null && part.effective_warn_days) {
                             ·
                             <span class="nw"
@@ -330,13 +378,13 @@
       />
     }
 
-    @if (switching()) {
+    @if (switching(); as target) {
       <app-switch-sheet
-        [target]="asm"
-        [title]="asm.display_name + ' aufziehen'"
-        (closed)="switching.set(false)"
+        [target]="target"
+        [title]="target.display_name + ' aufziehen'"
+        (closed)="switching.set(null)"
         (switched)="afterChange()"
-        (editLinks)="switching.set(false); linking.set(true)"
+        (editLinks)="switching.set(null); linking.set(true)"
       />
     }
 

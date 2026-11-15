@@ -43,6 +43,10 @@
   }
 }
 
+.board {
+  margin-top: 2rem;
+}
+
 .legend {
   margin-top: 0.6rem;
 }
@@ -55,55 +59,6 @@
   padding: 1rem 0.9rem;
   font-size: var(--t-sm);
   color: var(--muted);
-}
-
-/* ── Laufradsätze ───────────────────────────────────────────────────────────── */
-
-.set-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.7rem 0.9rem;
-}
-
-.set-name {
-  font-family: var(--font-display);
-  font-size: var(--t-lg);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.set-rows {
-  border-top: 1px solid var(--border);
-}
-
-.set-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.25rem 0.9rem;
-  border-top: 1px solid var(--border);
-}
-
-.link-summary {
-  flex: 1;
-  min-width: 0;
-  min-height: 2.75rem;
-  background: none;
-  border: 0;
-  color: var(--muted);
-  font: inherit;
-  font-size: var(--t-sm);
-  line-height: 1.35;
-  text-align: left;
-  cursor: pointer;
-}
-
-.link-summary:hover {
-  color: var(--text);
-  text-decoration: underline;
 }
 
 .retired-row {

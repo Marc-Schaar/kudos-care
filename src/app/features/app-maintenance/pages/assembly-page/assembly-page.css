@@ -25,6 +25,66 @@
   margin-top: 1rem;
 }
 
+/* ── Lage: dieselbe Linie wie auf der Rad-Seite, nur für diese eine Stelle ─────── */
+.lage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.25rem minmax(0, 1fr);
+  margin-top: 1.25rem;
+}
+
+.lage-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.lage-axis {
+  align-items: flex-start;
+  padding-top: 1.7rem;
+}
+
+.lage-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.lage-tag .g-tag-name {
+  font-size: var(--t-md);
+}
+
+.lage-tag .g-btn {
+  margin-top: 0.4rem;
+}
+
+/* "Diese hier": die Kontur in Lime, egal auf welcher Seite — "hier bist du". */
+.lage-tag.here {
+  border-color: var(--accent);
+}
+
+a.lage-tag:hover,
+.lage-link:hover .g-tag-name {
+  text-decoration: underline;
+}
+
+.lage-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-height: 2.75rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.lage-none {
+  padding: 0.6rem 0;
+}
+
 /* Ein Platz ist eine Zeile: was verbaut ist, wie weit es ist, und ein Menü für den Platz. */
 .slot-main {
   display: flex;

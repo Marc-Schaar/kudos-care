@@ -82,7 +82,8 @@ export class AssemblyPage {
   editingInterval = signal<MaintenanceInterval | null>(null);
   addingInterval = signal(false);
   addingItem = signal(false);
-  switching = signal(false);
+  /** Worüber gerade gewechselt wird: diese Baugruppe oder eine Alternative im Keller. */
+  switching = signal<BikeAssembly | null>(null);
   linking = signal(false);
   settingsOpen = signal(false);
   readonly remaining = partRemaining;
@@ -108,6 +109,19 @@ export class AssemblyPage {
       ) ?? null
     );
   });
+
+  /** Die anderen Instanzen derselben Gruppe — das, was auf der anderen Seite der Linie liegt. */
+  siblings = computed(() => {
+    const assembly = this.assembly();
+    const garage = this.garage();
+    if (!assembly || !garage) return [];
+    return [...garage.assemblies, ...garage.parked_assemblies].filter(
+      (other) => other.group === assembly.group && other.id !== assembly.id,
+    );
+  });
+
+  onBikeAlt = computed(() => this.siblings().find((other) => other.is_active) ?? null);
+  kellerAlts = computed(() => this.siblings().filter((other) => other.is_parked));
 
   isWheel = computed(() => this.assembly()?.group_detail.kind === 'assembly');
 
@@ -169,7 +183,7 @@ export class AssemblyPage {
     this.editingInterval.set(null);
     this.addingInterval.set(false);
     this.addingItem.set(false);
-    this.switching.set(false);
+    this.switching.set(null);
     this.linking.set(false);
     this.settingsOpen.set(false);
     this.reload();
@@ -195,7 +209,10 @@ export class AssemblyPage {
     this.bikeService.mountComponent(part.id).subscribe({
       next: () => {
         this.busy.set(false);
-        this.notifications.show(`${part.label} ist drauf. Ab jetzt zählen die km hierfür.`, 'success');
+        this.notifications.show(
+          `${part.label} ist drauf. Ab jetzt zählen die km hierfür.`,
+          'success',
+        );
         this.reload();
       },
       error: () => this.busy.set(false),

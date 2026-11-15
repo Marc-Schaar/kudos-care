@@ -1,4 +1,13 @@
-import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  input,
+  OnInit,
+  output,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { NotificationService } from '../../../../shared/services/notification-service/notification-service';
@@ -6,6 +15,9 @@ import { ActivationPlan, BikeAssembly } from '../../models/maintenance.models';
 import { BikeService } from '../../services/bike-service/bike-service';
 import { dayParam, todayIso } from '../../shared/utils/utils';
 import { BottomSheet } from '../bottom-sheet/bottom-sheet';
+
+/** Wie lange das Ergebnis stehen bleibt: die Bewegung (0,46 s) plus ein Moment zum Lesen. */
+const CROSS_HOLD_MS = 1100;
 
 /** Eine Stelle am Rad: was dort ankommt und was dafür in den Keller geht. */
 export interface SwapRow {
@@ -42,7 +54,8 @@ export function buildSwapRows(plan: ActivationPlan): SwapRow[] {
 }
 
 /**
- * Laufrad wechseln. Zeigt vorher, was alles passiert — das andere Laufrad des Satzes und
+ * Laufrad wechseln, an derselben Linie wie auf der Rad-Seite: vorher steht da, was gerade am
+ * Rad und im Keller ist; nach dem Wechsel ziehen die Einträge hinüber. Zeigt vorher, was alles passiert — das andere Laufrad des Satzes und
  * die Bremsbeläge wechseln mit, und das soll niemanden überraschen. Die Vorschau kommt vom
  * Server und nutzt dieselbe Rechnung wie der Wechsel selbst.
  */
@@ -73,8 +86,37 @@ export class SwitchSheet implements OnInit {
   /** Ob überhaupt etwas in den Keller geht: sonst braucht es den Satz dazu nicht. */
   parksSomething = computed(() => this.rows().some((row) => row.off !== null));
   busy = signal(false);
+  /** Der Wechsel ist durch: die Einträge stehen auf der anderen Seite der Linie. */
+  crossed = signal(false);
   showDate = signal(false);
   on = signal(this.today);
+
+  /** Wofür ab jetzt gezählt wird — im Satz unter der Tabelle. */
+  arrivingLabel = computed(() => {
+    const arriving = this.rows()
+      .map((row) => row.on)
+      .filter((label): label is string => !!label);
+    return arriving.length > 0 ? arriving.join(', ') : this.target().display_name;
+  });
+
+  private holdTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.holdTimer && clearTimeout(this.holdTimer));
+  }
+
+  /** Schließen während des Hinüberziehens ist kein Abbrechen: gewechselt ist schon. */
+  close() {
+    if (this.crossed()) this.finish();
+    else this.closed.emit();
+  }
+
+  private finish() {
+    if (this.holdTimer) clearTimeout(this.holdTimer);
+    this.holdTimer = null;
+    this.notifications.show('Gewechselt. Ab jetzt zählen die km dort.', 'success');
+    this.switched.emit();
+  }
 
   ngOnInit() {
     this.bikeService.fetchActivationPlan(this.target().id).subscribe((plan) => this.plan.set(plan));
@@ -87,8 +129,9 @@ export class SwitchSheet implements OnInit {
       .subscribe({
         next: () => {
           this.busy.set(false);
-          this.notifications.show('Gewechselt. Ab jetzt zählen die km dort.', 'success');
-          this.switched.emit();
+          // Erst hinüberziehen lassen, dann schließen: man soll sehen, was wohin ging.
+          this.crossed.set(true);
+          this.holdTimer = setTimeout(() => this.finish(), CROSS_HOLD_MS);
         },
         error: () => this.busy.set(false),
       });

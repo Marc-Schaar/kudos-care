@@ -1,0 +1,67 @@
+/* Die Vorschau: zwei schmale Spalten an der Achse. Im Blatt ist immer Platz dafür (≥ 20rem). */
+.preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.25rem minmax(0, 1fr);
+  min-height: 6.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.preview-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.preview .g-axis {
+  padding-top: 1.6rem;
+  align-items: flex-start;
+}
+
+.preview-tag {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.preview-tag .g-tag-name {
+  font-size: var(--t-md);
+}
+
+.sides {
+  border: 0;
+}
+
+.sides legend {
+  margin-bottom: 0.3rem;
+}
+
+/* Vorder- und Hinterrad als zwei Flächen: am Handy trifft man sie besser als ein Kästchen. */
+.side-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-s);
+  cursor: pointer;
+  transition: border-color 0.12s var(--ease-out);
+}
+
+.side-tile.on {
+  border-color: var(--accent);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.side-tile input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--accent);
+}
+
+.side-tile:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
