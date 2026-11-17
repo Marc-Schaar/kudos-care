@@ -1,65 +1,58 @@
+@let s = settings.value();
+
+<!-- Reihenfolge nach Gebrauch unterwegs: was man vor einer Fahrt umstellt, steht oben;
+     Konto und Einwilligungen, die man einmal setzt, unten. -->
 <div class="scroll">
   <rc-sub-header title="Einstellungen" />
 
-  <h2 class="section-title">Strava</h2>
+  <h3 class="section-title">Anzeige</h3>
   <div class="stack">
-    @if (strava.canUpload()) {
-      <p class="hint">
-        Upload freigeschaltet{{ strava.firstname() ? ' für ' + strava.firstname() : '' }}.
-        Hochgeladene Fahrten erscheinen über Strava auch in Kudos Care.
-        @if (!strava.privateRoutes()) {
-          Private Routen sind nicht freigegeben, nur öffentliche erscheinen.
-        }
-      </p>
-    } @else {
-      <p class="hint">
-        Bei der Anmeldung wurde das Hochladen zu Strava nicht erlaubt. Zum Hochladen von Fahrten und
-        für private Routen braucht die App diese Erlaubnis von Strava.
-      </p>
-      <button
-        type="button"
-        class="btn primary"
-        (click)="strava.grantUpload()"
-        [disabled]="strava.busy()"
-      >
-        {{ strava.busy() ? 'Weiter zu Strava …' : 'Upload bei Strava freischalten' }}
-      </button>
-    }
-  </div>
+    <!-- Die Farbwahl zeigt sich selbst: zwei Platten im festen Schwarz und Weiß, unabhängig
+         davon, welches Thema gerade aktiv ist. -->
+    <fieldset class="themes">
+      <legend class="sr-only">Farben</legend>
+      <label class="theme" data-swatch="night" [class.on]="s.theme === 'night'">
+        <input
+          type="radio"
+          name="rc-theme"
+          value="night"
+          [checked]="s.theme === 'night'"
+          (change)="pick('theme', 'night')"
+        />
+        <span class="swatch" aria-hidden="true">
+          <span class="swatch-num">28</span>
+          <span class="swatch-unit">km/h</span>
+        </span>
+        <span class="theme-cap">
+          <span class="theme-name"
+            ><span class="sense" [attr.data-state]="s.theme === 'night' ? 'on' : 'off'"></span
+            >Nacht</span
+          >
+          <span class="theme-sub">Schwarz, spart Akku</span>
+        </span>
+      </label>
+      <label class="theme" data-swatch="day" [class.on]="s.theme === 'day'">
+        <input
+          type="radio"
+          name="rc-theme"
+          value="day"
+          [checked]="s.theme === 'day'"
+          (change)="pick('theme', 'day')"
+        />
+        <span class="swatch" aria-hidden="true">
+          <span class="swatch-num">28</span>
+          <span class="swatch-unit">km/h</span>
+        </span>
+        <span class="theme-cap">
+          <span class="theme-name"
+            ><span class="sense" [attr.data-state]="s.theme === 'day' ? 'on' : 'off'"></span
+            >Tag</span
+          >
+          <span class="theme-sub">Weiß, lesbar in der Sonne</span>
+        </span>
+      </label>
+    </fieldset>
 
-  <h2 class="section-title">Wind</h2>
-  <div class="stack">
-    <p class="hint">
-      Für die Windanzeige schickt Kudos Care deinen ungefähren Standort (auf etwa 1 km gerundet) an
-      den Wetterdienst Open-Meteo. Dieselbe Einwilligung gilt für das Wetter deiner Fahrten in Kudos
-      Care.
-    </p>
-    @if (wind.consent()) {
-      <p class="hint">Wetterdaten sind freigegeben.</p>
-      <button type="button" class="btn" (click)="setWeatherConsent(false)" [disabled]="saving()">
-        Freigabe widerrufen
-      </button>
-    } @else {
-      <button
-        type="button"
-        class="btn primary"
-        (click)="setWeatherConsent(true)"
-        [disabled]="saving()"
-      >
-        Wetterdaten erlauben
-      </button>
-    }
-  </div>
-
-  <h2 class="section-title">Darstellung</h2>
-  <div class="stack">
-    <div class="form-row">
-      <label for="set-theme">Farben</label>
-      <select id="set-theme" [formField]="form.theme">
-        <option value="night">Nacht (schwarz, spart Akku)</option>
-        <option value="day">Tag (weiß, für Sonne)</option>
-      </select>
-    </div>
     <a class="link-row" [routerLink]="rc.dataPages">
       <span class="text">
         <span class="name">Datenseiten belegen</span>
@@ -67,54 +60,258 @@
       </span>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
     </a>
+  </div>
+
+  <div class="head">
+    <h3>Klingel</h3>
+    <button type="button" class="test" (click)="testBell()">Klingeln</button>
+  </div>
+  <div class="stack">
     <label class="check-row">
-      Klingel in der Bedienleiste
+      In der Bedienleiste zeigen
       <input type="checkbox" [formField]="form.bellButton" />
     </label>
-    <button type="button" class="btn" (click)="testBell()">Klingel testen</button>
     <p class="hint">
       Die Klingel gibt es außerdem auf der Karte und als Datenfeld. Sie mischt sich mit Musik, statt
-      sie anzuhalten; auf dem iPhone bleibt sie dafür im Stummmodus still.
+      sie anzuhalten. Auf dem iPhone bleibt sie dafür im Stummmodus still.
     </p>
   </div>
 
-  <h2 class="section-title">Auto-Pause</h2>
+  <h3 class="section-title">Auto-Pause</h3>
   <div class="stack">
     <label class="check-row">
       Bei Stillstand pausieren
       <input type="checkbox" [formField]="form.autoPause" />
     </label>
-    <div class="form-row">
-      <label for="set-ap">Pausieren unter (km/h)</label>
-      <input
-        id="set-ap"
-        type="number"
-        inputmode="decimal"
-        step="0.5"
-        [formField]="form.autoPauseKmh"
-        aria-describedby="set-ap-hint"
-      />
-      @for (error of form.autoPauseKmh().errors(); track error.kind) {
-        <span class="error">{{ error.message }}</span>
-      }
-      <span class="hint" id="set-ap-hint"
-        >Die Uhr läuft weiter, sobald du etwa 1 km/h schneller bist. Braucht GPS.</span
-      >
-    </div>
-    <label class="check-row">
-      Auch im Trainingsmodus
-      <input type="checkbox" [formField]="form.autoPauseInWorkout" />
-    </label>
+    @if (s.autoPause) {
+      <div class="form-row">
+        <label for="set-ap">Pausieren unter</label>
+        <div class="stepper">
+          <button
+            type="button"
+            class="step"
+            aria-label="0,5 km/h weniger"
+            [disabled]="atLimit('autoPauseKmh', -1)"
+            (click)="step('autoPauseKmh', -1)"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
+          </button>
+          <span class="value">
+            <input
+              id="set-ap"
+              type="number"
+              inputmode="decimal"
+              [step]="autoPauseRange.step"
+              [formField]="form.autoPauseKmh"
+              aria-describedby="set-ap-hint"
+            />
+            <span class="unit" aria-hidden="true">km/h</span>
+          </span>
+          <button
+            type="button"
+            class="step"
+            aria-label="0,5 km/h mehr"
+            [disabled]="atLimit('autoPauseKmh', 1)"
+            (click)="step('autoPauseKmh', 1)"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg>
+          </button>
+        </div>
+        @for (error of form.autoPauseKmh().errors(); track error.kind) {
+          <span class="error">{{ error.message }}</span>
+        }
+        <span class="hint" id="set-ap-hint"
+          >Die Uhr läuft weiter, sobald du etwa 1 km/h schneller bist. Braucht GPS.</span
+        >
+      </div>
+      <label class="check-row">
+        Auch im Trainingsmodus
+        <input type="checkbox" [formField]="form.autoPauseInWorkout" />
+      </label>
+    }
   </div>
 
-  <h2 class="section-title">Training</h2>
+  <div class="head">
+    <h3>Ton</h3>
+    <button type="button" class="test" (click)="testAudio()">Probehören</button>
+  </div>
+  <div class="stack">
+    <fieldset class="choice">
+      <legend>Hinweise</legend>
+      <div class="seg">
+        @for (c of audioChoices; track c.value) {
+          <label [class.on]="s.audio === c.value">
+            <input
+              type="radio"
+              name="rc-audio"
+              [value]="c.value"
+              [checked]="s.audio === c.value"
+              (change)="pick('audio', c.value)"
+            />
+            {{ c.label }}
+          </label>
+        }
+      </div>
+      <p class="hint">
+        {{ hintFor(audioChoices, s.audio) }}
+        @if (s.audio === 'speech' && !audio.speechSupported) {
+          Dieser Browser hat keine Sprachausgabe, die App nutzt stattdessen Töne.
+        }
+      </p>
+    </fieldset>
+    @if (s.audio !== 'off') {
+      <label class="check-row">
+        Runden ansagen
+        <input type="checkbox" [formField]="form.lapAnnouncements" />
+      </label>
+    }
+  </div>
+
+  <h3 class="section-title">Karte</h3>
+  <div class="stack">
+    <label class="check-row">
+      Kartenbild laden
+      <input type="checkbox" [formField]="form.mapTiles" />
+    </label>
+    @if (s.mapTiles) {
+      <fieldset class="choice">
+        <legend>Kartenbild</legend>
+        <div class="seg">
+          @for (c of mapStyleChoices; track c.value) {
+            <label [class.on]="s.mapStyle === c.value">
+              <input
+                type="radio"
+                name="rc-map-style"
+                [value]="c.value"
+                [checked]="s.mapStyle === c.value"
+                (change)="pick('mapStyle', c.value)"
+              />
+              {{ c.label }}
+            </label>
+          }
+        </div>
+        <p class="hint">{{ hintFor(mapStyleChoices, s.mapStyle) }} Braucht Internet.</p>
+      </fieldset>
+    } @else {
+      <p class="hint">Ohne Kartenbild zeigt die Karte nur Route und Spur. Spart Daten.</p>
+    }
+    <label class="check-row">
+      In Fahrtrichtung drehen
+      <input type="checkbox" [formField]="form.headingUp" />
+    </label>
+    @if (s.headingUp) {
+      @switch (heading.compassState()) {
+        @case ('on') {
+          <p class="state">
+            <span class="sense" data-state="on"></span>
+            Kompass an: Im Stand dreht die Karte nach dem Telefon, in Fahrt nach dem GPS-Kurs.
+          </p>
+        }
+        @case ('denied') {
+          <p class="state">
+            <span class="sense" data-state="err"></span>
+            Kompass nicht erlaubt. In den iOS-Einstellungen beim Browser „Bewegung &amp;
+            Ausrichtung“ erlauben, dann die Seite neu laden.
+          </p>
+        }
+        @case ('unsupported') {
+          <p class="state">
+            <span class="sense" data-state="off"></span>
+            Kein Kompass im Gerät. Die Karte dreht nur in Fahrt.
+          </p>
+        }
+        @default {
+          <button type="button" class="btn" (click)="heading.enable()">Kompass einschalten</button>
+          <p class="hint">
+            Damit dreht die Karte auch im Stand. Das iPhone fragt einmal nach der Erlaubnis, sonst
+            beim ersten Start einer Fahrt.
+          </p>
+        }
+      }
+    }
+  </div>
+
+  <h3 class="section-title">Routenplanung</h3>
+  <div class="stack">
+    <fieldset class="choice">
+      <legend>Routendienst</legend>
+      <div class="seg">
+        @for (c of providerChoices; track c.value) {
+          <label [class.on]="s.routingProvider === c.value">
+            <input
+              type="radio"
+              name="rc-provider"
+              [value]="c.value"
+              [checked]="s.routingProvider === c.value"
+              (change)="pick('routingProvider', c.value)"
+            />
+            {{ c.label }}
+          </label>
+        }
+      </div>
+      <p class="hint">{{ hintFor(providerChoices, s.routingProvider) }}</p>
+    </fieldset>
+    @if (s.routingProvider === 'brouter') {
+      <fieldset class="choice">
+        <legend>Profil</legend>
+        <div class="seg">
+          @for (c of profileChoices; track c.value) {
+            <label [class.on]="s.routingProfile === c.value">
+              <input
+                type="radio"
+                name="rc-profile"
+                [value]="c.value"
+                [checked]="s.routingProfile === c.value"
+                (change)="pick('routingProfile', c.value)"
+              />
+              {{ c.label }}
+            </label>
+          }
+        </div>
+        <p class="hint">{{ hintFor(profileChoices, s.routingProfile) }}</p>
+      </fieldset>
+    }
+  </div>
+
+  <h3 class="section-title">Training</h3>
   <div class="stack">
     <div class="form-row">
-      <label for="set-ftp">FTP (Watt)</label>
-      <input id="set-ftp" type="number" inputmode="numeric" step="1" [formField]="form.ftp" />
+      <label for="set-ftp">FTP</label>
+      <div class="stepper">
+        <button
+          type="button"
+          class="step"
+          aria-label="5 Watt weniger"
+          [disabled]="atLimit('ftp', -1)"
+          (click)="step('ftp', -1)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
+        </button>
+        <span class="value">
+          <input
+            id="set-ftp"
+            type="number"
+            inputmode="numeric"
+            [step]="1"
+            [formField]="form.ftp"
+            aria-describedby="set-ftp-hint"
+          />
+          <span class="unit" aria-hidden="true">W</span>
+        </span>
+        <button
+          type="button"
+          class="step"
+          aria-label="5 Watt mehr"
+          [disabled]="atLimit('ftp', 1)"
+          (click)="step('ftp', 1)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg>
+        </button>
+      </div>
       @for (error of form.ftp().errors(); track error.kind) {
         <span class="error">{{ error.message }}</span>
       }
+      <span class="hint" id="set-ftp-hint">Die Leistungsziele der Trainings rechnen damit.</span>
     </div>
     <label class="check-row">
       Warnen, wenn die Leistung vom Ziel abweicht
@@ -122,84 +319,64 @@
     </label>
   </div>
 
-  <h2 class="section-title">Ton</h2>
+  <h3 class="section-title">Konto und Daten</h3>
   <div class="stack">
-    <div class="form-row">
-      <label for="set-audio">Hinweise</label>
-      <select id="set-audio" [formField]="form.audio">
-        <option value="speech">Sprache und Töne</option>
-        <option value="beep">Nur Töne</option>
-        <option value="off">Aus</option>
-      </select>
+    <div class="account">
+      <p class="state">
+        <span class="sense" [attr.data-state]="strava.canUpload() ? 'on' : 'off'"></span>
+        <span>
+          <strong>Strava</strong>
+          @if (strava.canUpload()) {
+            Hochladen erlaubt{{ strava.firstname() ? ' für ' + strava.firstname() : '' }}. Fahrten
+            erscheinen über Strava auch in Kudos Care.
+            @if (!strava.privateRoutes()) {
+              Nur öffentliche Routen sind sichtbar.
+            }
+          } @else {
+            Hochladen ist nicht erlaubt. Ohne diese Erlaubnis gehen keine Fahrten zu Strava, und
+            private Routen fehlen.
+          }
+        </span>
+      </p>
+      @if (!strava.canUpload()) {
+        <button
+          type="button"
+          class="btn primary"
+          (click)="strava.grantUpload()"
+          [disabled]="strava.busy()"
+        >
+          {{ strava.busy() ? 'Weiter zu Strava …' : 'Hochladen bei Strava erlauben' }}
+        </button>
+      }
     </div>
-    <label class="check-row">
-      Runden ansagen
-      <input type="checkbox" [formField]="form.lapAnnouncements" />
-    </label>
-    <button type="button" class="btn" (click)="testAudio()">Ton testen</button>
-    @if (!audio.speechSupported) {
-      <p class="hint">Dieser Browser hat keine Sprachausgabe. Die App nutzt stattdessen Töne.</p>
-    }
-  </div>
 
-  <h2 class="section-title">Karte und Route</h2>
-  <div class="stack">
-    <label class="check-row">
-      Kartenbild laden (braucht Internet)
-      <input type="checkbox" [formField]="form.mapTiles" />
-    </label>
-    <div class="form-row">
-      <label for="set-map-style">Kartenbild</label>
-      <select id="set-map-style" [formField]="form.mapStyle">
-        <option value="cyclosm">CyclOSM (Radwege, Belag, Radinfrastruktur)</option>
-        <option value="topo">Topo (Höhenlinien, für Gravel und Gelände)</option>
-        <option value="osm">OpenStreetMap (Standard)</option>
-      </select>
-    </div>
-    <label class="check-row">
-      Karte in Fahrtrichtung drehen
-      <input type="checkbox" [formField]="form.headingUp" />
-    </label>
-    @switch (heading.compassState()) {
-      @case ('on') {
-        <p class="hint">
-          Kompass aktiv: Im Stand dreht die Karte nach dem Telefon, in Fahrt nach dem GPS-Kurs.
-        </p>
+    <div class="account">
+      <p class="state">
+        <span class="sense" [attr.data-state]="wind.consent() ? 'on' : 'off'"></span>
+        <span>
+          <strong>Wetterdaten</strong>
+          Für den Wind geht dein Standort, auf etwa 1 km gerundet, an den Wetterdienst Open-Meteo.
+          Dieselbe Erlaubnis gilt für das Wetter deiner Fahrten in Kudos Care.
+        </span>
+      </p>
+      @if (wind.consent()) {
+        <button type="button" class="btn" (click)="setWeatherConsent(false)" [disabled]="saving()">
+          Wetterdaten nicht mehr erlauben
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="btn primary"
+          (click)="setWeatherConsent(true)"
+          [disabled]="saving()"
+        >
+          Wetterdaten erlauben
+        </button>
       }
-      @case ('denied') {
-        <p class="hint">
-          Kompass nicht erlaubt. In den iOS-Einstellungen beim Browser „Bewegung &amp; Ausrichtung“
-          erlauben, dann die Seite neu laden.
-        </p>
-      }
-      @case ('unsupported') {
-        <p class="hint">Dieses Gerät hat keinen Kompass. Die Karte dreht nur in Fahrt.</p>
-      }
-      @default {
-        <button type="button" class="btn" (click)="heading.enable()">Kompass einschalten</button>
-        <p class="hint">
-          Damit dreht die Karte auch im Stand. Das iPhone fragt einmal nach der Erlaubnis; sonst
-          fragt es beim ersten Start einer Fahrt.
-        </p>
-      }
-    }
-    <div class="form-row">
-      <label for="set-provider">Routendienst</label>
-      <select id="set-provider" [formField]="form.routingProvider">
-        <option value="brouter">BRouter (auf Radwege ausgelegt)</option>
-        <option value="osrm">OSRM (sagt Straßennamen an)</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label for="set-profile">BRouter-Profil</label>
-      <select id="set-profile" [formField]="form.routingProfile">
-        <option value="trekking">Trekking (ruhige Wege)</option>
-        <option value="fastbike">Rennrad (schnell, Asphalt)</option>
-      </select>
     </div>
   </div>
 
-  <h2 class="section-title">Gut zu wissen</h2>
+  <h3 class="section-title">Gut zu wissen</h3>
   <div class="stack">
     <p class="hint">
       @if (wake.supported) {

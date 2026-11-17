@@ -58,6 +58,11 @@ export interface FieldReading {
   value: string;
   label?: string;
   unit?: string;
+  /**
+   * Leistungszone 1–7 (Coggan) bei Leistungsfeldern: Das Feld zeigt sie als Zonen-Leitlinie
+   * unter der Zahl. Fehlt ohne Messwert.
+   */
+  zone?: number;
 }
 
 export const FIELDS: readonly FieldDef[] = [
@@ -233,6 +238,15 @@ export function powerZone(ratio: number): number {
   return i === -1 ? 7 : i + 1;
 }
 
+/**
+ * Wert eines Leistungsfelds samt Zone. Nur Momentan- und Rundenleistung tragen eine Zone:
+ * Beim Fahrtschnitt oder Maximum beantwortet sie keine Frage, die man unterwegs stellt.
+ */
+export function powerReading(watts: number | null, ftp: number): FieldReading {
+  if (watts == null || !Number.isFinite(watts)) return { value: num(null) };
+  return { value: num(watts), zone: powerZone(watts / ftp) };
+}
+
 /** „1:05“: Stunden und Minuten, ohne Sekunden. */
 const hoursMinutes = (ms: number): string => {
   const minutes = Math.floor(ms / 60_000);
@@ -305,10 +319,10 @@ export class RideFields {
       maxSpeed: v(num(totals.maxSpeed == null ? null : totals.maxSpeed * 3.6, 1)),
       distance: v(num(stats.distanceM / 1000, 2)),
 
-      power: v(num(this.sensors.power())),
-      power3s: v(num(power3s)),
-      power10s: v(num(this.metrics.power10s())),
-      power30s: v(num(this.metrics.power30s())),
+      power: powerReading(this.sensors.power(), ftp),
+      power3s: powerReading(power3s, ftp),
+      power10s: powerReading(this.metrics.power10s(), ftp),
+      power30s: powerReading(this.metrics.power30s(), ftp),
       avgPower: v(num(stats.pwrN ? stats.pwrSum / stats.pwrN : null)),
       maxPower: v(num(stats.pwrN ? stats.pwrMax : null)),
       np: v(num(totals.np)),
@@ -345,7 +359,7 @@ export class RideFields {
       lapTime: v(fmtTime(lapMs)),
       lapDist: v(num(lapM / 1000, 2)),
       lapSpeed: v(num(kmh(lapM, lapMs), 1)),
-      lapPower: v(num(lap.pwrN ? lap.pwrSum / lap.pwrN : null)),
+      lapPower: powerReading(lap.pwrN ? lap.pwrSum / lap.pwrN : null, ftp),
       lastLapTime: v(prev ? fmtTime(lap.t0 - prev.t0) : DASH),
       lapCount: v(String(laps.length)),
 

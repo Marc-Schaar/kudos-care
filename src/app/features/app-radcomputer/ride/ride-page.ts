@@ -67,6 +67,7 @@ const STATE_TEXT: Record<RideDisplayState, string> = {
                       [unit]="r?.unit ?? field.def.unit ?? ''"
                       [value]="r?.value ?? '--'"
                       [size]="field.size"
+                      [zone]="r?.zone ?? null"
                     />
                   }
                 }
@@ -155,6 +156,11 @@ export class RidePage {
   }
 
   protected onTouchStart(event: TouchEvent): void {
+    // Auf der Karte verschiebt der Finger die Karte, statt zu blättern.
+    if ((event.target as Element | null)?.closest('rc-map')) {
+      this.touch = null;
+      return;
+    }
     const t = event.touches[0];
     this.touch = { x: t.clientX, y: t.clientY };
   }

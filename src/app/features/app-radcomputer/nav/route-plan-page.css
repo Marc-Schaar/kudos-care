@@ -1,4 +1,5 @@
 :host {
+  position: relative;
   display: block;
   height: 100%;
 }
@@ -74,4 +75,77 @@
 }
 .place:disabled {
   opacity: 0.4;
+}
+
+/* Vorschau: die ganze Route vor dem Start, als Ebene über der Liste. Nicht scrollbar,
+   damit Wischen auf der Karte die Karte verschiebt statt die Seite. */
+.preview {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--bg);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.preview-head {
+  padding: 14px var(--gutter) 10px;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 4px;
+}
+.preview-name {
+  font-family: var(--digits);
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.preview-meta {
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+  color: var(--muted);
+}
+.preview-meta .away {
+  color: var(--fg);
+}
+.preview-map {
+  position: relative;
+  min-height: 0;
+}
+.preview-map rc-map {
+  position: absolute;
+  inset: 0;
+}
+.fit {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 2px solid var(--fg);
+  border-radius: 4px;
+  background: var(--bg);
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+}
+.attribution {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  line-height: 14px;
+  background: var(--bg);
+  color: var(--muted);
+  text-decoration: none;
+  border-top-right-radius: 6px;
+}
+.preview-actions {
+  padding: 8px var(--gutter) 12px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
 }

@@ -1,24 +1,42 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 
 import { DemoDriver } from '../core/demo-driver';
 import { fmtDistance, num } from '../core/format';
+import { haversine } from '../core/geo';
 import { Gps } from '../core/gps';
+import { Heading } from '../core/heading';
 import { Place } from '../core/models';
 import { RideView } from '../core/ride-view';
+import { SettingsStore } from '../core/settings-store';
 import { Strava, StravaRoute } from '../core/strava';
 import { Toasts } from '../core/toasts';
 import { SubHeader } from '../menu/sub-header';
 import { Geocoder } from './geocoder';
+import { MapCanvas, TILE_SOURCES } from './map-canvas';
+import { MapCamera } from './map-camera';
+import { NavRoute } from './nav-models';
 import { RouteGuide } from './route-guide';
 import { SavedPlaces } from './saved-places';
 import { RC } from '../core/paths';
 
-/** Routen laden und Ziele wählen. Danach geht es direkt auf die Kartenseite der Fahrt. */
+/** Erst ab diesem Abstand zum Routenstart ist er eine Angabe wert (m). */
+const START_HINT_M = 150;
+
+interface PendingRoute {
+  route: NavRoute;
+  /** `new` wird gestartet, `demo` startet die Simulation mit, `current` läuft schon. */
+  source: 'new' | 'demo' | 'current';
+}
+
+/**
+ * Routen laden und Ziele wählen. Jede neue Route erscheint erst als Vorschau mit der
+ * ganzen Strecke; „Route starten“ übernimmt sie und wechselt auf die Kartenseite.
+ */
 @Component({
   selector: 'rc-route-plan-page',
-  imports: [FormField, SubHeader],
+  imports: [FormField, SubHeader, MapCanvas],
   templateUrl: './route-plan-page.html',
   styleUrl: './route-plan-page.css',
 })
@@ -32,6 +50,8 @@ export class RoutePlanPage {
   private readonly toasts = inject(Toasts);
   private readonly router = inject(Router);
   private readonly view = inject(RideView);
+  protected readonly settings = inject(SettingsStore);
+  protected readonly heading = inject(Heading);
 
   protected readonly fmtDistance = fmtDistance;
   protected readonly num = num;
@@ -45,21 +65,74 @@ export class RoutePlanPage {
   protected readonly stravaLoading = signal<string | null>(null);
   private stravaPage = 1;
 
+  /** Route in der Vorschau; die laufende Führung bleibt bis zum Start unberührt. */
+  protected readonly pending = signal<PendingRoute | null>(null);
+  /** Von Hand verschobene Vorschau; `null` = die ganze Route. */
+  protected readonly previewCamera = signal<MapCamera | null>(null);
+  /** Zählt Ladevorgänge: eine späte Antwort verdrängt keine neuere Wahl. */
+  private ticket = 0;
+
+  protected readonly attribution = computed(
+    () => (TILE_SOURCES[this.settings.value().mapStyle] ?? TILE_SOURCES.osm).attribution,
+  );
+  /** Liegt der Start einer geladenen Route woanders, steht in der Vorschau, wie weit. */
+  protected readonly startDistance = computed(() => {
+    const p = this.pending();
+    const fix = this.gps.fix();
+    if (!p || p.source === 'current' || !fix) return null;
+    const start = p.route.points[0];
+    const d = haversine(fix.lat, fix.lon, start.lat, start.lon);
+    return d > START_HINT_M ? fmtDistance(d) : null;
+  });
+
   constructor() {
     this.gps.start();
   }
 
-  /** Nach dem Laden auf die Kartenseite der Fahrt wechseln. */
+  /** Auf die Kartenseite der Fahrt, mit der Karte wieder am Standort. */
   private showOnMap(): void {
+    this.view.recenterMap();
     this.view.show('map');
     void this.router.navigateByUrl(RC.ride);
+  }
+
+  private openPreview(route: NavRoute, source: PendingRoute['source']): void {
+    this.ticket += 1;
+    this.previewCamera.set(null);
+    this.pending.set({ route, source });
+  }
+
+  /** Lädt eine Route und zeigt sie zur Vorschau, sofern inzwischen nichts anderes gewählt wurde. */
+  private async offer(load: () => Promise<NavRoute | null>): Promise<void> {
+    const ticket = ++this.ticket;
+    const route = await load();
+    if (route && ticket === this.ticket) this.openPreview(route, 'new');
+  }
+
+  protected viewCurrent(): void {
+    const route = this.guide.route();
+    if (route) this.openPreview(route, 'current');
+  }
+
+  protected closePreview(): void {
+    this.ticket += 1;
+    this.pending.set(null);
+  }
+
+  protected startPending(): void {
+    const p = this.pending();
+    if (!p) return;
+    if (p.source === 'new') this.guide.start(p.route);
+    else if (p.source === 'demo') this.demo.loadSampleRoute(p.route);
+    this.pending.set(null);
+    this.showOnMap();
   }
 
   protected async onGpxSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = ''; // dieselbe Datei später erneut wählbar
-    if (file && (await this.guide.loadGpx(file))) this.showOnMap();
+    if (file) await this.offer(() => this.guide.routeFromFile(file));
   }
 
   protected async loadStravaList(more = false): Promise<void> {
@@ -79,8 +152,9 @@ export class RoutePlanPage {
   protected async loadStravaRoute(route: StravaRoute): Promise<void> {
     this.stravaLoading.set(route.id);
     try {
-      const gpx = await this.strava.routeGpx(route.id);
-      if (this.guide.loadGpxText(gpx, route.name)) this.showOnMap();
+      await this.offer(async () =>
+        this.guide.routeFromGpx(await this.strava.routeGpx(route.id), route.name),
+      );
     } catch (err) {
       this.toasts.show(err instanceof Error ? err.message : 'Route nicht geladen.', 6000);
     } finally {
@@ -111,7 +185,7 @@ export class RoutePlanPage {
   }
 
   protected async goTo(place: Place): Promise<void> {
-    if (await this.guide.navigateTo(place)) this.showOnMap();
+    await this.offer(() => this.guide.plan(place));
   }
 
   protected async save(place: Place): Promise<void> {
@@ -150,7 +224,6 @@ export class RoutePlanPage {
   }
 
   protected loadDemoRoute(): void {
-    this.demo.loadSampleRoute();
-    this.showOnMap();
+    this.openPreview(this.demo.sampleRoute(), 'demo');
   }
 }

@@ -17,16 +17,29 @@ import { DASH } from '../core/format';
 @Component({
   selector: 'rc-data-field',
   template: `
-    <span class="label">{{ label() }}</span>
+    <span class="head">
+      <span class="label">{{ label() }}</span>
+      @if (zone(); as z) {
+        <span class="zone">Z{{ z }}</span>
+      }
+    </span>
     <span class="value digits" [style.--n]="chars()">
       <span class="num">{{ value() }}</span>
       @if (showUnit()) {
         <span class="unit">{{ unit() }}</span>
       }
     </span>
+    @if (zone(); as z) {
+      <span class="lane" aria-hidden="true">
+        @for (n of zones; track n) {
+          <i [class.on]="n === z"></i>
+        }
+      </span>
+    }
   `,
   host: {
     '[class.hero]': 'size() === "hero"',
+    '[class.has-lane]': 'zone() != null',
   },
   styles: `
     :host {
@@ -39,14 +52,23 @@ import { DASH } from '../core/format';
       flex-direction: column;
       justify-content: space-between;
     }
-    .label {
+    .head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
       font-family: var(--digits);
       font-size: var(--t-m);
       font-weight: 700;
-      color: var(--muted);
       white-space: nowrap;
+    }
+    .label {
+      min-width: 0;
+      color: var(--muted);
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .zone {
+      flex: none;
     }
     .value {
       line-height: 0.9;
@@ -60,6 +82,39 @@ import { DASH } from '../core/format';
       font-size: min(31vw, 17vh);
       font-size: min(calc(150cqw / var(--n)), calc(100cqh - 36px));
     }
+    /* Die Leitlinie braucht unten 18 px; die Ziffern geben sie ab. */
+    :host(.has-lane) .value {
+      font-size: min(calc(150cqw / var(--n)), calc(100cqh - 54px));
+    }
+
+    /* Zonen-Leitlinie: sieben Striche Z1–Z7, die aktuelle Zone als dicker Block. Dieselbe
+       Sprache wie die Seitenanzeige; Z4 (Schwelle) steht genau in der Mitte. Keine
+       Zonenfarben: Die Linie folgt dem Aufnahmezustand wie die Ziffern. */
+    .lane {
+      height: 12px;
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      align-items: center;
+    }
+    .lane i {
+      height: 3px;
+      background: var(--edge);
+    }
+    .lane i.on {
+      height: 11px;
+      background: var(--fg);
+    }
+    :host-context([data-s='idle']) .lane i.on,
+    :host-context([data-s='paused']) .lane i.on {
+      background: transparent;
+      box-shadow: inset 0 0 0 2px var(--fg);
+    }
+    :host-context([data-s='auto']) .lane i.on {
+      background: var(--hold);
+    }
+
     .unit {
       margin-left: 0.14em;
       font-size: max(var(--t-m), 0.27em);
@@ -88,6 +143,10 @@ export class DataField {
   readonly unit = input('');
   readonly value = input.required<string>();
   readonly size = input<'normal' | 'wide' | 'hero'>('normal');
+  /** Leistungszone 1–7; gesetzt zeigt das Feld „Z4“ und die Zonen-Leitlinie. */
+  readonly zone = input<number | null>(null);
+
+  protected readonly zones = [1, 2, 3, 4, 5, 6, 7];
 
   /** Ohne Wert („--“) hat die Einheit nichts, woran sie stehen könnte. */
   protected readonly showUnit = computed(() => !!this.unit() && this.value() !== DASH);

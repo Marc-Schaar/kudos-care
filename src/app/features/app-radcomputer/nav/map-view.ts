@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { DASH, fmtDistance, num } from '../core/format';
@@ -11,12 +11,30 @@ import { Ticker } from '../core/ticker';
 import { Compass } from './compass';
 import { CueSign } from './cue-sign';
 import { MapCanvas, TILE_SOURCES } from './map-canvas';
+import {
+  MAX_ZOOM,
+  MIN_ZOOM,
+  MapCamera,
+  SpeedZoom,
+  cameraAt,
+  clampZoom,
+  zoomForSpeed,
+} from './map-camera';
 import { BellButton } from '../ride/bell-button';
 import { RouteGuide } from './route-guide';
 import { RC } from '../core/paths';
 import { WindBadge } from '../wind/wind-badge';
 
-/** Kartenseite der Fahrt: nächster Hinweis, Karte, drei Werte. Routen wählt man im Menü. */
+/** Verschobene Karte kehrt zum Standort zurück, wenn man so lange nicht eingreift (ms) … */
+const RETURN_AFTER_MS = 20000;
+/** … und dabei fährt (m/s, rund 7 km/h). Im Stand bleibt sie, wo man sie hingeschoben hat. */
+const RETURN_MIN_SPEED = 2;
+
+/**
+ * Kartenseite der Fahrt: nächster Hinweis, Karte, drei Werte. Routen wählt man im Menü.
+ * Die Karte folgt dem Standort und zoomt nach Tempo, bis man sie verschiebt, dreht oder
+ * zoomt; dann erscheint „Zentrieren“.
+ */
 @Component({
   selector: 'rc-map-view',
   imports: [MapCanvas, CueSign, Compass, RouterLink, WindBadge, BellButton],
@@ -56,17 +74,17 @@ import { WindBadge } from '../wind/wind-badge';
         [passedIndex]="guide.progress()?.index ?? 0"
         [position]="gps.fix()"
         [heading]="heading.value()"
-        [headingUp]="settings.value().headingUp"
+        [camera]="camera()"
+        (cameraChange)="onUserCamera($event)"
         [showTiles]="settings.value().mapTiles"
         [tileStyle]="settings.value().mapStyle"
-        [zoom]="zoom()"
         [theme]="settings.value().theme"
         [label]="mapLabel()"
       />
-      <rc-wind-badge class="wind" [headingUp]="settings.value().headingUp" />
+      <rc-wind-badge class="wind" [bearing]="bearing()" />
       <div class="map-buttons">
         <rc-compass
-          [heading]="heading.value()"
+          [bearing]="bearing()"
           [headingUp]="settings.value().headingUp"
           (toggle)="toggleHeadingUp()"
         />
@@ -74,7 +92,7 @@ import { WindBadge } from '../wind/wind-badge';
           type="button"
           class="map-btn"
           (click)="zoomBy(1)"
-          [disabled]="zoom() >= 18"
+          [disabled]="zoom() >= maxZoom"
           aria-label="Karte vergrößern"
         >
           +
@@ -83,13 +101,28 @@ import { WindBadge } from '../wind/wind-badge';
           type="button"
           class="map-btn"
           (click)="zoomBy(-1)"
-          [disabled]="zoom() <= 12"
+          [disabled]="zoom() <= minZoom"
           aria-label="Karte verkleinern"
         >
           −
         </button>
         <rc-bell variant="map" />
       </div>
+      @if (detached()) {
+        <button
+          type="button"
+          class="recenter"
+          (click)="recenter()"
+          aria-label="Zentrieren: zurück zum Standort, Zoom wieder nach Tempo"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M2 12h3M19 12h3M12 2v3M12 19v3" />
+            <circle cx="12" cy="12" r="7" />
+            <circle class="dot" cx="12" cy="12" r="3" />
+          </svg>
+          Zentrieren
+        </button>
+      }
       @if (settings.value().mapTiles) {
         <a
           class="attribution"
@@ -176,6 +209,36 @@ import { WindBadge } from '../wind/wind-badge';
     .map-btn:disabled {
       opacity: 0.4;
     }
+    /* Über der Quellenangabe, mittig: dort liegt der Daumen, und die Tastenspalte bleibt frei. */
+    .recenter {
+      position: absolute;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      min-height: 56px;
+      padding: 0 18px 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 2px solid var(--fg);
+      border-radius: 4px;
+      background: var(--bg);
+      font-family: var(--digits);
+      font-size: var(--t-l);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .recenter svg {
+      width: 26px;
+      height: 26px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.25;
+      stroke-linecap: round;
+    }
+    .recenter .dot {
+      fill: currentColor;
+    }
     .attribution {
       position: absolute;
       left: 0;
@@ -226,8 +289,36 @@ export class MapView {
   protected readonly heading = inject(Heading);
   private readonly ride = inject(RideRecorder);
   private readonly ticker = inject(Ticker);
+  private readonly view = inject(RideView);
+  private readonly speedZoom = new SpeedZoom();
+  private readonly autoZoom = signal(zoomForSpeed(0));
 
-  protected readonly zoom = inject(RideView).mapZoom;
+  protected readonly minZoom = MIN_ZOOM;
+  protected readonly maxZoom = MAX_ZOOM;
+
+  /** Mitfahren: Standort (ohne GPS der Routenstart), Zoom nach Tempo oder von Hand. */
+  private readonly followCamera = computed<MapCamera | null>(() => {
+    const pos = this.gps.fix();
+    const center = pos ?? this.guide.route()?.points[0];
+    if (!center) return null;
+    const heading = this.heading.value();
+    const up = this.settings.value().headingUp && pos && heading != null ? heading : null;
+    // In Fahrtrichtung sitzt der Standort im unteren Drittel: mehr Sicht nach vorn.
+    return cameraAt(
+      center.lat,
+      center.lon,
+      this.view.mapZoom() ?? this.autoZoom(),
+      up ?? 0,
+      up != null ? 0.66 : 0.5,
+    );
+  });
+  protected readonly camera = computed(() => this.view.mapFree() ?? this.followCamera());
+  protected readonly zoom = computed(() => this.camera()?.zoom ?? this.autoZoom());
+  /** Drehung der Karte: danach richten sich Kompassnadel und Windpfeil. */
+  protected readonly bearing = computed(() => this.camera()?.bearing ?? 0);
+  protected readonly detached = computed(
+    () => this.view.mapFree() != null || this.view.mapZoom() != null,
+  );
 
   protected readonly attribution = computed(
     () => (TILE_SOURCES[this.settings.value().mapStyle] ?? TILE_SOURCES.osm).attribution,
@@ -267,16 +358,55 @@ export class MapView {
 
   constructor() {
     this.gps.start();
+    // Der Takt hält die Glättung auch ohne neue Position in Gang (veraltet = Stillstand).
+    effect(() => {
+      this.ticker.now();
+      this.autoZoom.set(this.speedZoom.update(this.gps.speed(), Date.now()));
+    });
+    effect(() => {
+      const now = this.ticker.now();
+      if (
+        this.view.mapFree() &&
+        (this.gps.speed() ?? 0) > RETURN_MIN_SPEED &&
+        now - this.view.mapTouchedAt > RETURN_AFTER_MS
+      )
+        this.view.recenterMap();
+    });
   }
 
+  protected onUserCamera(cam: MapCamera | null): void {
+    if (!cam) return;
+    this.view.mapFree.set(cam);
+    this.view.mapTouchedAt = Date.now();
+  }
+
+  protected recenter(): void {
+    this.view.recenterMap();
+  }
+
+  /** Ganze Stufen, damit die Kacheln scharf bleiben. Beim Mitfahren bleibt die Karte dran. */
   protected zoomBy(delta: number): void {
-    this.zoom.update((z) => Math.min(18, Math.max(12, z + delta)));
+    const z = this.zoom();
+    const next = clampZoom(delta > 0 ? Math.floor(z + 1e-6) + delta : Math.ceil(z - 1e-6) + delta);
+    const free = this.view.mapFree();
+    if (free) {
+      this.view.mapFree.set({ ...free, zoom: next });
+      this.view.mapTouchedAt = Date.now();
+    } else {
+      this.view.mapZoom.set(next);
+    }
   }
 
-  /** Der Tipp auf den Kompass holt auf dem iPhone auch die Erlaubnis für den Kompass. */
+  /**
+   * Der Tipp auf den Kompass holt auf dem iPhone auch die Erlaubnis für den Kompass. Eine
+   * von Hand gedrehte Karte richtet er dabei gleich mit aus.
+   */
   protected toggleHeadingUp(): void {
     const headingUp = !this.settings.value().headingUp;
     if (headingUp) this.heading.enable();
     this.settings.patch({ headingUp });
+    const free = this.view.mapFree();
+    if (free)
+      this.view.mapFree.set({ ...free, bearing: headingUp ? (this.heading.value() ?? 0) : 0 });
   }
 }

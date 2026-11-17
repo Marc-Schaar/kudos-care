@@ -61,52 +61,69 @@ export class RouteGuide {
     this.setRoute(null);
   }
 
-  async loadGpx(file: File): Promise<boolean> {
-    return this.loadGpxText(await file.text(), file.name.replace(/\.gpx$/i, ''));
+  /*
+   * Laden und Starten sind getrennt: Die Routenplanung zeigt eine neue Route erst als
+   * Vorschau, geführt wird erst nach „Route starten“. Bis dahin läuft die alte weiter.
+   */
+
+  /** Liest eine Route aus einer GPX-Datei, ohne sie zu übernehmen. */
+  async routeFromFile(file: File): Promise<NavRoute | null> {
+    return this.routeFromGpx(await file.text(), file.name.replace(/\.gpx$/i, ''));
   }
 
-  /** Lädt eine Route aus GPX-Text, etwa aus einer Datei oder von Strava. */
-  loadGpxText(xml: string, fallbackName: string): boolean {
+  /** Liest eine Route aus GPX-Text, etwa aus einer Datei oder von Strava. */
+  routeFromGpx(xml: string, fallbackName: string): NavRoute | null {
     try {
       const gpx = parseGpx(xml, fallbackName);
-      this.setRoute(buildRoute(gpx.name, gpx.coords));
-      this.audio.say(`Route geladen: ${gpx.name}`);
-      return true;
+      return buildRoute(gpx.name, gpx.coords);
     } catch (err) {
       this.toasts.show(
         err instanceof Error ? err.message : 'Die GPX-Datei konnte nicht gelesen werden.',
       );
-      return false;
+      return null;
     }
   }
 
-  /** Zielführung vom aktuellen Standort. */
-  async navigateTo(place: Place, announce = true): Promise<boolean> {
+  /** Berechnet eine Route vom aktuellen Standort zum Ziel, ohne sie zu übernehmen. */
+  async plan(place: Place): Promise<NavRoute | null> {
     const from = this.gps.position() ?? this.gps.fix();
     if (!from) {
       this.gps.start();
       this.toasts.show('Noch kein Standort. Warte auf GPS und versuche es dann erneut.');
-      return false;
+      return null;
     }
     this.busy.set(true);
-    const generation = this.generation;
     try {
-      const route = await this.planner.plan(from, place);
-      if (generation !== this.generation) return false; // inzwischen wurde etwas anderes gewählt oder beendet
-      this.setRoute(route);
-      if (announce)
-        this.audio.say(
-          `Route berechnet: ${speakDistance(this.route()!.lengthM, false)} bis ${place.name.split(',')[0]}`,
-        );
-      return true;
+      return await this.planner.plan(from, place);
     } catch (err) {
       this.toasts.show(
         err instanceof Error ? err.message : 'Die Route konnte nicht berechnet werden.',
       );
-      return false;
+      return null;
     } finally {
       this.busy.set(false);
     }
+  }
+
+  /** Übernimmt eine Route in die Führung und sagt sie an. */
+  start(route: NavRoute): void {
+    this.setRoute(route);
+    const to = route.destination;
+    this.audio.say(
+      to
+        ? `Route berechnet: ${speakDistance(route.lengthM, false)} bis ${to.name.split(',')[0]}`
+        : `Route geladen: ${route.name}`,
+    );
+  }
+
+  /** Unterwegs: neue Route vom aktuellen Standort, ohne Vorschau. */
+  private async reroute(place: Place): Promise<boolean> {
+    const generation = this.generation;
+    const route = await this.plan(place);
+    // Inzwischen wurde etwas anderes gewählt oder die Route beendet.
+    if (!route || generation !== this.generation) return false;
+    this.setRoute(route);
+    return true;
   }
 
   private onFix(fix: GpsFix): void {
@@ -181,6 +198,6 @@ export class RouteGuide {
     )
       return;
     this.lastRerouteAt = now;
-    if (await this.navigateTo(route.destination, false)) this.audio.say('Route neu berechnet');
+    if (await this.reroute(route.destination)) this.audio.say('Route neu berechnet');
   }
 }

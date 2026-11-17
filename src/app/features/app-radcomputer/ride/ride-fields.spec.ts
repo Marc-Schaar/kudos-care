@@ -6,7 +6,15 @@ import { TrackAccumulator, liveClimb } from '../core/ride-metrics';
 import { emptyDraft } from '../core/ride-sync';
 import { sunTimes } from '../core/sun';
 import { tagsFor } from '../menu/save-page';
-import { DEFAULT_PAGES, FIELDS, effectivePages, fieldDef, pageLayout, powerZone } from './fields';
+import {
+  DEFAULT_PAGES,
+  FIELDS,
+  effectivePages,
+  fieldDef,
+  pageLayout,
+  powerReading,
+  powerZone,
+} from './fields';
 
 /** Trackpunkt je Sekunde: [t, lat, lon, alt, dist, hr, cad, pwr] */
 function point(
@@ -67,6 +75,16 @@ describe('Datenseiten', () => {
     expect(powerZone(1.0)).toBe(4);
     expect(powerZone(1.1)).toBe(5);
     expect(powerZone(2)).toBe(7);
+  });
+
+  it('gibt Leistungsfeldern die Zone für die Leitlinie mit', () => {
+    expect(powerReading(245, 260)).toEqual({ value: '245', zone: 4 });
+    expect(powerReading(400, 260)).toEqual({ value: '400', zone: 7 });
+  });
+
+  it('zeigt ohne Messwert keine Zone, statt Z7 zu behaupten', () => {
+    expect(powerReading(null, 260)).toEqual({ value: '--' });
+    expect(powerReading(Number.NaN, 260)).toEqual({ value: '--' });
   });
 });
 

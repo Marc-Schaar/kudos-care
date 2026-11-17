@@ -2,7 +2,8 @@ import { Component, computed, input, output } from '@angular/core';
 
 /**
  * Kompassnadel als Schalter für die Kartenausrichtung. Die gefüllte Spitze zeigt
- * immer nach Norden: In Fahrtrichtung dreht sie sich mit, bei Nord oben steht sie.
+ * immer nach Norden: In Fahrtrichtung dreht sie sich mit, bei Nord oben steht sie, und
+ * bei einer von Hand gedrehten Karte zeigt sie, wohin die Karte gedreht ist.
  */
 @Component({
   selector: 'rc-compass',
@@ -68,16 +69,12 @@ import { Component, computed, input, output } from '@angular/core';
   `,
 })
 export class Compass {
-  /** Kurs in Grad, 0 = Norden */
-  readonly heading = input<number | null>(null);
+  /** Drehung der Karte: Kurs, der oben liegt, in Grad (0 = Norden oben) */
+  readonly bearing = input(0);
   readonly headingUp = input(true);
   readonly toggle = output<void>();
 
-  protected readonly transform = computed(() => {
-    const heading = this.heading();
-    const deg = this.headingUp() && heading != null ? -heading : 0;
-    return `rotate(${deg} 24 24)`;
-  });
+  protected readonly transform = computed(() => `rotate(${-this.bearing()} 24 24)`);
 
   /** Beginnt mit dem Zustand, damit Sprachsteuerung und Screenreader ihn zuerst hören. */
   protected readonly label = computed(() =>

@@ -1,5 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
+import type { MapCamera } from '../nav/map-camera';
+
 /** Datenseiten heißen `data`, `data-1` …, dahinter die Karte und das Training. */
 export type RidePageKey = 'data' | `data-${number}` | 'map' | 'workout';
 
@@ -18,8 +20,15 @@ export class RideView {
   private timer: ReturnType<typeof setTimeout> | undefined;
 
   readonly page = signal<RidePageKey>('data');
-  /** Zoomstufe der Kartenseite, bleibt beim Blättern erhalten. */
-  readonly mapZoom = signal(16);
+  /**
+   * Kartenseite, bleibt beim Blättern erhalten. Ohne Eingriff folgt die Karte dem Standort
+   * und zoomt nach Tempo. `mapZoom` ist ein Zoom von Hand (Tasten) beim Mitfahren,
+   * `mapFree` eine verschobene oder gedrehte Karte, die nicht mehr mitfährt.
+   */
+  readonly mapZoom = signal<number | null>(null);
+  readonly mapFree = signal<MapCamera | null>(null);
+  /** Letzter Eingriff in die Karte (ms), für die Rückkehr zum Standort. */
+  mapTouchedAt = 0;
   /**
    * Eigener Timer statt des Sekundentakts: Am Ticker hinge das Ausblenden bis zu einer
    * Sekunde länger, als eingestellt ist.
@@ -28,6 +37,12 @@ export class RideView {
 
   show(page: RidePageKey): void {
     this.page.set(page);
+  }
+
+  /** Zurück zum Standort, Zoom wieder nach Tempo. */
+  recenterMap(): void {
+    this.mapFree.set(null);
+    this.mapZoom.set(null);
   }
 
   reveal(): void {

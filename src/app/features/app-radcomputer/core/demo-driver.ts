@@ -85,8 +85,8 @@ export class DemoDriver {
     });
   }
 
-  /** Kurze Zickzack-Strecke mit vier Abbiegungen. */
-  loadSampleRoute(): void {
+  /** Kurze Zickzack-Strecke mit vier Abbiegungen, zur Vorschau. */
+  sampleRoute(): NavRoute {
     const mPerDegLon = M_PER_DEG_LAT * Math.cos((51 * Math.PI) / 180);
     const legs: [number, number][] = [
       [0, 400],
@@ -109,10 +109,15 @@ export class DemoDriver {
       east += dE;
       north += dN;
     }
+    return buildRoute('Beispielroute', coords);
+  }
+
+  /** Startet die Beispielroute: die simulierte Fahrt beginnt an ihrem Anfang. */
+  loadSampleRoute(route: NavRoute = this.sampleRoute()): void {
     this.alongM = 0;
     this.segment = 0;
     this.offsetM = 0;
-    this.guide.setRoute(buildRoute('Beispielroute', coords));
+    this.guide.setRoute(route);
   }
 
   /** Kurzes Training mit Rampe und zwei Intervallen: in gut einer Minute durch. */

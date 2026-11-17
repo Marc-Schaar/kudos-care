@@ -419,6 +419,11 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
   verbunden, Raute Fehler). Der Abbiegehinweis ist **ein** Bauteil, `nav/cue-sign.ts`: ein
   Wegweiser-Schild, dessen Spitze in die Abbiegerichtung zeigt (Shell-Streifen und Karte),
   bei verlassener Route rot. Neue Hinweis-Anzeigen nehmen dieses Schild, keine eigene Kopie.
+  Leistungsfelder (Momentan, 3/10/30 s, Runde Ø) tragen die **Zonen-Leitlinie**: sieben
+  Striche Z1–Z7 unter der Zahl, die aktuelle Zone als Block (`FieldReading.zone` aus
+  `powerReading()`, gezeichnet in `ride/data-field.ts`) — dieselbe Sprache wie die
+  Seitenanzeige. **Bewusst ohne Zonenfarben**: Die Linie folgt dem Aufnahmezustand wie die
+  Ziffern (voll, Umriss, Gelb), sonst bräche die Regel „Farbe = Zustand“.
 - **Ein Paket, kein Lazy Loading innerhalb.** `radcomputer.routes.ts` importiert alle Seiten
   statisch: unterwegs ohne Netz darf kein Seitenwechsel an einem fehlenden Chunk scheitern.
 - **Pfade** in `core/paths.ts` (`RC`), analog zum NavigationService.
@@ -485,7 +490,30 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
   im iOS-Stummmodus aber still), als Taste in der Bedienleiste (`bellButton`), auf der Karte
   und als Datenfeld.
 - **Kartenbild** (`nav/map-canvas.ts::TILE_SOURCES`): CyclOSM (Standard), OpenTopoMap, OSM.
-  Über der höchsten Stufe eines Dienstes werden dessen Kacheln vergrößert.
+  Über der höchsten Stufe eines Dienstes werden dessen Kacheln vergrößert, bei Zoom mit
+  Nachkommastellen (Pinch) wird die Kachelstufe gerundet.
+- **Karte = Kamera** (`nav/map-camera.ts`, getestet): `rc-map` zeichnet, was `camera`
+  (Mitte in Web-Mercator, Zoom, `bearing` = Kurs oben, `anchorY`) vorgibt; ohne Kamera die
+  ganze Route (`fitCamera`). Gesten sitzen in `rc-map` selbst: ein Finger verschiebt, zwei
+  zoomen und drehen (Drehen erst ab 12° Verdrehung), Mausrad zoomt; jede Geste setzt
+  `camera` per `model()`. Ein Verschieben schluckt den folgenden `click`, sonst blendete die
+  Fahrtseite die Leiste ein. Auf der Karte blättert Wischen **nicht** mehr (`ride-page`
+  ignoriert Berührungen in `rc-map`), geblättert wird über Hinweis-Schild, Werteleiste und
+  Seitenstriche. Kompassnadel und Windpfeil lesen die Drehung der Karte (`bearing`), nicht
+  den Kurs.
+- **Kartenseite** (`nav/map-view.ts`): folgt dem Standort und zoomt nach Tempo
+  (`zoomForSpeed`: bis 12 km/h Stufe 17, bei 45 km/h 15, rund eine Minute Sicht nach vorn;
+  `SpeedZoom` glättet das Tempo über ~8 s und rastet in Viertelstufen). Zustand in
+  `RideView`, damit er das Blättern übersteht: `mapZoom` = Zoom von Hand per Taste, Karte
+  fährt weiter mit; `mapFree` = verschoben/gedreht, Karte steht. Beides blendet
+  „Zentrieren“ ein (`recenterMap()`: zurück zum Standort, Zoom wieder nach Tempo). Eine
+  verschobene Karte kehrt nach 20 s ohne Eingriff von selbst zurück, aber nur in Fahrt.
+- **Routenvorschau** (`nav/route-plan-page`): jede neue Route (GPX, Strava, Ziel, Demo)
+  erscheint erst als Ebene über der Liste mit der ganzen Strecke, Länge, Hinweisen und dem
+  Abstand zum Start; geführt wird erst nach „Route starten“. Dafür sind Laden und Starten
+  in `RouteGuide` getrennt (`routeFromGpx`/`routeFromFile`/`plan` liefern nur die Route,
+  `start()` übernimmt und sagt an); die laufende Route bleibt bis dahin unberührt. Die
+  Neuberechnung unterwegs geht ohne Vorschau.
 - `?demo` an der Adresse simuliert GPS und Sensoren (Beispielroute/-training im Menü).
 
 ## Routing (`core/app.routes.ts`, `maintenances.routes.ts`)

@@ -1,4 +1,4 @@
-<div class="scroll">
+<div class="scroll" [attr.inert]="pending() ? '' : null">
   <rc-sub-header title="Routenplanung" />
 
   <div class="stack">
@@ -7,6 +7,7 @@
         <span class="name">{{ route.name }}</span>
         <span class="hint">{{ fmtDistance(route.lengthM) }}, {{ route.cues.length }} Hinweise</span>
       </div>
+      <button type="button" class="btn" (click)="viewCurrent()">Ganze Route ansehen</button>
       <button type="button" class="btn" (click)="guide.clear()">Route beenden</button>
     } @else if (guide.busy()) {
       <p class="hint">Route wird berechnet …</p>
@@ -168,3 +169,49 @@
     </p>
   </div>
 </div>
+
+<!-- Zwischenschritt über der Liste: die ganze Route sehen, bevor die Führung beginnt. Die
+     Liste bleibt darunter stehen, „Zurück“ landet wieder an derselben Stelle. -->
+@if (pending(); as p) {
+  <section class="preview" aria-labelledby="preview-name">
+    <header class="preview-head">
+      <h2 id="preview-name" class="preview-name">{{ p.route.name }}</h2>
+      <p class="preview-meta">
+        {{ fmtDistance(p.route.lengthM) }} · {{ p.route.cues.length }} Hinweise
+        @if (startDistance(); as d) {
+          <span class="away">· Start {{ d }} entfernt</span>
+        }
+      </p>
+    </header>
+    <div class="preview-map">
+      <rc-map
+        [route]="p.route"
+        [position]="gps.fix()"
+        [heading]="heading.value()"
+        [(camera)]="previewCamera"
+        [showTiles]="settings.value().mapTiles"
+        [tileStyle]="settings.value().mapStyle"
+        [theme]="settings.value().theme"
+        [label]="'Ganze Route ' + p.route.name + ', ' + fmtDistance(p.route.lengthM)"
+      />
+      @if (previewCamera()) {
+        <button type="button" class="fit" (click)="previewCamera.set(null)">Ganze Route</button>
+      }
+      @if (settings.value().mapTiles) {
+        <a
+          class="attribution"
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noopener"
+          >{{ attribution() }}</a
+        >
+      }
+    </div>
+    <div class="preview-actions">
+      <button type="button" class="btn" (click)="closePreview()">Zurück</button>
+      <button type="button" class="btn primary" (click)="startPending()">
+        {{ p.source === 'current' ? 'Zur Karte' : 'Route starten' }}
+      </button>
+    </div>
+  </section>
+}

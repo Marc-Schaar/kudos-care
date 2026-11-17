@@ -1,12 +1,12 @@
 import { Component, computed, inject, input } from '@angular/core';
 
-import { Heading } from '../core/heading';
 import { Wind } from '../core/wind';
 import { WindArrow } from './wind-arrow';
 
 /**
  * Wind auf der Karte: Der Pfeil zeigt in der Ausrichtung der Karte, wohin der Wind weht,
- * darunter die Windstärke. Bei Fahrtrichtung oben entspricht das der Sicht des Fahrers.
+ * darunter die Windstärke. Bei Fahrtrichtung oben entspricht das der Sicht des Fahrers;
+ * eine von Hand gedrehte Karte dreht den Pfeil mit.
  */
 @Component({
   selector: 'rc-wind-badge',
@@ -52,18 +52,15 @@ import { WindArrow } from './wind-arrow';
 })
 export class WindBadge {
   protected readonly wind = inject(Wind);
-  private readonly heading = inject(Heading);
-  /** Dreht die Karte mit der Fahrtrichtung? */
-  readonly headingUp = input(true);
+  /** Drehung der Karte: Kurs, der oben liegt, in Grad (0 = Norden oben) */
+  readonly bearing = input(0);
 
   protected readonly kind = computed(() => this.wind.relative()?.kind ?? null);
   protected readonly speed = computed(() => Math.round(this.wind.current()?.speed_kmh ?? 0));
 
   protected readonly rotation = computed(() => {
     const from = this.wind.current()?.direction_deg ?? 0;
-    const heading = this.heading.value();
-    const mapUp = this.headingUp() && heading != null ? heading : 0;
-    return (from + 180 - mapUp + 720) % 360;
+    return (((from + 180 - this.bearing()) % 360) + 360) % 360;
   });
 
   protected readonly label = computed(() => {
