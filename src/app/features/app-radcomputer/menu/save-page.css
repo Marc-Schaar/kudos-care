@@ -194,7 +194,7 @@
   align-items: center;
   gap: 8px;
   border: 2px solid var(--edge);
-  border-radius: 24px;
+  border-radius: 4px;
   font-family: var(--digits);
   font-size: var(--t-l);
   font-weight: 700;
@@ -309,4 +309,71 @@ textarea.description:focus {
   background: var(--panel);
   font-size: var(--t-m);
   line-height: 1.4;
+}
+
+/* Radwahl: eine Platte je Rad, gewählt = gefüllt wie die Tags. */
+.bikes {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+.bikes legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+}
+.bike {
+  position: relative;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 2px solid var(--edge);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.bike input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.bike::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+.bike.on {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+.bike.on::before {
+  background: currentColor;
+}
+.bike:has(input:focus-visible) {
+  outline: 3px solid var(--fg);
+  outline-offset: 2px;
+}
+.bike-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+}
+.bikes .hint {
+  margin-top: 2px;
 }

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 
 import { DataPageConfig } from '../core/models';
 import { RC } from '../core/paths';
@@ -32,100 +32,134 @@ function fieldLabel(key: string): string {
       <rc-sub-header title="Datenseiten" [back]="rc.settings" backLabel="Einstellungen" />
 
       <p class="hint intro">
-        Das erste Feld einer Seite steht groß, die übrigen paarweise darunter. Bis zu
-        {{ maxFields }} Felder je Seite, bis zu {{ maxPages }} Seiten. Karte und Training kommen
-        immer dahinter.
+        Das erste Feld steht groß, die übrigen paarweise darunter. Bis zu {{ maxFields }} Felder je
+        Seite und {{ maxPages }} Seiten; Karte und Training kommen immer dahinter.
       </p>
 
       @for (page of pages(); track $index; let p = $index) {
-        <section class="page" [attr.aria-label]="'Seite ' + (p + 1) + ': ' + page.name">
-          <div class="page-head">
+        <section
+          class="page"
+          [class.open]="open() === p"
+          [attr.aria-label]="'Seite ' + (p + 1) + ': ' + page.name"
+        >
+          <!-- Zugeklappt zeigt jede Seite nur Name und Vorschau; bearbeitet wird eine zur
+               Zeit. So bleibt die Liste kurz genug, um die Reihenfolge zu überblicken. -->
+          <button
+            type="button"
+            class="page-toggle"
+            [attr.aria-expanded]="open() === p"
+            [attr.aria-controls]="'page-body-' + p"
+            (click)="toggle(p)"
+          >
             <span class="page-no digits">{{ p + 1 }}</span>
-            <input
-              class="page-name"
-              type="text"
-              maxlength="20"
-              [value]="page.name"
-              [attr.aria-label]="'Name der Seite ' + (p + 1)"
-              (change)="rename(p, $event)"
-            />
-          </div>
+            <span class="page-title">
+              <span class="page-label">{{ page.name }}</span>
+              <span class="page-count"
+                >{{ page.fields.length }} {{ page.fields.length === 1 ? 'Feld' : 'Felder' }}</span
+              >
+            </span>
+            <span class="page-action">{{ open() === p ? 'Fertig' : 'Bearbeiten' }}</span>
+          </button>
 
           <!-- Vorschau im Seitenraster: so wird die Seite auf der Fahrt aufgeteilt. -->
-          <div class="preview" aria-hidden="true" [style.grid-template-rows]="layout(page).rows">
+          <div
+            class="preview"
+            aria-hidden="true"
+            [style.grid-template-rows]="layout(page).rows"
+            (click)="open() === p || toggle(p)"
+          >
             @for (key of page.fields; track $index; let f = $index) {
-              <span [class.full]="layout(page).sizes[f] !== 'normal'">{{ label(key) }}</span>
+              <span
+                [class.full]="layout(page).sizes[f] !== 'normal'"
+                [class.hero]="layout(page).sizes[f] === 'hero'"
+                >{{ label(key) }}</span
+              >
             }
           </div>
 
-          <ol class="fields">
-            @for (key of page.fields; track $index; let f = $index) {
-              <li>
-                <span class="field-name">{{ label(key) }}</span>
-                <button
-                  type="button"
-                  class="mini"
-                  [disabled]="f === 0"
-                  [attr.aria-label]="label(key) + ' nach oben'"
-                  (click)="moveField(p, f, -1)"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg>
-                </button>
-                <button
-                  type="button"
-                  class="mini"
-                  [disabled]="f === page.fields.length - 1"
-                  [attr.aria-label]="label(key) + ' nach unten'"
-                  (click)="moveField(p, f, 1)"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
-                </button>
-                <button
-                  type="button"
-                  class="mini"
-                  [disabled]="page.fields.length === 1"
-                  [attr.aria-label]="label(key) + ' entfernen'"
-                  (click)="removeField(p, f)"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6 6l12 12M18 6L6 18" />
-                  </svg>
-                </button>
-              </li>
-            }
-          </ol>
+          @if (open() === p) {
+            <div class="page-body" [id]="'page-body-' + p">
+              <div class="form-row">
+                <label [attr.for]="'name-' + p">Name der Seite</label>
+                <input
+                  [id]="'name-' + p"
+                  type="text"
+                  maxlength="20"
+                  [value]="page.name"
+                  (change)="rename(p, $event)"
+                />
+              </div>
 
-          @if (page.fields.length < maxFields) {
-            <div class="form-row">
-              <label [attr.for]="'add-' + p">Feld hinzufügen</label>
-              <select [id]="'add-' + p" (change)="addField(p, $event)">
-                <option value="" selected>Feld wählen …</option>
-                @for (group of groups; track group) {
-                  <optgroup [label]="group">
-                    @for (field of fieldsIn(group); track field.key) {
-                      <option [value]="field.key">
-                        {{ field.label }}{{ field.hint ? ' – ' + field.hint : '' }}
-                      </option>
-                    }
-                  </optgroup>
+              <ol class="fields">
+                @for (key of page.fields; track $index; let f = $index) {
+                  <li>
+                    <span class="field-name">{{ label(key) }}</span>
+                    <button
+                      type="button"
+                      class="mini"
+                      [disabled]="f === 0"
+                      [attr.aria-label]="label(key) + ' nach oben'"
+                      (click)="moveField(p, f, -1)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="mini"
+                      [disabled]="f === page.fields.length - 1"
+                      [attr.aria-label]="label(key) + ' nach unten'"
+                      (click)="moveField(p, f, 1)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="mini"
+                      [disabled]="page.fields.length === 1"
+                      [attr.aria-label]="label(key) + ' entfernen'"
+                      (click)="removeField(p, f)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6L6 18" />
+                      </svg>
+                    </button>
+                  </li>
                 }
-              </select>
+              </ol>
+
+              @if (page.fields.length < maxFields) {
+                <div class="form-row">
+                  <label [attr.for]="'add-' + p">Feld hinzufügen</label>
+                  <select [id]="'add-' + p" (change)="addField(p, $event)">
+                    <option value="" selected>Feld wählen …</option>
+                    @for (group of groups; track group) {
+                      <optgroup [label]="group">
+                        @for (field of fieldsIn(group); track field.key) {
+                          <option [value]="field.key">
+                            {{ field.label }}{{ field.hint ? ' – ' + field.hint : '' }}
+                          </option>
+                        }
+                      </optgroup>
+                    }
+                  </select>
+                </div>
+              }
+
+              <div class="page-actions">
+                <button type="button" class="btn" [disabled]="p === 0" (click)="movePage(p, -1)">
+                  Nach vorn
+                </button>
+                <button
+                  type="button"
+                  class="btn danger"
+                  [disabled]="pages().length === 1"
+                  (click)="removePage(p)"
+                >
+                  Seite löschen
+                </button>
+              </div>
             </div>
           }
-
-          <div class="page-actions">
-            <button type="button" class="btn" [disabled]="p === 0" (click)="movePage(p, -1)">
-              Nach vorn
-            </button>
-            <button
-              type="button"
-              class="btn danger"
-              [disabled]="pages().length === 1"
-              (click)="removePage(p)"
-            >
-              Seite löschen
-            </button>
-          </div>
         </section>
       }
 
@@ -150,46 +184,73 @@ function fieldLabel(key: string): string {
       margin-bottom: 20px;
     }
     .page {
-      padding: 14px 0 18px;
+      padding: 12px 0 16px;
       border-top: 2px solid var(--fg);
       display: grid;
-      gap: 12px;
+      gap: 10px;
     }
-    .page-head {
-      display: flex;
+    .page-toggle {
+      min-height: 56px;
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr) auto;
       align-items: center;
       gap: 12px;
+      text-align: left;
     }
     .page-no {
       width: 40px;
       height: 40px;
-      flex: none;
       display: grid;
       place-items: center;
+      border: 2px solid var(--fg);
       border-radius: 4px;
-      background: var(--fg);
-      color: var(--bg);
       font-size: var(--t-xl);
     }
-    .page-name {
-      flex: 1;
+    /* Die Seite, die man gerade bearbeitet: Nummernschild gefüllt, wie gesetzte Einträge
+       im Menü. */
+    .page.open .page-no {
+      background: var(--fg);
+      color: var(--bg);
+    }
+    .page-title {
+      display: grid;
+      gap: 2px;
       min-width: 0;
-      min-height: 52px;
-      padding: 0 12px;
-      border: 2px solid var(--edge);
-      border-radius: 4px;
-      background: var(--bg);
+    }
+    .page-label {
       font-family: var(--digits);
       font-size: var(--t-xl);
       font-weight: 700;
+      line-height: 1.1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .page-name:focus {
+    .page-count {
+      font-size: var(--t-s);
+      color: var(--muted);
+    }
+    .page-action {
+      min-height: 44px;
+      padding: 0 12px;
+      border: 2px solid var(--edge);
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      font-family: var(--digits);
+      font-size: var(--t-m);
+      font-weight: 700;
+    }
+    .page.open .page-action {
       border-color: var(--fg);
-      outline: none;
+    }
+    .page-body {
+      display: grid;
+      gap: 12px;
     }
     /* Kleines Abbild der Fahrtseite, Haarlinien wie dort. */
     .preview {
-      height: 150px;
+      height: 132px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1px;
@@ -211,9 +272,17 @@ function fieldLabel(key: string): string {
     .preview span.full {
       grid-column: 1 / -1;
     }
-    .preview span:first-child {
+    .preview {
+      cursor: pointer;
+    }
+    .page.open .preview {
+      cursor: default;
+    }
+    .preview span.hero {
+      display: grid;
+      align-content: center;
       color: var(--fg);
-      font-size: var(--t-m);
+      font-size: var(--t-l);
     }
     .fields {
       margin: 0;
@@ -276,6 +345,12 @@ export class DataPagesPage {
 
   protected readonly pages = computed(() => effectivePages(this.settings.value().dataPages));
   protected readonly custom = computed(() => this.settings.value().dataPages.length > 0);
+  /** Index der Seite, die gerade bearbeitet wird; `null` = alle zugeklappt. */
+  protected readonly open = signal<number | null>(null);
+
+  protected toggle(p: number): void {
+    this.open.update((o) => (o === p ? null : p));
+  }
 
   protected fieldsIn(group: string) {
     return FIELDS.filter((f) => f.group === group);
@@ -314,24 +389,29 @@ export class DataPagesPage {
   }
 
   protected movePage(p: number, delta: number): void {
-    this.save(move(this.pages(), p, delta));
+    const before = this.pages();
+    const after = move(before, p, delta);
+    this.save(after);
+    if (after !== before) this.open.set(p + delta);
   }
 
   protected removePage(p: number): void {
-    if (this.pages().length > 1) this.save(this.pages().filter((_, i) => i !== p));
+    if (this.pages().length > 1) {
+      this.save(this.pages().filter((_, i) => i !== p));
+      this.open.set(null);
+    }
   }
 
   protected addPage(): void {
     const n = this.pages().length;
-    if (n < MAX_PAGES)
-      this.save([
-        ...this.pages(),
-        { name: `Seite ${n + 1}`, fields: ['speed', 'distance', 'time'] },
-      ]);
+    if (n >= MAX_PAGES) return;
+    this.save([...this.pages(), { name: `Seite ${n + 1}`, fields: ['speed', 'distance', 'time'] }]);
+    this.open.set(n);
   }
 
   protected resetPages(): void {
     this.save([]);
+    this.open.set(null);
   }
 }
 

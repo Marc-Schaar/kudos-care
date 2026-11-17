@@ -112,21 +112,47 @@
         blendet sie sofort aus.
       </p>
     }
-    <button type="button" class="btn" (click)="lockScreen()">Bildschirm sperren (Regen)</button>
-    <p class="hint">
-      Gesperrt lösen Tropfen nichts mehr aus. Zum Entsperren das Schloss gut eine Sekunde gedrückt
-      halten. Das Schloss oben in der Leiste sperrt auch direkt.
-    </p>
-    @if (lock.fullscreenSupported) {
-      <button type="button" class="btn" (click)="lock.toggleFullscreen()">
-        {{ lock.fullscreen() ? 'Vollbild beenden' : 'Vollbild' }}
+    <!-- Zwei Werkzeuge für unterwegs, gebaut wie die Sensor-Tasten: Name oben, was es tut
+         darunter. -->
+    <div class="tools">
+      <button type="button" class="tool" (click)="lockScreen()">
+        <span class="tool-head">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 11h12v10H6zM9 11V7a3 3 0 0 1 6 0v4" />
+          </svg>
+          Sperren
+        </span>
+        <span class="tool-sub">Für Regen. Lösen: Schloss 1 s halten</span>
       </button>
-    } @else {
-      <p class="hint">
-        Vollbild: Dieser Browser lässt Webseiten nicht ins Vollbild. Auf dem iPhone ist das die
-        Regel, dort gibt iOS Vollbild meist nur für Videos frei.
-      </p>
-    }
+      @if (lock.fullscreenSupported) {
+        <button
+          type="button"
+          class="tool"
+          [attr.aria-pressed]="lock.fullscreen()"
+          (click)="lock.toggleFullscreen()"
+        >
+          <span class="tool-head">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
+            </svg>
+            Vollbild
+          </span>
+          <span class="tool-sub">{{
+            lock.fullscreen() ? 'An, tippen zum Beenden' : 'Ohne Browserleisten'
+          }}</span>
+        </button>
+      } @else {
+        <div class="tool off">
+          <span class="tool-head">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
+            </svg>
+            Vollbild
+          </span>
+          <span class="tool-sub">Gibt dieser Browser nicht frei</span>
+        </div>
+      }
+    </div>
   </div>
 
   <!-- Ausgang aus dem Radcomputer: abgesetzt, damit man ihn nicht mit einer Unterseite verwechselt. -->

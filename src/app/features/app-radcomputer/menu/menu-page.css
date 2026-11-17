@@ -210,3 +210,54 @@
 .exit:active {
   background: var(--panel);
 }
+
+/* Werkzeuge: Sperren und Vollbild nebeneinander, gebaut wie die Sensor-Tasten. */
+.tools {
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.tool {
+  min-height: 84px;
+  padding: 10px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  display: grid;
+  align-content: space-between;
+  gap: 6px;
+  text-align: left;
+}
+.tool:active {
+  background: var(--panel);
+}
+.tool[aria-pressed='true'] {
+  border-color: var(--fg);
+}
+.tool.off {
+  border-style: dashed;
+  color: var(--muted);
+}
+.tool-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+}
+.tool-head svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+.tool-sub {
+  font-size: var(--t-s);
+  line-height: 1.25;
+  color: var(--muted);
+}

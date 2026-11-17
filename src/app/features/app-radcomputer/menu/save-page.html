@@ -130,20 +130,54 @@
       </div>
 
       @if (bikes().length) {
-        <div class="form-row">
-          <label for="up-bike">Rad</label>
-          <!-- [selected] je Option statt [value] am select: die Optionen entstehen erst
-               nach der Bindung, ein früh gesetzter Wert ginge sonst verloren. -->
-          <select id="up-bike" (change)="setBike($event)">
-            <option value="" [selected]="!dr.gearId">Standardrad bei Strava</option>
+        @if (bikes().length <= maxBikePlates) {
+          <!-- Wenige Räder: alle sichtbar, gewählt = gefüllt. Die Wahl entscheidet, welche
+               Teile die Kilometer bekommen, deshalb nicht hinter einem Dropdown. -->
+          <fieldset class="bikes">
+            <legend>Rad</legend>
+            <label class="bike" [class.on]="!dr.gearId">
+              <input
+                type="radio"
+                name="up-bike"
+                value=""
+                [checked]="!dr.gearId"
+                (change)="pickBike('')"
+              />
+              <span class="bike-name">Standardrad bei Strava</span>
+            </label>
             @for (bike of bikes(); track bike.id) {
-              <option [value]="bike.strava_bike_id" [selected]="bike.strava_bike_id === dr.gearId">
-                {{ bike.name }}
-              </option>
+              <label class="bike" [class.on]="bike.strava_bike_id === dr.gearId">
+                <input
+                  type="radio"
+                  name="up-bike"
+                  [value]="bike.strava_bike_id"
+                  [checked]="bike.strava_bike_id === dr.gearId"
+                  (change)="pickBike(bike.strava_bike_id ?? '')"
+                />
+                <span class="bike-name">{{ bike.name }}</span>
+              </label>
             }
-          </select>
-          <span class="hint">Bestimmt, welche Teile in Kudos Care die Kilometer bekommen.</span>
-        </div>
+            <span class="hint">Bestimmt, welche Teile in Kudos Care die Kilometer bekommen.</span>
+          </fieldset>
+        } @else {
+          <div class="form-row">
+            <label for="up-bike">Rad</label>
+            <!-- [selected] je Option statt [value] am select: die Optionen entstehen erst
+                 nach der Bindung, ein früh gesetzter Wert ginge sonst verloren. -->
+            <select id="up-bike" (change)="setBike($event)">
+              <option value="" [selected]="!dr.gearId">Standardrad bei Strava</option>
+              @for (bike of bikes(); track bike.id) {
+                <option
+                  [value]="bike.strava_bike_id"
+                  [selected]="bike.strava_bike_id === dr.gearId"
+                >
+                  {{ bike.name }}
+                </option>
+              }
+            </select>
+            <span class="hint">Bestimmt, welche Teile in Kudos Care die Kilometer bekommen.</span>
+          </div>
+        }
       }
 
       <div class="form-row">
@@ -248,8 +282,8 @@
       </button>
       @if (!exported()) {
         <p class="hint">
-          Für Garmin Connect: Garmin nimmt Fahrten fremder Apps nicht direkt an. Exportiere die
-          Datei und lade sie in Garmin Connect im Browser über „Importieren“ hoch.
+          Für Garmin Connect: Datei exportieren und dort im Browser über „Importieren“ hochladen.
+          Direkt nimmt Garmin keine Fahrten fremder Apps an.
         </p>
       }
     </div>

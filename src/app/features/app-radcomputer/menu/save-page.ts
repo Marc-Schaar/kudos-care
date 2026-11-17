@@ -94,6 +94,8 @@ export class SavePage {
   protected readonly discardArmed = signal(false);
   protected readonly done = signal<DoneSummary | null>(null);
   protected readonly bikes = signal<KudosBike[]>([]);
+  /** Bis zu so vielen Rädern stehen alle als Platten da, darüber ein Auswahlfeld. */
+  protected readonly maxBikePlates = 4;
   protected readonly draft = this.sync.draft;
   private discardTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -156,7 +158,10 @@ export class SavePage {
   }
 
   protected setBike(event: Event): void {
-    const gearId = (event.target as HTMLSelectElement).value;
+    this.pickBike((event.target as HTMLSelectElement).value);
+  }
+
+  protected pickBike(gearId: string): void {
     const bike = this.bikes().find((b) => b.strava_bike_id === gearId);
     if (bike) this.applyBike(bike);
     else this.draft.update((d) => ({ ...d, gearId: '' }));

@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { fmtDistance, fmtTime, num } from '../core/format';
 import { Gps } from '../core/gps';
-import { RideDisplayState, Settings, SensorState } from '../core/models';
+import { AudioMode, RideDisplayState, Settings, SensorState } from '../core/models';
 import { RideRecorder } from '../core/ride-recorder';
 import { Sensors } from '../core/sensors';
 import { SettingsStore } from '../core/settings-store';
@@ -11,6 +11,7 @@ import { Strava } from '../core/strava';
 import { Toasts } from '../core/toasts';
 import { TouchLock } from '../core/touch-lock';
 import { RouteGuide } from '../nav/route-guide';
+import { effectivePages } from '../ride/fields';
 import { WorkoutPlayer } from '../workout/workout-player';
 import { RC } from '../core/paths';
 import { NavigationService } from '../../../shared/services/navigation-service/navigation-service';
@@ -20,6 +21,12 @@ const SENSOR_TEXT: Record<SensorState, string> = {
   busy: 'sucht …',
   on: 'verbunden',
   err: 'Fehler, erneut tippen',
+};
+
+const AUDIO_TEXT: Record<AudioMode, string> = {
+  speech: 'Ansagen',
+  beep: 'nur Töne',
+  off: 'Ton aus',
 };
 
 const RIDE_STATE_TEXT: Record<RideDisplayState, string> = {
@@ -84,10 +91,17 @@ export class MenuPage {
     const stats = this.ride.stats();
     return `${fmtTime(stats.movingMs)}, ${num(stats.distanceM / 1000, 1)} km`;
   });
+  /** Wie die anderen Einträge: der aktuelle Stand statt einer Inhaltsangabe. */
   protected readonly settingsText = computed(() => {
-    return this.strava.canUpload()
-      ? 'Datenseiten, Karte, Klingel, Ton, Auto-Pause'
-      : 'Strava-Upload freischalten, Datenseiten, Karte, Ton';
+    const s = this.settings.value();
+    const pages = effectivePages(s.dataPages).length;
+    const parts = [
+      s.theme === 'night' ? 'Nacht' : 'Tag',
+      `${pages} ${pages === 1 ? 'Datenseite' : 'Datenseiten'}`,
+      AUDIO_TEXT[s.audio],
+    ];
+    if (!this.strava.canUpload()) parts.unshift('Strava-Upload fehlt');
+    return parts.join(', ');
   });
 
   protected toggle(key: DisplayToggle, event: Event): void {
