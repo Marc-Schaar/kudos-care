@@ -27,6 +27,9 @@ export const DEFAULT_SETTINGS: Settings = {
   routingProfile: 'trekking',
   showStatusBar: true,
   showControls: true,
+  bellButton: true,
+  mapStyle: 'cyclosm',
+  dataPages: [],
 };
 
 /** Feldnamen im Frontend ↔ in der API (GET|PUT /api/radcomputer/settings/). */
@@ -45,6 +48,9 @@ const API_FIELDS: Record<keyof Settings, string> = {
   routingProfile: 'routing_profile',
   showStatusBar: 'show_status_bar',
   showControls: 'show_controls',
+  bellButton: 'bell_button',
+  mapStyle: 'map_style',
+  dataPages: 'data_pages',
 };
 
 type ApiSettings = Record<string, unknown> & { stored?: boolean };

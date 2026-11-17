@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { AudioFeedback } from './audio-feedback';
-import { speakDuration } from './format';
+import { num, speakDuration } from './format';
 import { haversine } from './geo';
 import { Gps } from './gps';
 import { GpsFix, Lap, RideDisplayState, RideStats, RideStatus, TrackPoint } from './models';
@@ -13,7 +13,21 @@ import { store } from './storage';
 import { Ticker } from './ticker';
 import { Toasts } from './toasts';
 
-const RIDE_KEY = 'radcomputer.ride.v2';
+/**
+ * Die laufende Fahrt liegt in Stücken im localStorage: ein kleiner Kopf (Zustand, Zahlen,
+ * Runden) und der Track in Stücken zu je `CHUNK` Punkten. Gesichert wird alle
+ * `PERSIST_EVERY` Sekunden, und dabei nur das Stück, das gerade wächst — vorher wurde alle
+ * 20 s die ganze Fahrt neu geschrieben, nach drei Stunden fast ein Megabyte je Sicherung.
+ * Beendet der Browser den Tab, fehlen so höchstens ein paar Sekunden.
+ */
+const META_KEY = 'radcomputer.ride.v3';
+const chunkKey = (i: number): string => `radcomputer.ride.v3.${i}`;
+/** Früheres Format: alles in einem Schlüssel. Wird beim Start übernommen. */
+const LEGACY_KEY = 'radcomputer.ride.v2';
+/** Punkte je Stück: fünf Minuten Aufzeichnung, rund 20 kB. */
+const CHUNK = 300;
+/** Sekunden zwischen zwei Sicherungen. */
+const PERSIST_EVERY = 5;
 /** Unterhalb davon zählt GPS-Zappeln im Stand nicht als Strecke (m/s). */
 const MOVING = 0.8;
 /** Die Auto-Pause endet erst etwas über der Schwelle, damit sie nicht flattert (m/s). */
@@ -24,6 +38,15 @@ interface SavedRide {
   stats: RideStats;
   laps: Lap[];
   track: TrackPoint[];
+}
+
+interface SavedMeta {
+  status: RideStatus;
+  stats: RideStats;
+  laps: Lap[];
+  /** So viele Trackpunkte gehören dazu, verteilt auf `chunks` Stücke. */
+  points: number;
+  chunks: number;
 }
 
 type RideTickListener = (dtMs: number, counting: boolean) => void;
@@ -64,6 +87,10 @@ export class RideRecorder {
   private prevFix: GpsFix | null = null;
   private refAlt: number | null = null;
   private ticks = 0;
+  /** So viele volle Stücke liegen schon im Speicher und ändern sich nicht mehr. */
+  private flushedChunks = 0;
+  /** Höchste Stückzahl, die im Speicher liegen kann: so weit räumt `reset()` auf. */
+  private storedChunks = 0;
 
   readonly status = signal<RideStatus>('idle');
   readonly stats = signal<RideStats>(emptyStats());
@@ -83,7 +110,11 @@ export class RideRecorder {
     this.restore();
     this.gps.onFix((fix) => this.onFix(fix));
     this.ticker.onTick((now, dt) => this.advance(now, dt));
-    this.doc.defaultView?.addEventListener('pagehide', () => this.persist());
+    // Safari meldet das Schließen über pagehide, Chrome friert Tabs mit freeze ein.
+    const win = this.doc.defaultView;
+    win?.addEventListener('pagehide', () => this.persist());
+    win?.addEventListener('beforeunload', () => this.persist());
+    this.doc.addEventListener('freeze', () => this.persist());
     this.doc.addEventListener('visibilitychange', () => {
       if (this.doc.visibilityState === 'hidden') this.persist();
     });
@@ -126,6 +157,7 @@ export class RideRecorder {
     const prev = this.currentLap();
     const stats = this.stats();
     this.laps.update((laps) => [...laps, newLap(this.track.length, stats, label)]);
+    this.persist();
     if (announce && this.settings.value().lapAnnouncements) {
       const avg = prev.pwrN ? `, ${Math.round(prev.pwrSum / prev.pwrN)} Watt` : '';
       this.audio.say(
@@ -149,7 +181,7 @@ export class RideRecorder {
     this.trackLength.set(0);
     this.refAlt = null;
     this.wake.keepAwake(false);
-    store.del(RIDE_KEY);
+    this.clearStored();
   }
 
   /** Momentaufnahme für Export und Upload. */
@@ -157,12 +189,41 @@ export class RideRecorder {
     return { status: this.status(), stats: this.stats(), laps: this.laps(), track: this.track };
   }
 
+  /**
+   * Sichert die Fahrt. Erst die Stücke, dann der Kopf: Scheitert ein Stück (Speicher voll),
+   * bleibt der alte Kopf stehen und verweist nur auf Stücke, die es vollständig gibt.
+   */
   persist(): void {
-    if (this.status() !== 'idle') store.set(RIDE_KEY, this.snapshot());
+    if (this.status() === 'idle') return;
+    const points = this.track.length;
+    const chunks = Math.ceil(points / CHUNK);
+    for (let i = this.flushedChunks; i < chunks; i++) {
+      if (!store.set(chunkKey(i), this.track.slice(i * CHUNK, (i + 1) * CHUNK))) return;
+    }
+    this.flushedChunks = Math.floor(points / CHUNK);
+    this.storedChunks = Math.max(this.storedChunks, chunks);
+    const meta: SavedMeta = {
+      status: this.status(),
+      stats: this.stats(),
+      laps: this.laps(),
+      points,
+      chunks,
+    };
+    store.set(META_KEY, meta);
+  }
+
+  private clearStored(): void {
+    const meta = store.get<SavedMeta>(META_KEY);
+    const chunks = Math.max(this.storedChunks, meta?.chunks ?? 0);
+    for (let i = 0; i < chunks; i++) store.del(chunkKey(i));
+    store.del(META_KEY);
+    store.del(LEGACY_KEY);
+    this.flushedChunks = 0;
+    this.storedChunks = 0;
   }
 
   private restore(): void {
-    const saved = store.get<SavedRide>(RIDE_KEY);
+    const saved = this.readStored();
     if (
       !saved ||
       saved.status === 'idle' ||
@@ -176,7 +237,31 @@ export class RideRecorder {
     this.track = saved.track;
     this.trackLength.set(saved.track.length);
     this.status.set('paused');
-    this.toasts.show('Letzte Fahrt wiederhergestellt. Sie ist pausiert.');
+    // Altes Format gleich in Stücke umschreiben, dann ist es nur noch an einer Stelle.
+    if (store.get(LEGACY_KEY)) {
+      this.persist();
+      store.del(LEGACY_KEY);
+    }
+    const km = num(this.stats().distanceM / 1000, 1);
+    this.toasts.show(`Fahrt wiederhergestellt: ${km} km. Pausiert, weiter mit „Weiter“.`, 6000);
+  }
+
+  private readStored(): SavedRide | null {
+    const meta = store.get<SavedMeta>(META_KEY);
+    if (!meta) return store.get<SavedRide>(LEGACY_KEY);
+    const track: TrackPoint[] = [];
+    for (let i = 0; i < meta.chunks; i++) {
+      const chunk = store.get<TrackPoint[]>(chunkKey(i));
+      // Fehlt ein Stück, endet der Track davor: lieber kürzer als mit einem Loch.
+      if (!Array.isArray(chunk)) break;
+      track.push(...chunk);
+    }
+    track.length = Math.min(track.length, meta.points);
+    this.flushedChunks = Math.floor(track.length / CHUNK);
+    this.storedChunks = meta.chunks;
+    // Runden, die hinter einem fehlenden Stück begannen, zeigen sonst ins Leere.
+    const laps = meta.laps.filter((lap, i) => i === 0 || lap.trackIdx <= track.length);
+    return { status: meta.status, stats: meta.stats, laps, track };
   }
 
   private counting(): boolean {
@@ -255,7 +340,7 @@ export class RideRecorder {
       this.trackLength.set(this.track.length);
     }
     this.ticks += 1;
-    if (this.ticks % 20 === 0) this.persist();
+    if (this.ticks % PERSIST_EVERY === 0) this.persist();
     for (const listener of this.tickListeners) listener(dtMs, counting);
   }
 

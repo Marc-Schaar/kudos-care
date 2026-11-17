@@ -32,8 +32,19 @@
   font-weight: 500;
   color: var(--muted);
 }
-.clock {
+.chip.lock {
   margin-left: auto;
+  padding: 0 10px;
+}
+.chip.lock svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+.clock {
   font-size: var(--t-xl);
 }
 
@@ -99,6 +110,9 @@ main {
   padding: 6px;
   border-top: 1px solid var(--line);
   background: var(--bg);
+}
+.controls.with-bell {
+  grid-template-columns: 68px 68px 1fr 1.6fr;
 }
 .controls .btn {
   min-height: 60px;

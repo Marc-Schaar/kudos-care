@@ -8,6 +8,7 @@ export const RC = {
   training: `${BASE}/menue/training`,
   save: `${BASE}/menue/speichern`,
   settings: `${BASE}/menue/einstellungen`,
+  dataPages: `${BASE}/menue/einstellungen/datenseiten`,
 } as const;
 
 /**

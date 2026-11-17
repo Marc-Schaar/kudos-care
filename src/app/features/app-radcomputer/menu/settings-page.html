@@ -13,8 +13,8 @@
       </p>
     } @else {
       <p class="hint">
-        Bei der Anmeldung wurde das Hochladen zu Strava nicht erlaubt. Zum Hochladen von Fahrten
-        und für private Routen braucht die App diese Erlaubnis von Strava.
+        Bei der Anmeldung wurde das Hochladen zu Strava nicht erlaubt. Zum Hochladen von Fahrten und
+        für private Routen braucht die App diese Erlaubnis von Strava.
       </p>
       <button
         type="button"
@@ -30,9 +30,9 @@
   <h2 class="section-title">Wind</h2>
   <div class="stack">
     <p class="hint">
-      Für die Windanzeige schickt Kudos Care deinen ungefähren Standort (auf etwa 1 km gerundet)
-      an den Wetterdienst Open-Meteo. Dieselbe Einwilligung gilt für das Wetter deiner Fahrten in
-      Kudos Care.
+      Für die Windanzeige schickt Kudos Care deinen ungefähren Standort (auf etwa 1 km gerundet) an
+      den Wetterdienst Open-Meteo. Dieselbe Einwilligung gilt für das Wetter deiner Fahrten in Kudos
+      Care.
     </p>
     @if (wind.consent()) {
       <p class="hint">Wetterdaten sind freigegeben.</p>
@@ -60,6 +60,22 @@
         <option value="day">Tag (weiß, für Sonne)</option>
       </select>
     </div>
+    <a class="link-row" [routerLink]="rc.dataPages">
+      <span class="text">
+        <span class="name">Datenseiten belegen</span>
+        <span class="sub">{{ pagesText() }}</span>
+      </span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+    </a>
+    <label class="check-row">
+      Klingel in der Bedienleiste
+      <input type="checkbox" [formField]="form.bellButton" />
+    </label>
+    <button type="button" class="btn" (click)="testBell()">Klingel testen</button>
+    <p class="hint">
+      Die Klingel gibt es außerdem auf der Karte und als Datenfeld. Sie mischt sich mit Musik, statt
+      sie anzuhalten; auf dem iPhone bleibt sie dafür im Stummmodus still.
+    </p>
   </div>
 
   <h2 class="section-title">Auto-Pause</h2>
@@ -132,10 +148,41 @@
       Kartenbild laden (braucht Internet)
       <input type="checkbox" [formField]="form.mapTiles" />
     </label>
+    <div class="form-row">
+      <label for="set-map-style">Kartenbild</label>
+      <select id="set-map-style" [formField]="form.mapStyle">
+        <option value="cyclosm">CyclOSM (Radwege, Belag, Radinfrastruktur)</option>
+        <option value="topo">Topo (Höhenlinien, für Gravel und Gelände)</option>
+        <option value="osm">OpenStreetMap (Standard)</option>
+      </select>
+    </div>
     <label class="check-row">
-      Karte in Fahrtrichtung drehen (auch per Kompass)
+      Karte in Fahrtrichtung drehen
       <input type="checkbox" [formField]="form.headingUp" />
     </label>
+    @switch (heading.compassState()) {
+      @case ('on') {
+        <p class="hint">
+          Kompass aktiv: Im Stand dreht die Karte nach dem Telefon, in Fahrt nach dem GPS-Kurs.
+        </p>
+      }
+      @case ('denied') {
+        <p class="hint">
+          Kompass nicht erlaubt. In den iOS-Einstellungen beim Browser „Bewegung &amp; Ausrichtung“
+          erlauben, dann die Seite neu laden.
+        </p>
+      }
+      @case ('unsupported') {
+        <p class="hint">Dieses Gerät hat keinen Kompass. Die Karte dreht nur in Fahrt.</p>
+      }
+      @default {
+        <button type="button" class="btn" (click)="heading.enable()">Kompass einschalten</button>
+        <p class="hint">
+          Damit dreht die Karte auch im Stand. Das iPhone fragt einmal nach der Erlaubnis; sonst
+          fragt es beim ersten Start einer Fahrt.
+        </p>
+      }
+    }
     <div class="form-row">
       <label for="set-provider">Routendienst</label>
       <select id="set-provider" [formField]="form.routingProvider">

@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { fmtDistance, fmtTime, num } from '../core/format';
 import { Gps } from '../core/gps';
@@ -9,6 +9,7 @@ import { Sensors } from '../core/sensors';
 import { SettingsStore } from '../core/settings-store';
 import { Strava } from '../core/strava';
 import { Toasts } from '../core/toasts';
+import { TouchLock } from '../core/touch-lock';
 import { RouteGuide } from '../nav/route-guide';
 import { WorkoutPlayer } from '../workout/workout-player';
 import { RC } from '../core/paths';
@@ -48,6 +49,8 @@ export class MenuPage {
   protected readonly guide = inject(RouteGuide);
   protected readonly player = inject(WorkoutPlayer);
   private readonly toasts = inject(Toasts);
+  private readonly router = inject(Router);
+  protected readonly lock = inject(TouchLock);
 
   protected readonly pwrState = this.sensors.state('pwr');
   protected readonly hrState = this.sensors.state('hr');
@@ -83,12 +86,18 @@ export class MenuPage {
   });
   protected readonly settingsText = computed(() => {
     return this.strava.canUpload()
-      ? 'Strava-Upload, Ton, Auto-Pause, FTP'
-      : 'Strava-Upload freischalten, Ton, FTP';
+      ? 'Datenseiten, Karte, Klingel, Ton, Auto-Pause'
+      : 'Strava-Upload freischalten, Datenseiten, Karte, Ton';
   });
 
   protected toggle(key: DisplayToggle, event: Event): void {
     this.settings.patch({ [key]: (event.target as HTMLInputElement).checked });
+  }
+
+  /** Sperren und gleich zurück zur Fahrt: dort will man im Regen hinschauen. */
+  protected lockScreen(): void {
+    this.lock.lock();
+    void this.router.navigateByUrl(RC.ride);
   }
 
   protected onGps(): void {

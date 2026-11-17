@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
+import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error-interceptor/error-interceptor';
 import { Place, RoutingProvider } from '../core/models';
 import { SettingsStore } from '../core/settings-store';
 import { CUE_TEXT, CueKind, NavRoute, RawCue } from './nav-models';
@@ -66,6 +67,8 @@ export function osrmCue(step: OsrmStep): RawCue | null {
 export class RoutePlanner {
   private readonly http = inject(HttpClient);
   private readonly settings = inject(SettingsStore);
+  /** Fällt ein Dienst aus, wird der andere versucht; die Meldung kommt erst danach, einmal. */
+  private readonly context = new HttpContext().set(SKIP_ERROR_TOAST, true);
 
   async plan(from: LatLon, to: Place): Promise<NavRoute> {
     const preferred = this.settings.value().routingProvider;
@@ -89,7 +92,9 @@ export class RoutePlanner {
     const lonlats = `${from.lon.toFixed(6)},${from.lat.toFixed(6)}%7C${to.lon.toFixed(6)},${to.lat.toFixed(6)}`;
     const profile = this.settings.value().routingProfile;
     const url = `https://brouter.de/brouter?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson`;
-    const res = await firstValueFrom(this.http.get<BrouterResponse>(url));
+    const res = await firstValueFrom(
+      this.http.get<BrouterResponse>(url, { context: this.context }),
+    );
     const coords = res.features?.[0]?.geometry?.coordinates;
     if (!coords?.length) throw new Error('BRouter: leere Antwort');
     return buildRoute(
@@ -102,7 +107,7 @@ export class RoutePlanner {
   private async osrm(from: LatLon, to: Place): Promise<NavRoute> {
     const coords = `${from.lon.toFixed(6)},${from.lat.toFixed(6)};${to.lon.toFixed(6)},${to.lat.toFixed(6)}`;
     const url = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true`;
-    const res = await firstValueFrom(this.http.get<OsrmResponse>(url));
+    const res = await firstValueFrom(this.http.get<OsrmResponse>(url, { context: this.context }));
     const route = res.routes?.[0];
     if (res.code !== 'Ok' || !route) throw new Error('OSRM: keine Route');
     const cues = route.legs

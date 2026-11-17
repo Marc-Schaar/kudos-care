@@ -1,19 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form, max, min, required } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 
 import { StravaService } from '../../../shared/services/strava-service/strava-service';
 import { AudioFeedback } from '../core/audio-feedback';
+import { Heading } from '../core/heading';
+import { RC } from '../core/paths';
 import { ScreenWake } from '../core/screen-wake';
 import { Sensors } from '../core/sensors';
 import { SettingsStore } from '../core/settings-store';
 import { Strava } from '../core/strava';
 import { Toasts } from '../core/toasts';
 import { Wind } from '../core/wind';
+import { effectivePages } from '../ride/fields';
 import { SubHeader } from './sub-header';
 
 @Component({
   selector: 'rc-settings-page',
-  imports: [FormField, SubHeader],
+  imports: [FormField, SubHeader, RouterLink],
   templateUrl: './settings-page.html',
   styleUrl: './settings-page.css',
 })
@@ -26,7 +30,15 @@ export class SettingsPage {
   private readonly toasts = inject(Toasts);
   private readonly kudos = inject(StravaService);
   protected readonly wind = inject(Wind);
+  protected readonly heading = inject(Heading);
+  protected readonly rc = RC;
   protected readonly saving = signal(false);
+
+  protected readonly pagesText = computed(() => {
+    const pages = effectivePages(this.settings.value().dataPages);
+    const names = pages.map((p) => p.name).join(', ');
+    return this.settings.value().dataPages.length ? names : `Standard: ${names}`;
+  });
 
   /** Einwilligung wie im Kudos-Menü, siehe `app_auth/consent.py` im Backend. */
   protected setWeatherConsent(enabled: boolean): void {
@@ -53,6 +65,10 @@ export class SettingsPage {
     min(path.autoPauseKmh, 0.5, { message: 'Mindestens 0,5 km/h.' });
     max(path.autoPauseKmh, 20, { message: 'Höchstens 20 km/h.' });
   });
+
+  protected testBell(): void {
+    this.audio.bell();
+  }
 
   protected testAudio(): void {
     this.audio.unlock();

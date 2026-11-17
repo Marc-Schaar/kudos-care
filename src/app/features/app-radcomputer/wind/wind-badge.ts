@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 
-import { Gps } from '../core/gps';
+import { Heading } from '../core/heading';
 import { Wind } from '../core/wind';
 import { WindArrow } from './wind-arrow';
 
@@ -52,7 +52,7 @@ import { WindArrow } from './wind-arrow';
 })
 export class WindBadge {
   protected readonly wind = inject(Wind);
-  private readonly gps = inject(Gps);
+  private readonly heading = inject(Heading);
   /** Dreht die Karte mit der Fahrtrichtung? */
   readonly headingUp = input(true);
 
@@ -61,7 +61,7 @@ export class WindBadge {
 
   protected readonly rotation = computed(() => {
     const from = this.wind.current()?.direction_deg ?? 0;
-    const heading = this.gps.heading();
+    const heading = this.heading.value();
     const mapUp = this.headingUp() && heading != null ? heading : 0;
     return (from + 180 - mapUp + 720) % 360;
   });

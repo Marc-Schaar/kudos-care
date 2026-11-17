@@ -23,6 +23,30 @@ export interface StravaRoute {
   updated_at: string | null;
 }
 
+/** Ein Rad aus Kudos Care, soweit der Upload es braucht. */
+export interface KudosBike {
+  id: number;
+  strava_bike_id: string | null;
+  name: string;
+  bike_type: string;
+  retired: boolean;
+}
+
+/** Rad-Sportarten bei Strava, wie sie `activities/<id>/complete/` annimmt. */
+export type RideSportType =
+  | 'Ride'
+  | 'GravelRide'
+  | 'MountainBikeRide'
+  | 'EBikeRide'
+  | 'EMountainBikeRide'
+  | 'VirtualRide';
+
+export interface ActivityTags {
+  sport_type?: RideSportType;
+  gear_id?: string;
+  hide_from_home?: boolean;
+}
+
 export interface UploadState {
   id: number | null;
   status: string;
@@ -35,7 +59,7 @@ export interface UploadState {
  * ist durch den authGuard geschützt, angemeldet ist man hier also immer. Die Anmeldung fragt
  * activity:write schon mit an; hat jemand es bei Strava abgewählt, holt `grantUpload()` es nach.
  *
- * Eine hochgeladene Fahrt kommt über den Strava-Webhook automatisch auch in Kudos Care an.
+ * Eine hochgeladene Fahrt holt `complete()` gleich nach Kudos Care.
  */
 @Injectable({ providedIn: 'root' })
 export class Strava {
@@ -79,6 +103,30 @@ export class Strava {
     return this.request(() =>
       this.http.get<UploadState>(`${this.api}/upload/${id}/`, { context: context() }),
     );
+  }
+
+  /**
+   * Nach dem Upload: Radtyp, Rad und Feed-Sichtbarkeit nachtragen (kennt Stravas Upload
+   * nicht) und die Fahrt gleich nach Kudos Care holen.
+   */
+  async complete(activityId: number, tags: ActivityTags): Promise<{ imported: boolean }> {
+    return this.request(() =>
+      this.http.post<{ imported: boolean }>(
+        `${this.api}/activities/${activityId}/complete/`,
+        tags,
+        { context: context() },
+      ),
+    );
+  }
+
+  /** Aktive Räder mit Strava-Bezug: nur die kann man einer Strava-Fahrt zuordnen. */
+  async bikes(): Promise<KudosBike[]> {
+    const res = await this.request(() =>
+      this.http.get<{ bikes: KudosBike[] }>(`${environment.apiUrl}/maintenance/bikes/`, {
+        context: context(),
+      }),
+    );
+    return res.bikes.filter((b) => !b.retired && b.strava_bike_id);
   }
 
   async routes(page = 1): Promise<{ routes: StravaRoute[]; more: boolean }> {

@@ -7,6 +7,7 @@ import { filter, map } from 'rxjs';
 import { DemoDriver } from './core/demo-driver';
 import { fmtDistance, fmtTime } from './core/format';
 import { Gps } from './core/gps';
+import { Heading } from './core/heading';
 import { RC } from './core/paths';
 import { SensorState } from './core/models';
 import { RideRecorder } from './core/ride-recorder';
@@ -16,10 +17,13 @@ import { SettingsStore } from './core/settings-store';
 import { Strava } from './core/strava';
 import { Ticker } from './core/ticker';
 import { Toasts } from './core/toasts';
+import { TouchLock } from './core/touch-lock';
 import { Wind } from './core/wind';
 import { CueSign } from './nav/cue-sign';
 import { CueKind } from './nav/nav-models';
 import { RouteGuide } from './nav/route-guide';
+import { BellButton } from './ride/bell-button';
+import { LockOverlay } from './ride/lock-overlay';
 import { WindBar } from './wind/wind-bar';
 import { WorkoutPlayer, describeTarget } from './workout/workout-player';
 
@@ -47,13 +51,19 @@ interface NavStrip {
  */
 @Component({
   selector: 'rc-shell',
-  imports: [RouterOutlet, RouterLink, CueSign, WindBar],
+  imports: [RouterOutlet, RouterLink, CueSign, WindBar, BellButton, LockOverlay],
   templateUrl: './radcomputer-shell.html',
   styleUrl: './radcomputer-shell.css',
   host: {
     class: 'rc',
     '[attr.data-s]': 'ride.displayState()',
     '[attr.data-theme]': 'settings.value().theme',
+    // Nasse Finger und Regentropfen: kein Zoomen per Zwei-Finger-Geste (iOS), kein
+    // Kontextmenü, kein Doppeltipp-Zoom. Textfelder behalten ihr Menü zum Einfügen.
+    '(gesturestart)': '$event.preventDefault()',
+    '(gesturechange)': '$event.preventDefault()',
+    '(dblclick)': '$event.preventDefault()',
+    '(contextmenu)': 'onContextMenu($event)',
   },
 })
 export class RadcomputerShell {
@@ -63,6 +73,8 @@ export class RadcomputerShell {
   protected readonly sensors = inject(Sensors);
   protected readonly toasts = inject(Toasts);
   protected readonly settings = inject(SettingsStore);
+  protected readonly lock = inject(TouchLock);
+  private readonly heading = inject(Heading);
   private readonly view = inject(RideView);
   private readonly strava = inject(Strava);
   private readonly guide = inject(RouteGuide);
@@ -151,6 +163,22 @@ export class RadcomputerShell {
       body.classList.remove('rc-active');
       this.wind.setActive(false);
     });
+  }
+
+  /** Bedienleiste mit Klingel: nur auf der Fahrt, und nur wenn eingeschaltet. */
+  protected readonly bellKey = computed(() => this.onRide() && this.settings.value().bellButton);
+
+  /**
+   * Start/Pause/Weiter. Zugleich der verlässlichste Tipp, um auf dem iPhone die Erlaubnis
+   * für den Kompass zu holen: Er dreht die Karte im Stand.
+   */
+  protected onMain(): void {
+    if (this.settings.value().headingUp) this.heading.enable();
+    this.ride.toggle();
+  }
+
+  protected onContextMenu(event: Event): void {
+    if (!(event.target as Element | null)?.closest('input, textarea')) event.preventDefault();
   }
 
   protected openRidePage(page: RidePageKey): void {

@@ -1,0 +1,312 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* Die eigene Strecke als Piktogramm: ein weißer Strich wie auf einem Wegweiser.
+   Ring = Start, Punkt = Ziel (dieselbe Formsprache wie .sense). Bei einer Runde liegen
+   beide aufeinander und ergeben eine Zielscheibe. */
+.route {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  margin: -4px auto 0;
+}
+.route .line {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 11;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 1.4s cubic-bezier(0.45, 0, 0.2, 1) 0.1s forwards;
+}
+.route .start {
+  fill: var(--bg);
+  stroke: var(--fg);
+  stroke-width: 7;
+}
+.route .end {
+  fill: var(--fg);
+  opacity: 0;
+  animation: arrive 0.25s ease-out 1.45s forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes arrive {
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route .line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .route .end {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  border-top: 2px solid var(--fg);
+  border-bottom: 1px solid var(--line);
+}
+.facts > div {
+  padding: 8px 10px 10px;
+  min-width: 0;
+}
+.facts > div + div {
+  border-left: 1px solid var(--line);
+}
+.facts > div:first-child {
+  padding-left: 0;
+}
+.facts dt {
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+}
+.facts dt span {
+  font-weight: 400;
+}
+.facts dd {
+  margin: 4px 0 0;
+  font-size: var(--t-2xl);
+  line-height: 1;
+  white-space: nowrap;
+}
+.extra {
+  margin-top: 8px;
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+  color: var(--muted);
+}
+.empty {
+  padding: 4px 0 8px;
+}
+
+.strava {
+  margin-top: 24px;
+}
+/* Während des Sendens bleibt der Knopf lesbar statt grau: Es passiert gerade etwas. */
+.btn.send.busy:disabled {
+  opacity: 1;
+  background: transparent;
+  color: var(--fg);
+  border-style: dashed;
+}
+
+.problem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 0 4px;
+}
+.problem .sense {
+  margin-top: 5px;
+}
+.problem-title {
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+  color: var(--warn);
+  margin-bottom: 4px;
+}
+
+.saved {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+}
+
+/* Abgesetzt, damit niemand beim Export daneben tippt. */
+.discard {
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+.btn.danger {
+  position: relative;
+  overflow: hidden;
+}
+.btn.danger.armed {
+  background: var(--warn);
+  color: var(--bg);
+}
+/* Der Balken läuft leer, solange die zweite Berührung zählt. */
+.btn.danger.armed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background: var(--bg);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: disarm var(--arm-ms) linear forwards;
+}
+@keyframes disarm {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn.danger.armed::after {
+    display: none;
+  }
+}
+
+/* Tags: Schalter wie Schilder, gedrückt = gefüllt. Mehr als eine Ankreuzliste, weil
+   man sie beim Speichern im Stehen mit Handschuhen trifft. */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag {
+  min-height: 48px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid var(--edge);
+  border-radius: 24px;
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+}
+.tag[aria-pressed='true'] {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+.tag svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tag[aria-pressed='false'] svg {
+  display: none;
+}
+.group-label {
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+}
+textarea.description {
+  min-height: 88px;
+  padding: 10px 12px;
+  border: 2px solid var(--edge);
+  border-radius: 4px;
+  background: var(--bg);
+  font-size: var(--t-l);
+  resize: vertical;
+  width: 100%;
+  -webkit-user-select: text;
+  user-select: text;
+}
+textarea.description:focus {
+  border-color: var(--fg);
+  outline: none;
+}
+
+/* Nach dem Speichern: Ergebnis statt leerer Fahrtseite. Ein Häkchen-Schild, Name und
+   Strecke der Fahrt, was gesetzt wurde, und genau die drei Wege, die danach sinnvoll sind. */
+.done {
+  display: grid;
+  gap: 14px;
+}
+.done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  min-height: 40px;
+  padding: 0 14px 0 10px;
+  border-radius: 4px;
+  background: var(--go);
+  color: var(--go-ink);
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+}
+.done-badge.local {
+  background: var(--fg);
+  color: var(--bg);
+}
+.done-badge svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.done-title {
+  font-family: var(--digits);
+  font-size: 34px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.done-when {
+  margin-top: -8px;
+  font-size: var(--t-m);
+  color: var(--muted);
+}
+.done-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.done-tags span {
+  padding: 4px 10px;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+}
+.done-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+.notice {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-left: 6px solid var(--hold);
+  background: var(--panel);
+  font-size: var(--t-m);
+  line-height: 1.4;
+}

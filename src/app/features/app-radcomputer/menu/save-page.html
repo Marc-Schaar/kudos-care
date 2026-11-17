@@ -1,0 +1,274 @@
+<div class="scroll">
+  @if (done(); as d) {
+    <!-- Nach dem Speichern: was gespeichert wurde und wie es weitergeht. -->
+    <div class="done">
+      <p class="done-badge" [class.local]="!d.activityId">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+        {{ d.headline }}
+      </p>
+      <h2 class="done-title">{{ d.name }}</h2>
+      @if (d.when) {
+        <p class="done-when">{{ d.when }}</p>
+      }
+
+      @if (d.route; as r) {
+        <svg
+          class="route"
+          [attr.viewBox]="viewBox"
+          role="img"
+          aria-label="Gefahrene Strecke, Ring ist der Start, Punkt das Ziel"
+        >
+          <path class="line" [attr.d]="r.d" pathLength="1" />
+          <circle class="end" [attr.cx]="r.end[0]" [attr.cy]="r.end[1]" r="13" />
+          <circle class="start" [attr.cx]="r.start[0]" [attr.cy]="r.start[1]" r="22" />
+        </svg>
+      }
+      <dl class="facts">
+        <div>
+          <dt>Fahrzeit</dt>
+          <dd class="digits">{{ d.facts.time }}</dd>
+        </div>
+        <div>
+          <dt>Distanz <span>km</span></dt>
+          <dd class="digits">{{ d.facts.km }}</dd>
+        </div>
+        <div>
+          <dt>Anstieg <span>m</span></dt>
+          <dd class="digits">{{ d.facts.ascent }}</dd>
+        </div>
+      </dl>
+      @if (d.facts.extra) {
+        <p class="extra">{{ d.facts.extra }}</p>
+      }
+      @if (d.tags.length) {
+        <p class="done-tags" aria-label="Gesetzt">
+          @for (tag of d.tags; track tag) {
+            <span>{{ tag }}</span>
+          }
+        </p>
+      }
+      @if (d.notice) {
+        <p class="notice" role="status">{{ d.notice }}</p>
+      }
+
+      <div class="done-actions">
+        @if (d.activityId) {
+          <a
+            class="btn primary"
+            [href]="'https://www.strava.com/activities/' + d.activityId"
+            target="_blank"
+            rel="noopener"
+          >
+            Auf Strava ansehen
+          </a>
+          <a class="btn" [routerLink]="kudos.to.activities()">In Kudos Care ansehen</a>
+          <p class="hint">
+            In Kudos Care kommen Wetter und Verschleiß in der nächsten Minute dazu.
+          </p>
+        }
+        <button type="button" class="btn" [class.primary]="!d.activityId" (click)="newRide()">
+          Zur Fahrtseite
+        </button>
+      </div>
+    </div>
+  } @else {
+    <rc-sub-header [title]="ride.status() === 'idle' ? 'Fahrt speichern' : 'Fahrt abschließen'" />
+
+    @if (ride.hasData()) {
+      @if (route(); as r) {
+        <svg
+          class="route"
+          [attr.viewBox]="viewBox"
+          role="img"
+          aria-label="Gefahrene Strecke, Ring ist der Start, Punkt das Ziel"
+        >
+          <path class="line" [attr.d]="r.d" pathLength="1" />
+          <circle class="end" [attr.cx]="r.end[0]" [attr.cy]="r.end[1]" r="13" />
+          <circle class="start" [attr.cx]="r.start[0]" [attr.cy]="r.start[1]" r="22" />
+        </svg>
+      }
+      <dl class="facts">
+        <div>
+          <dt>Fahrzeit</dt>
+          <dd class="digits">{{ facts().time }}</dd>
+        </div>
+        <div>
+          <dt>Distanz <span>km</span></dt>
+          <dd class="digits">{{ facts().km }}</dd>
+        </div>
+        <div>
+          <dt>Anstieg <span>m</span></dt>
+          <dd class="digits">{{ facts().ascent }}</dd>
+        </div>
+      </dl>
+      @if (facts().extra) {
+        <p class="extra">{{ facts().extra }}</p>
+      }
+      @if (!route()) {
+        <p class="hint">Ohne GPS-Strecke aufgezeichnet, deshalb gibt es keine Karte.</p>
+      }
+    } @else {
+      <p class="hint empty">
+        Noch nichts aufgezeichnet. Starte die Aufnahme auf der Fahrtseite, dann landet die Fahrt
+        hier.
+      </p>
+    }
+
+    @let dr = draft();
+    <form class="stack strava" (submit)="upload($event)">
+      <div class="form-row">
+        <label for="up-name">Titel für Strava</label>
+        <input
+          id="up-name"
+          type="text"
+          [value]="dr.name"
+          (input)="setText('name', $event)"
+          [placeholder]="suggestedName()"
+          autocomplete="off"
+          enterkeyhint="done"
+        />
+      </div>
+
+      @if (bikes().length) {
+        <div class="form-row">
+          <label for="up-bike">Rad</label>
+          <!-- [selected] je Option statt [value] am select: die Optionen entstehen erst
+               nach der Bindung, ein früh gesetzter Wert ginge sonst verloren. -->
+          <select id="up-bike" (change)="setBike($event)">
+            <option value="" [selected]="!dr.gearId">Standardrad bei Strava</option>
+            @for (bike of bikes(); track bike.id) {
+              <option [value]="bike.strava_bike_id" [selected]="bike.strava_bike_id === dr.gearId">
+                {{ bike.name }}
+              </option>
+            }
+          </select>
+          <span class="hint">Bestimmt, welche Teile in Kudos Care die Kilometer bekommen.</span>
+        </div>
+      }
+
+      <div class="form-row">
+        <label for="up-type">Art der Fahrt</label>
+        <select id="up-type" (change)="setSportType($event)">
+          @for (option of sportTypes; track option.value) {
+            <option [value]="option.value" [selected]="option.value === dr.sportType">
+              {{ option.label }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="stack" role="group" aria-labelledby="up-tags">
+        <span class="group-label" id="up-tags">Tags</span>
+        <div class="tags">
+          @for (tag of tagOptions; track tag.key) {
+            <button
+              type="button"
+              class="tag"
+              [attr.aria-pressed]="dr[tag.key]"
+              (click)="toggleTag(tag.key)"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+              {{ tag.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="up-desc">Beschreibung <span class="muted">(optional)</span></label>
+        <textarea
+          id="up-desc"
+          class="description"
+          rows="3"
+          maxlength="2000"
+          [value]="dr.description"
+          (input)="setText('description', $event)"
+          placeholder="Wie war's? Erscheint bei Strava unter der Fahrt."
+        ></textarea>
+      </div>
+
+      @if (strava.canUpload()) {
+        @if (ride.status() === 'running') {
+          <p class="hint">Die Aufnahme läuft noch. Senden beendet sie.</p>
+        }
+        <button
+          type="submit"
+          class="btn primary send"
+          [class.busy]="sync.uploading()"
+          [disabled]="!ride.hasData() || sync.uploading()"
+        >
+          {{ sendLabel() }}
+        </button>
+        <p class="sr-only" aria-live="polite">{{ sync.uploading() ? sendLabel() : '' }}</p>
+        @if (uploadError(); as err) {
+          <div class="problem" role="alert">
+            <span class="sense" data-state="err" aria-hidden="true"></span>
+            <div>
+              <p class="problem-title">{{ err }}</p>
+              <p class="hint">
+                Die Fahrt bleibt auf dem Gerät. Versuch es noch einmal oder exportiere sie unten als
+                Datei.
+              </p>
+            </div>
+          </div>
+        }
+      } @else {
+        <button
+          type="button"
+          class="btn primary"
+          (click)="strava.grantUpload()"
+          [disabled]="strava.busy()"
+        >
+          Upload bei Strava freischalten
+        </button>
+        <p class="hint">
+          Bei der Anmeldung nicht erlaubt: Strava fragt noch einmal, ob Kudos Care Aktivitäten
+          hochladen darf.
+        </p>
+      }
+    </form>
+
+    <h3 class="section-title">Als Datei sichern</h3>
+    <div class="stack">
+      @if (exported()) {
+        <p class="saved">
+          <span class="sense" data-state="on" aria-hidden="true"></span>
+          TCX-Datei gesichert
+        </p>
+        @if (ride.status() !== 'idle') {
+          <button type="button" class="btn" (click)="finishLocal()">Fahrt abschließen</button>
+          <p class="hint">
+            Danach ist der Radcomputer bereit für die nächste Fahrt. Zu Strava senden kannst du sie
+            vorher trotzdem noch.
+          </p>
+        }
+      }
+      <button type="button" class="btn" (click)="exportFile()" [disabled]="!ride.hasData()">
+        {{ exported() ? 'Noch einmal exportieren' : 'Als TCX-Datei exportieren' }}
+      </button>
+      @if (!exported()) {
+        <p class="hint">
+          Für Garmin Connect: Garmin nimmt Fahrten fremder Apps nicht direkt an. Exportiere die
+          Datei und lade sie in Garmin Connect im Browser über „Importieren“ hoch.
+        </p>
+      }
+    </div>
+
+    @if (ride.status() !== 'idle') {
+      <div class="discard">
+        <button
+          type="button"
+          class="btn danger"
+          [class.armed]="discardArmed()"
+          [style.--arm-ms]="armMs + 'ms'"
+          (click)="discard()"
+        >
+          {{ discardArmed() ? 'Noch einmal tippen zum Verwerfen' : 'Fahrt verwerfen' }}
+        </button>
+        <p class="hint">
+          Löscht die Aufnahme von diesem Gerät. Das lässt sich nicht rückgängig machen.
+        </p>
+      </div>
+    }
+  }
+</div>

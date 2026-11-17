@@ -1,376 +1,101 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormField, form } from '@angular/forms/signals';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
+import { NavigationService } from '../../../shared/services/navigation-service/navigation-service';
 import { fmtTime, num } from '../core/format';
+import { RC } from '../core/paths';
 import { RideRecorder } from '../core/ride-recorder';
-import { SHAPE_H, SHAPE_W, defaultRideName, routeShape } from '../core/ride-summary';
-import { RideSync } from '../core/ride-sync';
-import { Strava } from '../core/strava';
+import { RouteShape, SHAPE_H, SHAPE_W, defaultRideName, routeShape } from '../core/ride-summary';
+import { RideSync, UploadDraft, emptyDraft } from '../core/ride-sync';
+import { store } from '../core/storage';
+import { ActivityTags, KudosBike, RideSportType, Strava } from '../core/strava';
 import { Toasts } from '../core/toasts';
 import { SubHeader } from './sub-header';
-import { RC } from '../core/paths';
 
 /** So lange bleibt „Verwerfen“ nach dem ersten Tippen scharf. */
 const DISCARD_ARM_MS = 4000;
+/** Zuletzt gewähltes Rad: Wer pendelt, fährt fast immer dasselbe. Nur eine Bequemlichkeit. */
+const LAST_BIKE_KEY = 'radcomputer.lastBike';
+
+export const SPORT_TYPES: readonly { value: RideSportType; label: string }[] = [
+  { value: 'Ride', label: 'Radfahrt' },
+  { value: 'GravelRide', label: 'Gravel' },
+  { value: 'MountainBikeRide', label: 'Mountainbike' },
+  { value: 'EBikeRide', label: 'E-Bike' },
+  { value: 'EMountainBikeRide', label: 'E-Mountainbike' },
+  { value: 'VirtualRide', label: 'Virtuell (Rolle mit App)' },
+];
+
+/** Radtyp aus Kudos Care → passende Strava-Art, solange man sie nicht selbst wählt. */
+const SPORT_BY_BIKE_TYPE: Record<string, RideSportType> = {
+  gravel: 'GravelRide',
+  cx: 'GravelRide',
+  mtb: 'MountainBikeRide',
+  ebike_road: 'EBikeRide',
+  ebike_city: 'EBikeRide',
+  ebike_mtb: 'EMountainBikeRide',
+};
+
+type TagKey = 'commute' | 'trainer' | 'hideFromHome';
+
+const TAG_OPTIONS: readonly { key: TagKey; label: string }[] = [
+  { key: 'commute', label: 'Pendelfahrt' },
+  { key: 'trainer', label: 'Rolle' },
+  { key: 'hideFromHome', label: 'Nicht im Feed' },
+];
+
+interface Facts {
+  time: string;
+  km: string;
+  ascent: string;
+  extra: string;
+}
+
+/** Was nach dem Speichern stehen bleibt, obwohl die Fahrt schon zurückgesetzt ist. */
+interface DoneSummary {
+  headline: string;
+  name: string;
+  when: string;
+  route: RouteShape | null;
+  facts: Facts;
+  tags: string[];
+  activityId: number | null;
+  notice: string | null;
+}
 
 /**
  * Fahrt zu Strava senden, als Datei exportieren oder verwerfen.
  *
- * Aufbau nach Gewicht: oben die eigene Strecke und die Zahlen, dann genau eine Hauptaktion
- * (Strava), darunter der Export, ganz unten und abgesetzt das Verwerfen.
+ * Aufbau nach Gewicht: oben die eigene Strecke und die Zahlen, dann Titel, Rad, Art und
+ * Tags, genau eine Hauptaktion (Strava), darunter der Export, ganz unten und abgesetzt das
+ * Verwerfen. Nach dem Senden bleibt die Seite stehen und zeigt, was gespeichert wurde —
+ * vorher sprang sie mit einer Meldung auf die leere Fahrtseite zurück.
  */
 @Component({
   selector: 'rc-save-page',
-  imports: [FormField, SubHeader],
-  template: `
-    <div class="scroll">
-      <rc-sub-header [title]="ride.status() === 'idle' ? 'Fahrt speichern' : 'Fahrt abschließen'" />
-
-      @if (ride.hasData()) {
-        @if (route(); as r) {
-          <svg
-            class="route"
-            [attr.viewBox]="viewBox"
-            role="img"
-            aria-label="Gefahrene Strecke, Ring ist der Start, Punkt das Ziel"
-          >
-            <path class="line" [attr.d]="r.d" pathLength="1" />
-            <circle class="end" [attr.cx]="r.end[0]" [attr.cy]="r.end[1]" r="13" />
-            <circle class="start" [attr.cx]="r.start[0]" [attr.cy]="r.start[1]" r="22" />
-          </svg>
-        }
-        <dl class="facts">
-          <div>
-            <dt>Fahrzeit</dt>
-            <dd class="digits">{{ facts().time }}</dd>
-          </div>
-          <div>
-            <dt>Distanz <span>km</span></dt>
-            <dd class="digits">{{ facts().km }}</dd>
-          </div>
-          <div>
-            <dt>Anstieg <span>m</span></dt>
-            <dd class="digits">{{ facts().ascent }}</dd>
-          </div>
-        </dl>
-        @if (facts().extra) {
-          <p class="extra">{{ facts().extra }}</p>
-        }
-        @if (!route()) {
-          <p class="hint">Ohne GPS-Strecke aufgezeichnet, deshalb gibt es keine Karte.</p>
-        }
-      } @else {
-        <p class="hint empty">
-          Noch nichts aufgezeichnet. Starte die Aufnahme auf der Fahrtseite, dann landet die Fahrt
-          hier.
-        </p>
-      }
-
-      <form class="stack strava" (submit)="upload($event)">
-        <div class="form-row">
-          <label for="up-name">Titel für Strava</label>
-          <input
-            id="up-name"
-            type="text"
-            [formField]="uploadForm.name"
-            [placeholder]="suggestedName()"
-            autocomplete="off"
-            enterkeyhint="send"
-          />
-        </div>
-        <label class="check-row">
-          Als Pendelfahrt markieren
-          <input type="checkbox" [formField]="uploadForm.commute" />
-        </label>
-
-        @if (strava.canUpload()) {
-          @if (ride.status() === 'running') {
-            <p class="hint">Die Aufnahme läuft noch. Senden beendet sie.</p>
-          }
-          <button
-            type="submit"
-            class="btn primary send"
-            [class.busy]="sync.uploading()"
-            [disabled]="!ride.hasData() || sync.uploading()"
-          >
-            {{ sendLabel() }}
-          </button>
-          <p class="sr-only" aria-live="polite">{{ sync.uploading() ? sendLabel() : '' }}</p>
-          @if (uploadError(); as err) {
-            <div class="problem" role="alert">
-              <span class="sense" data-state="err" aria-hidden="true"></span>
-              <div>
-                <p class="problem-title">{{ err }}</p>
-                <p class="hint">
-                  Die Fahrt bleibt auf dem Gerät. Versuch es noch einmal oder exportiere sie unten
-                  als Datei.
-                </p>
-              </div>
-            </div>
-          }
-        } @else {
-          <button
-            type="button"
-            class="btn primary"
-            (click)="strava.grantUpload()"
-            [disabled]="strava.busy()"
-          >
-            Upload bei Strava freischalten
-          </button>
-          <p class="hint">
-            Bei der Anmeldung nicht erlaubt: Strava fragt noch einmal, ob Kudos Care Aktivitäten
-            hochladen darf.
-          </p>
-        }
-      </form>
-
-      <h3 class="section-title">Als Datei sichern</h3>
-      <div class="stack">
-        @if (exported()) {
-          <p class="saved">
-            <span class="sense" data-state="on" aria-hidden="true"></span>
-            TCX-Datei gesichert
-          </p>
-          @if (ride.status() !== 'idle') {
-            <button type="button" class="btn" (click)="finish('Fahrt abgeschlossen.')">
-              Fahrt abschließen
-            </button>
-            <p class="hint">
-              Danach ist der Radcomputer bereit für die nächste Fahrt. Zu Strava senden kannst du
-              sie vorher trotzdem noch.
-            </p>
-          }
-        }
-        <button type="button" class="btn" (click)="exportFile()" [disabled]="!ride.hasData()">
-          {{ exported() ? 'Noch einmal exportieren' : 'Als TCX-Datei exportieren' }}
-        </button>
-        @if (!exported()) {
-          <p class="hint">
-            Für Garmin Connect: Garmin nimmt Fahrten fremder Apps nicht direkt an. Exportiere die
-            Datei und lade sie in Garmin Connect im Browser über „Importieren“ hoch.
-          </p>
-        }
-      </div>
-
-      @if (ride.status() !== 'idle') {
-        <div class="discard">
-          <button
-            type="button"
-            class="btn danger"
-            [class.armed]="discardArmed()"
-            [style.--arm-ms]="armMs + 'ms'"
-            (click)="discard()"
-          >
-            {{ discardArmed() ? 'Noch einmal tippen zum Verwerfen' : 'Fahrt verwerfen' }}
-          </button>
-          <p class="hint">
-            Löscht die Aufnahme von diesem Gerät. Das lässt sich nicht rückgängig machen.
-          </p>
-        </div>
-      }
-    </div>
-  `,
-  styles: `
-    :host {
-      display: block;
-      height: 100%;
-    }
-
-    /* Die eigene Strecke als Piktogramm: ein weißer Strich wie auf einem Wegweiser.
-       Ring = Start, Punkt = Ziel (dieselbe Formsprache wie .sense). Bei einer Runde liegen
-       beide aufeinander und ergeben eine Zielscheibe. */
-    .route {
-      display: block;
-      width: 100%;
-      max-width: 560px;
-      height: auto;
-      margin: -4px auto 0;
-    }
-    .route .line {
-      fill: none;
-      stroke: var(--fg);
-      stroke-width: 11;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-dasharray: 1;
-      stroke-dashoffset: 1;
-      animation: draw 1.4s cubic-bezier(0.45, 0, 0.2, 1) 0.1s forwards;
-    }
-    .route .start {
-      fill: var(--bg);
-      stroke: var(--fg);
-      stroke-width: 7;
-    }
-    .route .end {
-      fill: var(--fg);
-      opacity: 0;
-      animation: arrive 0.25s ease-out 1.45s forwards;
-    }
-    @keyframes draw {
-      to {
-        stroke-dashoffset: 0;
-      }
-    }
-    @keyframes arrive {
-      to {
-        opacity: 1;
-      }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .route .line {
-        animation: none;
-        stroke-dashoffset: 0;
-      }
-      .route .end {
-        animation: none;
-        opacity: 1;
-      }
-    }
-
-    .facts {
-      margin: 0;
-      display: grid;
-      grid-template-columns: 1.3fr 1fr 1fr;
-      border-top: 2px solid var(--fg);
-      border-bottom: 1px solid var(--line);
-    }
-    .facts > div {
-      padding: 8px 10px 10px;
-      min-width: 0;
-    }
-    .facts > div + div {
-      border-left: 1px solid var(--line);
-    }
-    .facts > div:first-child {
-      padding-left: 0;
-    }
-    .facts dt {
-      font-family: var(--digits);
-      font-size: var(--t-m);
-      font-weight: 700;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-    }
-    .facts dt span {
-      font-weight: 400;
-    }
-    .facts dd {
-      margin: 4px 0 0;
-      font-size: var(--t-2xl);
-      line-height: 1;
-      white-space: nowrap;
-    }
-    .extra {
-      margin-top: 8px;
-      font-family: var(--digits);
-      font-size: var(--t-m);
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .empty {
-      padding: 4px 0 8px;
-    }
-
-    .strava {
-      margin-top: 24px;
-    }
-    /* Während des Sendens bleibt der Knopf lesbar statt grau: Es passiert gerade etwas. */
-    .btn.send.busy:disabled {
-      opacity: 1;
-      background: transparent;
-      color: var(--fg);
-      border-style: dashed;
-    }
-
-    .problem {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 12px 0 4px;
-    }
-    .problem .sense {
-      margin-top: 5px;
-    }
-    .problem-title {
-      font-family: var(--digits);
-      font-size: var(--t-l);
-      font-weight: 700;
-      color: var(--warn);
-      margin-bottom: 4px;
-    }
-
-    .saved {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-height: 32px;
-      font-family: var(--digits);
-      font-size: var(--t-l);
-      font-weight: 700;
-    }
-
-    /* Abgesetzt, damit niemand beim Export daneben tippt. */
-    .discard {
-      margin-top: 44px;
-      padding-top: 20px;
-      border-top: 1px solid var(--line);
-      display: grid;
-      gap: 10px;
-    }
-    .btn.danger {
-      position: relative;
-      overflow: hidden;
-    }
-    .btn.danger.armed {
-      background: var(--warn);
-      color: var(--bg);
-    }
-    /* Der Balken läuft leer, solange die zweite Berührung zählt. */
-    .btn.danger.armed::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 5px;
-      background: var(--bg);
-      opacity: 0.55;
-      transform-origin: left;
-      animation: disarm var(--arm-ms) linear forwards;
-    }
-    @keyframes disarm {
-      from {
-        transform: scaleX(1);
-      }
-      to {
-        transform: scaleX(0);
-      }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .btn.danger.armed::after {
-        display: none;
-      }
-    }
-  `,
+  imports: [SubHeader, RouterLink],
+  templateUrl: './save-page.html',
+  styleUrl: './save-page.css',
 })
 export class SavePage {
   protected readonly ride = inject(RideRecorder);
   protected readonly sync = inject(RideSync);
   protected readonly strava = inject(Strava);
+  protected readonly kudos = inject(NavigationService);
   private readonly toasts = inject(Toasts);
   private readonly router = inject(Router);
 
   protected readonly viewBox = `0 0 ${SHAPE_W} ${SHAPE_H}`;
   protected readonly armMs = DISCARD_ARM_MS;
+  protected readonly sportTypes = SPORT_TYPES;
+  protected readonly tagOptions = TAG_OPTIONS;
   protected readonly exported = signal(false);
   protected readonly uploadError = signal<string | null>(null);
   protected readonly discardArmed = signal(false);
+  protected readonly done = signal<DoneSummary | null>(null);
+  protected readonly bikes = signal<KudosBike[]>([]);
+  protected readonly draft = this.sync.draft;
   private discardTimer: ReturnType<typeof setTimeout> | null = null;
-
-  protected readonly uploadModel = signal({ name: '', commute: false });
-  protected readonly uploadForm = form(this.uploadModel);
 
   /** Hängt an `trackLength`, weil der Track selbst bewusst kein Signal ist. */
   protected readonly route = computed(() => {
@@ -380,7 +105,7 @@ export class SavePage {
 
   protected readonly suggestedName = computed(() => defaultRideName(this.ride.stats().startedAt));
 
-  protected readonly facts = computed(() => {
+  protected readonly facts = computed<Facts>(() => {
     const stats = this.ride.stats();
     const laps = this.ride.laps().length;
     const extra: string[] = [];
@@ -400,10 +125,59 @@ export class SavePage {
         return 'Sendet …';
       case 'processing':
         return 'Strava verarbeitet …';
+      case 'tagging':
+        return 'Rad und Art setzen …';
       default:
         return 'Zu Strava senden';
     }
   });
+
+  constructor() {
+    void this.loadBikes();
+  }
+
+  private async loadBikes(): Promise<void> {
+    try {
+      const bikes = await this.strava.bikes();
+      this.bikes.set(bikes);
+      // Zuletzt benutztes Rad vorschlagen, solange es noch existiert und nichts gewählt ist.
+      const last = store.get<string>(LAST_BIKE_KEY);
+      const bike = bikes.find((b) => b.strava_bike_id === last);
+      if (bike && !this.draft().gearId) this.applyBike(bike);
+    } catch {
+      // Ohne Netz oder ohne Räder: Strava nimmt sein Standardrad.
+      this.bikes.set([]);
+    }
+  }
+
+  protected setText(key: 'name' | 'description', event: Event): void {
+    const value = (event.target as HTMLInputElement | HTMLTextAreaElement).value;
+    this.draft.update((d) => ({ ...d, [key]: value }));
+  }
+
+  protected setBike(event: Event): void {
+    const gearId = (event.target as HTMLSelectElement).value;
+    const bike = this.bikes().find((b) => b.strava_bike_id === gearId);
+    if (bike) this.applyBike(bike);
+    else this.draft.update((d) => ({ ...d, gearId: '' }));
+  }
+
+  private applyBike(bike: KudosBike): void {
+    this.draft.update((d) => ({
+      ...d,
+      gearId: bike.strava_bike_id ?? '',
+      sportType: d.sportTypeChosen ? d.sportType : (SPORT_BY_BIKE_TYPE[bike.bike_type] ?? 'Ride'),
+    }));
+  }
+
+  protected setSportType(event: Event): void {
+    const sportType = (event.target as HTMLSelectElement).value as RideSportType;
+    this.draft.update((d) => ({ ...d, sportType, sportTypeChosen: true }));
+  }
+
+  protected toggleTag(key: TagKey): void {
+    this.draft.update((d) => ({ ...d, [key]: !d[key] }));
+  }
 
   protected async exportFile(): Promise<void> {
     const result = await this.sync.share();
@@ -413,25 +187,85 @@ export class SavePage {
     if (result === 'downloaded' || result === 'shared') this.exported.set(true);
   }
 
-  /** Ist die Fahrt auf Strava, ist sie abgeschlossen: zurücksetzen, zurück zur Fahrtseite. */
+  /** Ist die Fahrt auf Strava, ist sie abgeschlossen: Ergebnis zeigen, Fahrt zurücksetzen. */
   protected async upload(event: Event): Promise<void> {
     event.preventDefault();
     if (!this.ride.hasData() || this.sync.uploading()) return;
-    const { name, commute } = this.uploadModel();
+    const d = this.draft();
+    const name = d.name.trim() || this.suggestedName();
     this.uploadError.set(null);
     try {
-      this.finish(await this.sync.upload(name.trim() || this.suggestedName(), commute));
+      const outcome = await this.sync.upload({
+        name,
+        description: d.description,
+        commute: d.commute,
+        trainer: d.trainer,
+        tags: tagsFor(d),
+      });
+      if (d.gearId) store.set(LAST_BIKE_KEY, d.gearId);
+      this.complete(true, {
+        headline: outcome.activityId ? 'Auf Strava gespeichert' : 'Hochgeladen',
+        name,
+        activityId: outcome.activityId,
+        notice:
+          outcome.tagsProblem ??
+          (outcome.activityId ? null : 'Strava verarbeitet die Fahrt noch. Sie erscheint gleich.'),
+      });
     } catch (err) {
       this.uploadError.set(err instanceof Error ? err.message : 'Upload fehlgeschlagen.');
     }
   }
 
-  protected finish(message: string): void {
+  /** Nach dem Export ohne Strava abschließen. */
+  protected finishLocal(): void {
+    this.complete(false, {
+      headline: 'Als Datei gesichert',
+      name: this.draft().name.trim() || this.suggestedName(),
+      activityId: null,
+      notice: null,
+    });
+  }
+
+  private complete(
+    uploaded: boolean,
+    result: Pick<DoneSummary, 'headline' | 'name' | 'activityId' | 'notice'>,
+  ): void {
+    const d = this.draft();
+    const startedAt = this.ride.stats().startedAt;
+    this.done.set({
+      ...result,
+      when: startedAt
+        ? new Date(startedAt).toLocaleString('de-DE', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : '',
+      route: this.route(),
+      facts: this.facts(),
+      tags: uploaded ? this.tagLabels(d) : [],
+    });
     this.ride.reset();
     this.exported.set(false);
     this.uploadError.set(null);
-    this.uploadModel.set({ name: '', commute: false });
-    this.toasts.show(message, 6000);
+    this.draft.set(emptyDraft());
+  }
+
+  private tagLabels(d: UploadDraft): string[] {
+    const labels: string[] = [];
+    const bike = this.bikes().find((b) => b.strava_bike_id === d.gearId);
+    if (bike) labels.push(bike.name);
+    if (d.sportType !== 'Ride') {
+      labels.push(SPORT_TYPES.find((t) => t.value === d.sportType)?.label ?? d.sportType);
+    }
+    for (const tag of TAG_OPTIONS) if (d[tag.key]) labels.push(tag.label);
+    return labels;
+  }
+
+  protected newRide(): void {
+    this.done.set(null);
     void this.router.navigateByUrl(RC.ride);
   }
 
@@ -446,7 +280,17 @@ export class SavePage {
     this.discardArmed.set(false);
     this.exported.set(false);
     this.uploadError.set(null);
+    this.draft.set(emptyDraft());
     this.ride.reset();
     this.toasts.show('Fahrt verworfen.');
   }
+}
+
+/** Nur was vom Standard abweicht, geht an Strava. */
+export function tagsFor(d: UploadDraft): ActivityTags {
+  const tags: ActivityTags = {};
+  if (d.sportType !== 'Ride') tags.sport_type = d.sportType;
+  if (d.gearId) tags.gear_id = d.gearId;
+  if (d.hideFromHome) tags.hide_from_home = true;
+  return tags;
 }

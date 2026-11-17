@@ -29,6 +29,17 @@
         <span class="sense" [attr.data-state]="hrState()"></span>
         HF <small>{{ hrText() }}</small>
       </button>
+      <button
+        type="button"
+        class="chip lock"
+        aria-label="Bildschirm sperren, gegen Regen"
+        (click)="lock.lock()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="1.5" />
+          <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+        </svg>
+      </button>
       <span class="clock digits"><span class="sr-only">Uhrzeit </span>{{ clock() }}</span>
     </div>
   }
@@ -65,11 +76,14 @@
   [attr.inert]="controlsVisible() ? null : ''"
   [attr.aria-hidden]="controlsVisible() ? null : 'true'"
 >
-  <footer class="controls" (click)="onControlsClick()">
+  <footer class="controls" [class.with-bell]="bellKey()" (click)="onControlsClick()">
     @if (onRide()) {
       <a class="btn icon" [routerLink]="rc.menu" aria-label="Menü">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
       </a>
+      @if (bellKey()) {
+        <rc-bell variant="key" />
+      }
     } @else {
       <a class="btn icon" [routerLink]="rc.ride" aria-label="Zur Fahrt">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
@@ -77,7 +91,7 @@
     }
     <!-- Pausiert: Runde geht ohnehin nicht, die Taste wird zu „Weiter“, die Hauptaste zu „Stop“. -->
     @if (ride.status() === 'paused') {
-      <button type="button" class="btn" (click)="ride.toggle()">Weiter</button>
+      <button type="button" class="btn" (click)="onMain()">Weiter</button>
       <button type="button" class="btn primary stop" (click)="stop()">Stop</button>
     } @else {
       <button
@@ -88,10 +102,14 @@
       >
         Runde
       </button>
-      <button type="button" class="btn primary" (click)="ride.toggle()">{{ mainLabel() }}</button>
+      <button type="button" class="btn primary" (click)="onMain()">{{ mainLabel() }}</button>
     }
   </footer>
 </div>
+
+@if (lock.locked()) {
+  <rc-lock-overlay />
+}
 
 <div class="toast" role="status" aria-live="polite" [class.show]="toasts.message()">
   {{ toasts.message() }}

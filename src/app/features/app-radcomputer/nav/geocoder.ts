@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
+import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error-interceptor/error-interceptor';
 import { Place } from '../core/models';
 
 interface PhotonFeature {
@@ -31,7 +32,11 @@ export class Geocoder {
       params['lon'] = near.lon.toFixed(4);
     }
     const res = await firstValueFrom(
-      this.http.get<PhotonResponse>('https://photon.komoot.io/api/', { params }),
+      this.http.get<PhotonResponse>('https://photon.komoot.io/api/', {
+        params,
+        // Die Routenplanung meldet den Fehler selbst in der Radcomputer-Leiste.
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      }),
     );
     return (res.features ?? []).map((f) => {
       const p = f.properties;

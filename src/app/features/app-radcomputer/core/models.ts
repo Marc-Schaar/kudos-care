@@ -2,6 +2,14 @@ export type Theme = 'night' | 'day';
 export type AudioMode = 'off' | 'beep' | 'speech';
 export type RoutingProvider = 'brouter' | 'osrm';
 export type RoutingProfile = 'trekking' | 'fastbike';
+/** Kartenbild: OSM-Standard, CyclOSM (Radwege, Belag) oder OpenTopoMap (Höhenlinien). */
+export type MapStyle = 'osm' | 'cyclosm' | 'topo';
+
+/** Eine frei belegte Datenseite: Name und Feldschlüssel aus `ride/fields.ts`. */
+export interface DataPageConfig {
+  name: string;
+  fields: string[];
+}
 
 export interface Settings {
   theme: Theme;
@@ -21,6 +29,11 @@ export interface Settings {
   showStatusBar: boolean;
   /** Bedienleiste unten auf der Fahrt; ausgeblendet erscheint sie nach einem Tipp */
   showControls: boolean;
+  /** Klingel in der Bedienleiste */
+  bellButton: boolean;
+  mapStyle: MapStyle;
+  /** Eigene Datenseiten; leer = Standardbelegung (`DEFAULT_PAGES` in `ride/fields.ts`) */
+  dataPages: DataPageConfig[];
 }
 
 export type RideStatus = 'idle' | 'running' | 'paused';

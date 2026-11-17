@@ -19,6 +19,19 @@ const TONES: Record<Tone, ToneShape> = {
 };
 
 /**
+ * Klingel: Grundton im Bereich, in dem Telefonlautsprecher am lautesten sind (2–4 kHz),
+ * dazu unharmonische Teiltöne wie bei einer Glockenschale. Der leicht verstimmte zweite
+ * Grundton lässt sie schwebend nachklingen statt wie ein Piepton.
+ */
+const BELL_HZ = 2100;
+const BELL_PARTIALS = [
+  { ratio: 1, gain: 0.5, decay: 1.4 },
+  { ratio: 1.004, gain: 0.3, decay: 1.2 },
+  { ratio: 2.32, gain: 0.25, decay: 0.7 },
+  { ratio: 4.25, gain: 0.12, decay: 0.35 },
+];
+
+/**
  * Sprach- und Tonhinweise. Je nach Einstellung spricht die App (Sprachausgabe des
  * Browsers), piept nur oder bleibt still. Fehlt die Sprachausgabe, fällt sie auf Töne zurück.
  */
@@ -67,6 +80,36 @@ export class AudioFeedback {
 
   tone(kind: Tone): void {
     if (this.settings.value().audio !== 'off') this.play(kind);
+  }
+
+  /**
+   * Fahrradklingel: zwei Anschläge einer Glocke. Klingelt auch, wenn die Hinweise aus sind,
+   * denn sie ist ein Tipp, keine Ansage. Läuft über Web Audio und mischt sich deshalb mit
+   * Musik, statt sie anzuhalten; auf dem iPhone bleibt sie dafür im Stummmodus still.
+   */
+  bell(): void {
+    const ctx = this.context();
+    if (!ctx) return;
+    // Laut, aber ohne Übersteuern: mehrere Teiltöne addieren sich.
+    const out = ctx.createDynamicsCompressor();
+    out.threshold.value = -12;
+    out.ratio.value = 6;
+    out.connect(ctx.destination);
+    const start = ctx.currentTime + 0.01;
+    for (const strike of [0, 0.16]) {
+      for (const p of BELL_PARTIALS) {
+        const at = start + strike;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.value = BELL_HZ * p.ratio;
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(p.gain, at + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + p.decay);
+        osc.connect(gain).connect(out);
+        osc.start(at);
+        osc.stop(at + p.decay + 0.05);
+      }
+    }
   }
 
   private germanVoice(): SpeechSynthesisVoice | null {

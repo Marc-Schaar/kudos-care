@@ -11,11 +11,13 @@ export const store = {
       return null;
     }
   },
-  set(key: string, value: unknown): void {
+  /** `false`, wenn der Speicher voll oder gesperrt ist. */
+  set(key: string, value: unknown): boolean {
     try {
       localStorage.setItem(key, JSON.stringify(value));
+      return true;
     } catch {
-      /* voll oder gesperrt */
+      return false;
     }
   },
   del(key: string): void {

@@ -1,5 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
+import { isApiRequest } from '../api-request';
+
 const COOKIE_NAME = 'csrftoken';
 const HEADER_NAME = 'X-CSRFToken';
 
@@ -23,9 +25,13 @@ const HEADER_NAME = 'X-CSRFToken';
  * Dieser Interceptor liest das Cookie deshalb selbst und setzt den Header
  * unabhaengig von der Origin — das ist genau das von Django empfohlene Muster
  * für eine von der API getrennt gehostete SPA.
+ *
+ * Aber nur für die eigene API (`isApiRequest`): Fremde Dienste bekamen das Token sonst
+ * mitgeschickt, und der Header löste dort einen CORS-Preflight aus, an dem die Anfrage
+ * scheiterte.
  */
 export const csrfInterceptor: HttpInterceptorFn = (req, next) => {
-  if (req.headers.has(HEADER_NAME)) {
+  if (req.headers.has(HEADER_NAME) || !isApiRequest(req.url)) {
     return next(req);
   }
   const token = readCookie(COOKIE_NAME);

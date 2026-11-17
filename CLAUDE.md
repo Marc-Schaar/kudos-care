@@ -432,9 +432,18 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
 - **Angular 21 bleibt Pflicht**, solange der Radcomputer aufs iPhone X (Safari 16.6) muss:
   Angular 22 setzt Safari ≥ 17.2 voraus.
 - **Pause → Stop.** Pausiert wird aus „Runde“ die Taste „Weiter“ und aus der Hauptaste
-  „Stop“. Stop beendet nicht sofort, sondern öffnet „Fahrt abschließen“ (`menu/save-page.ts`):
-  erfolgreicher Strava-Upload setzt die Fahrt zurück, nach einem TCX-Export erscheint
-  „Fahrt abschließen“. Bis dahin bleibt sie pausiert und lässt sich mit „Weiter“ fortsetzen.
+  „Stop“. Stop beendet nicht sofort, sondern öffnet „Fahrt abschließen“ (`menu/save-page.ts`).
+  Dort: Titel, Rad (aus `maintenance/bikes/`, nur aktive mit `strava_bike_id`, das zuletzt
+  gewählte wird vorgeschlagen), Art (`sport_type`, folgt dem Radtyp, bis man sie selbst
+  wählt), Tags (Pendelfahrt, Rolle, Nicht im Feed) und Beschreibung. Der Entwurf liegt in
+  `RideSync.draft`, damit er Seitenwechsel übersteht. Upload: `commute`/`trainer`/
+  `description` gehen mit `/uploads`, der Rest nimmt Stravas Upload nicht an und geht danach
+  über `POST /api/radcomputer/activities/<id>/complete/` — derselbe Aufruf importiert die
+  Fahrt sofort nach Kudos Care (der Webhook läuft nicht zuverlässig). Danach bleibt die
+  Seite stehen und zeigt das Ergebnis (Strecke, Zahlen, gesetzte Tags, Links zu Strava und
+  Kudos Care), statt mit einem Toast auf die leere Fahrtseite zu springen. Bis dahin bleibt
+  die Fahrt pausiert und lässt sich mit „Weiter“ fortsetzen. „Rennen“/„Training“ fehlen
+  bewusst: `workout_type` ist in Stravas `UpdatableActivity` nicht dokumentiert.
 - **Einstellungen** liegen im Konto (`GET|PUT /api/radcomputer/settings/`, snake_case,
   Mapping in `settings-store.ts::API_FIELDS`), `localStorage` hält nur die Offline-Kopie
   für den Start ohne Netz. Gespeichert wird erst nach dem ersten Abgleich (sonst
@@ -445,8 +454,38 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
   Wohnadresse. Der alte Schlüssel `radcomputer.places.v1` wird beim ersten erfolgreichen
   Laden hochgeladen und gelöscht. Ohne Netz ist die Liste leer (`unavailable`); das Routen
   braucht ohnehin Internet.
-- Die laufende Fahrt liegt weiter in `localStorage` (`radcomputer.*`), damit ein Neuladen
-  sie nicht verliert.
+- **Die laufende Fahrt liegt in `localStorage`, in Stücken** (`core/ride-recorder.ts`):
+  Kopf `radcomputer.ride.v3` (Zustand, Zahlen, Runden) plus Track-Stücke
+  `radcomputer.ride.v3.<n>` zu je 300 Punkten. Gesichert wird alle 5 s, dabei nur das
+  wachsende Stück — vorher alle 20 s die komplette Fahrt (nach 3 h fast 1 MB je Sicherung).
+  Erst die Stücke, dann der Kopf: scheitert ein Stück am vollen Speicher, verweist der alte
+  Kopf nur auf vollständige. Ein hart beendeter Tab verliert höchstens die letzten Sekunden;
+  das alte Format `v2` wird beim Start übernommen.
+- **Datenseiten frei belegbar** (`ride/fields.ts`, Editor `menu/data-pages-page.ts`,
+  `menue/einstellungen/datenseiten`): `FIELDS` ist das Register (Schlüssel, Gruppe, Einheit,
+  `kind` für die Kacheln Wind und Klingel), `RideFields.readings` rechnet alle Werte einmal
+  je Sekunde, `core/ride-metrics.ts` führt, was der Recorder nicht kennt (NP, kJ, Ø/Max-Puls,
+  Ø-Kadenz ohne Rollphasen, Max-Tempo, Abstieg, Steigung, Steigrate) — aus dem Track, damit
+  es nach dem Wiederherstellen stimmt. Gespeichert in `Settings.dataPages`, leer =
+  `DEFAULT_PAGES` (die drei früheren festen Seiten). Unbekannte Schlüssel fallen still weg
+  (`effectivePages`), das Backend prüft nur die Form. Raster: erstes Feld groß, Rest
+  paarweise, ein übriges über die volle Breite (`pageLayout`). Die Ziffern skalieren über
+  Container-Einheiten mit dem Feld, nicht mit dem Bildschirm. Musik und Benachrichtigungen
+  anderer Apps gibt es als Feld nicht: dafür hat eine Webseite unter iOS keine Schnittstelle.
+- **Fahrtrichtung** (`core/heading.ts`): in Fahrt GPS-Kurs, unter ~7 km/h der Kompass des
+  Telefons (`webkitCompassHeading`, sonst `deviceorientationabsolute`). Karte, Kompassnadel
+  und Wind lesen `Heading.value`, nicht mehr `Gps.heading`. iOS gibt den Kompass erst nach
+  `DeviceOrientationEvent.requestPermission()` aus einem Tipp frei — `enable()` hängt an
+  Start/Weiter, am Kompassknopf und an den Einstellungen.
+- **Regen** (`core/touch-lock.ts`, `ride/lock-overlay.ts`): Sperre über allem, entsperrt
+  wird nur durch 1,2 s Halten auf dem Schloss. Die Shell blockt zusätzlich Pinch-Zoom
+  (`gesturestart`), Doppeltipp und Kontextmenü, die Fahrtseite hat `touch-action: none`.
+  Vollbild nur per Feature-Erkennung: iPhone-Browser erlauben es für Seiten nicht.
+- **Klingel**: `AudioFeedback.bell()` (Web Audio, synthetisch; mischt sich mit Musik, bleibt
+  im iOS-Stummmodus aber still), als Taste in der Bedienleiste (`bellButton`), auf der Karte
+  und als Datenfeld.
+- **Kartenbild** (`nav/map-canvas.ts::TILE_SOURCES`): CyclOSM (Standard), OpenTopoMap, OSM.
+  Über der höchsten Stufe eines Dienstes werden dessen Kacheln vergrößert.
 - `?demo` an der Adresse simuliert GPS und Sensoren (Beispielroute/-training im Menü).
 
 ## Routing (`core/app.routes.ts`, `maintenances.routes.ts`)
@@ -483,7 +522,12 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
   injiziert `HttpClient` direkt.
 - **Session-Cookie-Auth, kein JWT.** `provideHttpClient` nutzt zusätzlich
   `withXsrfConfiguration({cookieName:'csrftoken', headerName:'X-CSRFToken'})` (Django-CSRF-
-  Konvention). `authInterceptor` setzt nur `withCredentials: true` — keine Token-Logik.
+  Konvention). `authInterceptor` setzt nur `withCredentials: true` — keine Token-Logik —,
+  und wie `csrfInterceptor` **nur für die eigene API** (`core/interceptors/api-request.ts`).
+  Vorher gingen Cookies und CSRF-Token an jede Anfrage, auch an BRouter/OSRM/Photon im
+  Radcomputer; deren `Access-Control-Allow-Origin: *` lehnt der Browser mit Cookies ab, und
+  keine Route kam zustande. Fremde Dienste brauchen keine Ausnahme mehr, nur neue eigene
+  APIs unter einer anderen Basis-URL müssten in `isApiRequest` auftauchen.
   **Beim Debuggen von Auth-Problemen niemals einen `Authorization`-Header vorschlagen.**
   **Wichtig — `withXsrfConfiguration` allein reicht im lokalen Dev-Betrieb NICHT:**
   Angulars eingebauter `HttpXsrfInterceptor` haengt den Header laut eigener Quelle nur an,

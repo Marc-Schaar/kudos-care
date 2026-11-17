@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { DataPagesPage } from './menu/data-pages-page';
 import { MenuPage } from './menu/menu-page';
 import { SavePage } from './menu/save-page';
 import { SettingsPage } from './menu/settings-page';
@@ -27,6 +28,11 @@ export const RADCOMPUTER_ROUTES: Routes = [
         path: 'menue/einstellungen',
         title: 'Einstellungen – Radcomputer',
         component: SettingsPage,
+      },
+      {
+        path: 'menue/einstellungen/datenseiten',
+        title: 'Datenseiten – Radcomputer',
+        component: DataPagesPage,
       },
       { path: '**', redirectTo: 'fahrt' },
     ],

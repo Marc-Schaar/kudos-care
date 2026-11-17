@@ -112,6 +112,21 @@
         blendet sie sofort aus.
       </p>
     }
+    <button type="button" class="btn" (click)="lockScreen()">Bildschirm sperren (Regen)</button>
+    <p class="hint">
+      Gesperrt lösen Tropfen nichts mehr aus. Zum Entsperren das Schloss gut eine Sekunde gedrückt
+      halten. Das Schloss oben in der Leiste sperrt auch direkt.
+    </p>
+    @if (lock.fullscreenSupported) {
+      <button type="button" class="btn" (click)="lock.toggleFullscreen()">
+        {{ lock.fullscreen() ? 'Vollbild beenden' : 'Vollbild' }}
+      </button>
+    } @else {
+      <p class="hint">
+        Vollbild: Dieser Browser lässt Webseiten nicht ins Vollbild. Auf dem iPhone ist das die
+        Regel, dort gibt iOS Vollbild meist nur für Videos frei.
+      </p>
+    }
   </div>
 
   <!-- Ausgang aus dem Radcomputer: abgesetzt, damit man ihn nicht mit einer Unterseite verwechselt. -->

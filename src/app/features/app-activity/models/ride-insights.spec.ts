@@ -22,15 +22,52 @@ describe('rideWeather', () => {
   });
 
   it('wertet nur Fahrten mit nennenswertem Regen als nass', () => {
-    const wet = rideWeather(ride({ weather_data: { precipitation: [3, 4], temperature_2m: [12, 14] } }));
-    const dry = rideWeather(ride({ weather_data: { precipitation: [0.1, 0.2], temperature_2m: [12] } }));
+    const wet = rideWeather(
+      ride({ weather_data: { precipitation: [3, 4], temperature_2m: [12, 14] } }),
+    );
+    const dry = rideWeather(
+      ride({ weather_data: { precipitation: [0.1, 0.2], temperature_2m: [12] } }),
+    );
     expect(wet?.wet).toBe(true);
     expect(wet?.avgTemperature).toBe(13);
     expect(dry?.wet).toBe(false);
   });
 
+  // Regressionstest: Fahrt 16:10–17:00, Schauer von 16 bis 17 Uhr (Wert um 17:00). Das
+  // gespeicherte Fenster reicht von 16:00 bis 18:00; der einfache Mittelwert war 0,47 mm/h
+  // und die Fahrt galt als trocken.
+  it('zählt nur den Regen, der während der Fahrt fiel', () => {
+    const shower = ride({
+      start_date: '2026-11-17T16:10:00Z',
+      elapsed_time: 3000,
+      weather_data: {
+        time: ['2026-11-17T16:00', '2026-11-17T17:00', '2026-11-17T18:00'],
+        precipitation: [0, 1.4, 0],
+        temperature_2m: [8, 8, 8],
+      },
+    });
+    const weather = rideWeather(shower)!;
+    expect(weather.avgPrecipitation).toBeCloseTo(1.4, 5);
+    expect(weather.wet).toBe(true);
+  });
+
+  it('wertet Regen vor dem Start nicht als nass', () => {
+    const before = ride({
+      start_date: '2026-11-17T16:10:00Z',
+      elapsed_time: 3000,
+      weather_data: {
+        time: ['2026-11-17T16:00', '2026-11-17T17:00', '2026-11-17T18:00'],
+        precipitation: [2.5, 0, 0],
+        temperature_2m: [],
+      },
+    });
+    expect(rideWeather(before)?.wet).toBe(false);
+  });
+
   it('übersteht Lücken in den Stundenwerten', () => {
-    const weather = rideWeather(ride({ weather_data: { precipitation: [null, 1], temperature_2m: [] } }));
+    const weather = rideWeather(
+      ride({ weather_data: { precipitation: [null, 1], temperature_2m: [] } }),
+    );
     expect(weather?.avgPrecipitation).toBe(1);
     expect(weather?.avgTemperature).toBeNull();
   });
@@ -105,7 +142,10 @@ describe('buildTally', () => {
 
   it('zählt nasse Fahrten und übersteht eine leere Liste', () => {
     const tally = buildTally(
-      [ride({ id: 1, weather_data: { precipitation: [3], temperature_2m: [10] } }), ride({ id: 2 })],
+      [
+        ride({ id: 1, weather_data: { precipitation: [3], temperature_2m: [10] } }),
+        ride({ id: 2 }),
+      ],
       now,
     );
     expect(tally.wetCount).toBe(1);

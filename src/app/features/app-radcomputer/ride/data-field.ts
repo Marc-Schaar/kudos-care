@@ -6,6 +6,10 @@ import { DASH } from '../core/format';
  * Ein Datenfeld: Beschriftung oben, darunter der Wert mit seiner Einheit auf derselben
  * Grundlinie („149 bpm“), damit das Auge nicht quer über das Feld springen muss.
  *
+ * Die Ziffern wachsen mit dem Feld (Container-Einheiten), nicht mit dem Bildschirm: Seit
+ * die Datenseiten frei belegbar sind, kann ein Feld die halbe Seite oder ein Achtel sein.
+ * Die Breite teilt sich durch die Zeichenzahl, damit „1:23:45“ so gut passt wie „25,3“.
+ *
  * Volle Ziffern heißt: die Uhr läuft. Solange nichts aufgezeichnet wird (bereit, pausiert,
  * Auto-Pause), stehen die Werte nur als Umriss da, bei Auto-Pause in Verkehrsgelb. Das ist
  * eine Formänderung, kein reiner Farbwechsel: auf Armlänge und für Farbenblinde lesbar.
@@ -14,7 +18,7 @@ import { DASH } from '../core/format';
   selector: 'rc-data-field',
   template: `
     <span class="label">{{ label() }}</span>
-    <span class="value digits" [class.long]="value().length > 5">
+    <span class="value digits" [style.--n]="chars()">
       <span class="num">{{ value() }}</span>
       @if (showUnit()) {
         <span class="unit">{{ unit() }}</span>
@@ -23,10 +27,10 @@ import { DASH } from '../core/format';
   `,
   host: {
     '[class.hero]': 'size() === "hero"',
-    '[class.wide]': 'size() !== "normal"',
   },
   styles: `
     :host {
+      container-type: size;
       background: var(--bg);
       min-width: 0;
       min-height: 0;
@@ -34,9 +38,6 @@ import { DASH } from '../core/format';
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-    }
-    :host(.wide) {
-      grid-column: 1 / -1;
     }
     .label {
       font-family: var(--digits);
@@ -51,19 +52,13 @@ import { DASH } from '../core/format';
       line-height: 0.9;
       letter-spacing: -0.02em;
       white-space: nowrap;
+      /* Ohne Container-Einheiten (sehr alte Browser) die frühere Größe. */
       font-size: min(15.5vw, 9.5vh);
-    }
-    .value.long {
-      font-size: min(11.5vw, 7.5vh);
-    }
-    :host(.wide) .value.long {
-      font-size: min(15.5vw, 9.5vh);
+      font-size: min(calc(150cqw / var(--n)), calc(100cqh - 36px));
     }
     :host(.hero) .value {
       font-size: min(31vw, 17vh);
-    }
-    :host(.hero) .value.long {
-      font-size: min(23vw, 14vh);
+      font-size: min(calc(150cqw / var(--n)), calc(100cqh - 36px));
     }
     .unit {
       margin-left: 0.14em;
@@ -96,4 +91,13 @@ export class DataField {
 
   /** Ohne Wert („--“) hat die Einheit nichts, woran sie stehen könnte. */
   protected readonly showUnit = computed(() => !!this.unit() && this.value() !== DASH);
+
+  /**
+   * Breite des Werts in Ziffernbreiten: Die Einheit steht in gut einem Viertel der Größe
+   * daneben. Mindestens drei, sonst würde eine einzelne Ziffer riesig.
+   */
+  protected readonly chars = computed(() => {
+    const unit = this.showUnit() ? this.unit().length * 0.3 + 0.2 : 0;
+    return Math.max(3, this.value().length + unit);
+  });
 }

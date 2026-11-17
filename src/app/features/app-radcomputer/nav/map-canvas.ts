@@ -12,14 +12,47 @@ import {
 } from '@angular/core';
 
 import { mercX, mercY } from '../core/geo';
-import { GpsFix, Theme } from '../core/models';
+import { GpsFix, MapStyle, Theme } from '../core/models';
 import { NavRoute } from './nav-models';
 
 const TILE = 256;
 const MAX_TILES = 160;
 
+interface TileSource {
+  url: (z: number, x: number, y: number) => string;
+  /** Darüber werden die Kacheln dieser Stufe vergrößert statt neu geladen. */
+  maxZoom: number;
+  attribution: string;
+}
+
+/** Lastverteilung über die Unterdomains a/b/c, gleichmäßig je Kachel. */
+const sub = (x: number, y: number): string => 'abc'[(x + y) % 3];
+
 /**
- * Karte auf zwei Canvas-Ebenen: unten OSM-Kacheln (nachts per CSS-Filter abgedunkelt),
+ * Kartenbilder ohne API-Schlüssel. CyclOSM zeigt Radwege, Radstreifen, Belag und
+ * Radinfrastruktur; OpenTopoMap Höhenlinien und Schummerung für Gravel und Gelände.
+ */
+export const TILE_SOURCES: Record<MapStyle, TileSource> = {
+  osm: {
+    url: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+    maxZoom: 19,
+    attribution: '© OpenStreetMap',
+  },
+  cyclosm: {
+    url: (z, x, y) =>
+      `https://${sub(x, y)}.tile-cyclosm.openstreetmap.fr/cyclosm/${z}/${x}/${y}.png`,
+    maxZoom: 20,
+    attribution: '© OpenStreetMap · CyclOSM',
+  },
+  topo: {
+    url: (z, x, y) => `https://${sub(x, y)}.tile.opentopomap.org/${z}/${x}/${y}.png`,
+    maxZoom: 17,
+    attribution: '© OpenStreetMap · SRTM · OpenTopoMap',
+  },
+};
+
+/**
+ * Karte auf zwei Canvas-Ebenen: unten Kartenkacheln (nachts per CSS-Filter abgedunkelt),
  * oben Route und Standort. Ohne Kacheln bleibt die Routenlinie, das genügt zum
  * Nachfahren und funktioniert ohne Netz.
  */
@@ -55,6 +88,7 @@ export class MapCanvas {
   readonly heading = input<number | null>(null);
   readonly headingUp = input(true);
   readonly showTiles = input(true);
+  readonly tileStyle = input<MapStyle>('cyclosm');
   readonly zoom = input(16);
   readonly theme = input<Theme>('night');
   readonly label = input('Karte');
@@ -106,6 +140,7 @@ export class MapCanvas {
       this.heading();
       this.headingUp();
       this.showTiles();
+      this.tileStyle();
       this.zoom();
       this.theme();
       this.size();
@@ -114,15 +149,15 @@ export class MapCanvas {
     });
   }
 
-  private tile(z: number, x: number, y: number): HTMLImageElement {
-    const key = `${z}/${x}/${y}`;
-    let img = this.tileCache.get(key);
+  private tile(source: TileSource, z: number, x: number, y: number): HTMLImageElement {
+    const src = source.url(z, x, y);
+    let img = this.tileCache.get(src);
     if (!img) {
       img = new Image();
       img.decoding = 'async';
       img.onload = () => this.tilesLoaded.update((n) => n + 1);
-      img.src = `https://tile.openstreetmap.org/${key}.png`;
-      this.tileCache.set(key, img);
+      img.src = src;
+      this.tileCache.set(src, img);
       if (this.tileCache.size > MAX_TILES) {
         const oldest = this.tileCache.keys().next().value;
         if (oldest !== undefined) this.tileCache.delete(oldest);
@@ -173,24 +208,28 @@ export class MapCanvas {
     const muted = css.getPropertyValue('--muted').trim() || '#999';
 
     if (this.showTiles()) {
+      // Über der höchsten Stufe des Dienstes die Kacheln darunter vergrößern.
+      const source = TILE_SOURCES[this.tileStyle()] ?? TILE_SOURCES.osm;
+      const tz = Math.min(z, source.maxZoom);
+      const size = TILE * 2 ** (z - tz);
       tctx.translate(ox, oy);
       tctx.rotate(rot);
-      const n = 2 ** z;
+      const n = 2 ** tz;
       for (
-        let tx = Math.floor((cx - radius) / TILE);
-        tx <= Math.floor((cx + radius) / TILE);
+        let tx = Math.floor((cx - radius) / size);
+        tx <= Math.floor((cx + radius) / size);
         tx++
       ) {
         for (
-          let ty = Math.floor((cy - radius) / TILE);
-          ty <= Math.floor((cy + radius) / TILE);
+          let ty = Math.floor((cy - radius) / size);
+          ty <= Math.floor((cy + radius) / size);
           ty++
         ) {
           if (ty < 0 || ty >= n) continue;
-          const img = this.tile(z, ((tx % n) + n) % n, ty);
+          const img = this.tile(source, tz, ((tx % n) + n) % n, ty);
           // Ein Pixel Überlappung verdeckt die Nähte beim Drehen.
           if (img.complete && img.naturalWidth)
-            tctx.drawImage(img, tx * TILE - cx, ty * TILE - cy, TILE + 1, TILE + 1);
+            tctx.drawImage(img, tx * size - cx, ty * size - cy, size + 1, size + 1);
         }
       }
     }

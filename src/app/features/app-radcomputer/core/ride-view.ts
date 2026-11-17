@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
-export type RidePageKey = 'data' | 'avg' | 'lap' | 'map' | 'workout';
+/** Datenseiten heißen `data`, `data-1` …, dahinter die Karte und das Training. */
+export type RidePageKey = 'data' | `data-${number}` | 'map' | 'workout';
 
 /**
  * So lange bleibt die ausgeblendete Bedienleiste nach einem Tipp sichtbar (ms). Kurz, weil

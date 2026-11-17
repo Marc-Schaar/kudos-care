@@ -2,6 +2,9 @@
   height: 100%;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  /* Keine Browsergesten auf der Fahrtseite: kein Zoomen, kein Ziehen. Getippt und
+     waagerecht gewischt wird trotzdem, das wertet die Seite selbst aus. */
+  touch-action: none;
 }
 
 /* Haarlinien zwischen den Feldern: der Zwischenraum zeigt die Linienfarbe. */
@@ -15,6 +18,15 @@
   background: var(--line);
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1.45fr 1fr 1fr 0.85fr;
+}
+.cell {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  background: var(--bg);
+}
+.cell.full {
+  grid-column: 1 / -1;
 }
 
 .meta {

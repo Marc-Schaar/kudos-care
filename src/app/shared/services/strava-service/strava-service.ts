@@ -24,6 +24,8 @@ export interface Activity {
   track?: string | null;
   /** Null, solange keine Wetter-Einwilligung vorliegt oder die Fahrt nicht nachgerechnet ist. */
   weather_data?: {
+    /** Stunden im Format von Open-Meteo, ohne Zonenangabe (wie `start_date` Ortszeit). */
+    time?: string[];
     precipitation?: (number | null)[];
     temperature_2m?: (number | null)[];
   } | null;

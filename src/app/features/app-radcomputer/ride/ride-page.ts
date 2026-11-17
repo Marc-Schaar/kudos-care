@@ -1,97 +1,29 @@
 import { Component, computed, inject } from '@angular/core';
 
-import { fmtTime, kmh, num } from '../core/format';
-import { Gps } from '../core/gps';
 import { RideDisplayState } from '../core/models';
 import { RideRecorder } from '../core/ride-recorder';
-import { Sensors } from '../core/sensors';
-import { Ticker } from '../core/ticker';
 import { RidePageKey, RideView } from '../core/ride-view';
 import { SettingsStore } from '../core/settings-store';
 import { MapView } from '../nav/map-view';
 import { WorkoutLive } from '../workout/workout-live';
 import { WorkoutPlayer } from '../workout/workout-player';
 import { WindTile } from '../wind/wind-tile';
+import { BellButton } from './bell-button';
 import { DataField } from './data-field';
+import { FieldDef, FieldSize, RideFields, effectivePages, fieldDef, pageLayout } from './fields';
 
-type ValueKey =
-  | 'speed'
-  | 'power3s'
-  | 'hr'
-  | 'cadence'
-  | 'distance'
-  | 'time'
-  | 'avgSpeed'
-  | 'avgPower'
-  | 'maxPower'
-  | 'ascent'
-  | 'elapsed'
-  | 'lapPower'
-  | 'lapTime'
-  | 'lapDist'
-  | 'lapSpeed';
-
-interface ValueFieldDef {
-  key: ValueKey;
-  label: string;
-  unit?: string;
-  size?: 'wide' | 'hero';
+interface PageField {
+  def: FieldDef;
+  size: FieldSize;
 }
-
-/** Eigene Kachel mit Pfeil, Gegen-/Rückenwind und Stärke, siehe rc-wind-tile. */
-interface WindFieldDef {
-  key: 'wind';
-}
-
-type FieldDef = ValueFieldDef | WindFieldDef;
 
 interface RidePageDef {
   key: RidePageKey;
   name: string;
-  /** Nur Datenseiten haben Felder: ein großes, vier kleine, ein breites. */
-  fields?: readonly FieldDef[];
+  /** Nur Datenseiten haben Felder; Karte und Training sind eigene Ansichten. */
+  fields?: PageField[];
+  rows?: string;
 }
-
-const PAGES: readonly RidePageDef[] = [
-  {
-    key: 'data',
-    name: 'Fahrt',
-    fields: [
-      { key: 'speed', label: 'Geschwindigkeit', unit: 'km/h', size: 'hero' },
-      { key: 'power3s', label: 'Leistung 3 s', unit: 'W' },
-      { key: 'hr', label: 'Puls', unit: 'bpm' },
-      { key: 'cadence', label: 'Kadenz', unit: 'rpm' },
-      { key: 'distance', label: 'Distanz', unit: 'km' },
-      { key: 'time', label: 'Fahrzeit', size: 'wide' },
-    ],
-  },
-  {
-    key: 'avg',
-    name: 'Schnitt',
-    fields: [
-      { key: 'avgSpeed', label: 'Ø Geschwindigkeit', unit: 'km/h', size: 'hero' },
-      { key: 'avgPower', label: 'Ø Leistung', unit: 'W' },
-      { key: 'maxPower', label: 'Max. Leistung', unit: 'W' },
-      { key: 'ascent', label: 'Anstieg', unit: 'm' },
-      { key: 'wind' },
-      { key: 'elapsed', label: 'Gesamtzeit', size: 'wide' },
-    ],
-  },
-  {
-    key: 'lap',
-    name: 'Runde',
-    fields: [
-      { key: 'lapPower', label: 'Runde Ø Leistung', unit: 'W', size: 'hero' },
-      { key: 'lapTime', label: 'Rundenzeit' },
-      { key: 'lapDist', label: 'Rundendistanz', unit: 'km' },
-      { key: 'lapSpeed', label: 'Runde Ø', unit: 'km/h' },
-      { key: 'hr', label: 'Puls', unit: 'bpm' },
-      { key: 'power3s', label: 'Leistung 3 s', unit: 'W', size: 'wide' },
-    ],
-  },
-  { key: 'map', name: 'Karte' },
-  { key: 'workout', name: 'Training' },
-];
 
 const STATE_TEXT: Record<RideDisplayState, string> = {
   idle: 'Bereit',
@@ -102,7 +34,7 @@ const STATE_TEXT: Record<RideDisplayState, string> = {
 
 @Component({
   selector: 'rc-ride-page',
-  imports: [DataField, MapView, WorkoutLive, WindTile],
+  imports: [DataField, MapView, WorkoutLive, WindTile, BellButton],
   template: `
     @let current = page();
     <div class="body">
@@ -114,18 +46,31 @@ const STATE_TEXT: Record<RideDisplayState, string> = {
           <rc-workout-live />
         }
         @default {
-          <section class="grid" [attr.aria-label]="'Datenseite ' + current.name">
-            @for (field of current.fields; track field.key) {
-              @if (field.key === 'wind') {
-                <rc-wind-tile />
-              } @else {
-                <rc-data-field
-                  [label]="field.label"
-                  [unit]="field.unit ?? ''"
-                  [value]="values()[field.key]"
-                  [size]="field.size ?? 'normal'"
-                />
-              }
+          <section
+            class="grid"
+            [style.grid-template-rows]="current.rows"
+            [attr.aria-label]="'Datenseite ' + current.name"
+          >
+            @for (field of current.fields; track $index) {
+              <div class="cell" [class.full]="field.size !== 'normal'">
+                @switch (field.def.kind) {
+                  @case ('wind') {
+                    <rc-wind-tile />
+                  }
+                  @case ('bell') {
+                    <rc-bell variant="tile" />
+                  }
+                  @default {
+                    @let r = readings()[field.def.key];
+                    <rc-data-field
+                      [label]="r?.label ?? field.def.label"
+                      [unit]="r?.unit ?? field.def.unit ?? ''"
+                      [value]="r?.value ?? '--'"
+                      [size]="field.size"
+                    />
+                  }
+                }
+              </div>
             }
           </section>
         }
@@ -156,18 +101,33 @@ const STATE_TEXT: Record<RideDisplayState, string> = {
 })
 export class RidePage {
   protected readonly ride = inject(RideRecorder);
-  private readonly sensors = inject(Sensors);
-  private readonly gps = inject(Gps);
-  private readonly ticker = inject(Ticker);
   protected readonly view = inject(RideView);
   private readonly settings = inject(SettingsStore);
   private readonly player = inject(WorkoutPlayer);
+  private readonly fields = inject(RideFields);
   private touch: { x: number; y: number } | null = null;
 
-  /** Die Trainingsseite gibt es nur, solange ein Training geladen ist. */
-  protected readonly pages = computed(() =>
-    PAGES.filter((p) => p.key !== 'workout' || this.player.workout() != null),
-  );
+  protected readonly readings = this.fields.readings;
+
+  /**
+   * Eigene Datenseiten aus den Einstellungen, dahinter Karte und – solange ein Training
+   * geladen ist – die Trainingsseite. Die Datenseiten heißen intern `data`, `data-1` …
+   */
+  protected readonly pages = computed<RidePageDef[]>(() => {
+    const data = effectivePages(this.settings.value().dataPages).map((page, i) => {
+      const defs = page.fields.map(fieldDef).filter((d): d is FieldDef => d != null);
+      const layout = pageLayout(defs.length);
+      return {
+        key: (i === 0 ? 'data' : `data-${i}`) as RidePageKey,
+        name: page.name,
+        fields: defs.map((def, j) => ({ def, size: layout.sizes[j] })),
+        rows: layout.rows,
+      };
+    });
+    const extra: RidePageDef[] = [{ key: 'map', name: 'Karte' }];
+    if (this.player.workout() != null) extra.push({ key: 'workout', name: 'Training' });
+    return [...data, ...extra];
+  });
   protected readonly page = computed(
     () => this.pages().find((p) => p.key === this.view.page()) ?? this.pages()[0],
   );
@@ -175,31 +135,6 @@ export class RidePage {
     const state = this.ride.displayState();
     const hidden = !this.settings.value().showControls && !this.view.revealed();
     return state === 'idle' && hidden ? 'Bereit – tippen für Start' : STATE_TEXT[state];
-  });
-
-  protected readonly values = computed<Record<ValueKey, string>>(() => {
-    const stats = this.ride.stats();
-    const lap = this.ride.currentLap();
-    const speed = this.gps.speed();
-    const lapMs = stats.movingMs - lap.t0;
-    const lapM = stats.distanceM - lap.d0;
-    return {
-      speed: num(speed == null ? null : speed * 3.6, 1),
-      power3s: num(this.sensors.power3s()),
-      hr: num(this.sensors.hr()),
-      cadence: num(this.sensors.cadence()),
-      distance: num(stats.distanceM / 1000, 2),
-      time: fmtTime(stats.movingMs),
-      avgSpeed: num(kmh(stats.distanceM, stats.movingMs), 1),
-      avgPower: num(stats.pwrN ? stats.pwrSum / stats.pwrN : null),
-      maxPower: num(stats.pwrN ? stats.pwrMax : null),
-      ascent: num(stats.ascentM),
-      elapsed: fmtTime(stats.startedAt ? this.ticker.now() - stats.startedAt : 0),
-      lapPower: num(lap.pwrN ? lap.pwrSum / lap.pwrN : null),
-      lapTime: fmtTime(lapMs),
-      lapDist: num(lapM / 1000, 2),
-      lapSpeed: num(kmh(lapM, lapMs), 1),
-    };
   });
 
   private step(delta: number): void {

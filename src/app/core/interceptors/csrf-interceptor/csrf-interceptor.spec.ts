@@ -52,6 +52,24 @@ describe('csrfInterceptor', () => {
     expect(hasHeader).toBe(false);
   });
 
+  it('schickt das Token nicht an fremde Dienste', async () => {
+    document.cookie = 'csrftoken=abc123';
+    const req = new HttpRequest(
+      'GET',
+      'https://routing.openstreetmap.de/routed-bike/route/v1/driving/7,51;7.1,51.1',
+    );
+
+    let hasHeader: boolean | null = null;
+    await firstValueFrom(
+      interceptor(req, (clonedReq) => {
+        hasHeader = clonedReq.headers.has('X-CSRFToken');
+        return of(new HttpResponse({ status: 200 }));
+      }),
+    );
+
+    expect(hasHeader).toBe(false);
+  });
+
   it('ueberschreibt einen bereits gesetzten Header nicht', async () => {
     document.cookie = 'csrftoken=abc123';
     const req = new HttpRequest(

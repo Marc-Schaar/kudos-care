@@ -7,12 +7,17 @@ import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error-interceptor/e
 import { StravaService } from '../../../shared/services/strava-service/strava-service';
 import { angleDiff, haversine } from './geo';
 import { Gps } from './gps';
+import { Heading } from './heading';
 import { Ticker } from './ticker';
 
 /** Antwort von GET /api/radcomputer/wind/ */
 export interface WindReading {
   speed_kmh: number;
   gusts_kmh: number | null;
+  /** Aktuelle Temperatur, falls Open-Meteo sie liefert */
+  temperature_c?: number | null;
+  /** Niederschlag der letzten 15 Minuten in mm */
+  precipitation_mm?: number | null;
   /** Meteorologisch: Richtung, AUS der der Wind kommt, 0 = Norden */
   direction_deg: number;
   observed_at: string | null;
@@ -95,6 +100,7 @@ export function windWord(kmh: number): string {
 export class Wind {
   private readonly http = inject(HttpClient);
   private readonly gps = inject(Gps);
+  private readonly heading = inject(Heading);
   private readonly ticker = inject(Ticker);
   private readonly kudos = inject(StravaService);
   private readonly url = `${environment.apiUrl}/radcomputer/wind/`;
@@ -118,10 +124,13 @@ export class Wind {
     return reading && this.ticker.now() - this.fetchedAt() < SHOW_MAX_MS ? reading : null;
   });
 
-  /** Wind relativ zur Fahrtrichtung; ohne Kurs (noch nicht losgefahren) `null`. */
+  /**
+   * Wind relativ zur Fahrtrichtung; ohne Kurs `null`. Im Stand zählt der Kompass: wie das
+   * Rad gerade steht, so kommt beim Losfahren der Wind.
+   */
   readonly relative = computed<RelativeWind | null>(() => {
     const wind = this.current();
-    const heading = this.gps.heading();
+    const heading = this.heading.value();
     return wind && heading != null
       ? relativeWind(wind.direction_deg, wind.speed_kmh, heading)
       : null;

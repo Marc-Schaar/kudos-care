@@ -3,13 +3,15 @@ import { RouterLink } from '@angular/router';
 
 import { DASH, fmtDistance, num } from '../core/format';
 import { Gps } from '../core/gps';
+import { Heading } from '../core/heading';
 import { RideRecorder } from '../core/ride-recorder';
 import { RideView } from '../core/ride-view';
 import { SettingsStore } from '../core/settings-store';
 import { Ticker } from '../core/ticker';
 import { Compass } from './compass';
 import { CueSign } from './cue-sign';
-import { MapCanvas } from './map-canvas';
+import { MapCanvas, TILE_SOURCES } from './map-canvas';
+import { BellButton } from '../ride/bell-button';
 import { RouteGuide } from './route-guide';
 import { RC } from '../core/paths';
 import { WindBadge } from '../wind/wind-badge';
@@ -17,7 +19,7 @@ import { WindBadge } from '../wind/wind-badge';
 /** Kartenseite der Fahrt: nächster Hinweis, Karte, drei Werte. Routen wählt man im Menü. */
 @Component({
   selector: 'rc-map-view',
-  imports: [MapCanvas, CueSign, Compass, RouterLink, WindBadge],
+  imports: [MapCanvas, CueSign, Compass, RouterLink, WindBadge, BellButton],
   template: `
     <div class="banner">
       @if (guide.route(); as route) {
@@ -53,9 +55,10 @@ import { WindBadge } from '../wind/wind-badge';
         [route]="guide.route()"
         [passedIndex]="guide.progress()?.index ?? 0"
         [position]="gps.fix()"
-        [heading]="gps.heading()"
+        [heading]="heading.value()"
         [headingUp]="settings.value().headingUp"
         [showTiles]="settings.value().mapTiles"
+        [tileStyle]="settings.value().mapStyle"
         [zoom]="zoom()"
         [theme]="settings.value().theme"
         [label]="mapLabel()"
@@ -63,7 +66,7 @@ import { WindBadge } from '../wind/wind-badge';
       <rc-wind-badge class="wind" [headingUp]="settings.value().headingUp" />
       <div class="map-buttons">
         <rc-compass
-          [heading]="gps.heading()"
+          [heading]="heading.value()"
           [headingUp]="settings.value().headingUp"
           (toggle)="toggleHeadingUp()"
         />
@@ -85,6 +88,7 @@ import { WindBadge } from '../wind/wind-badge';
         >
           −
         </button>
+        <rc-bell variant="map" />
       </div>
       @if (settings.value().mapTiles) {
         <a
@@ -92,7 +96,7 @@ import { WindBadge } from '../wind/wind-badge';
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noopener"
-          >© OpenStreetMap</a
+          >{{ attribution() }}</a
         >
       }
     </div>
@@ -219,10 +223,15 @@ export class MapView {
   protected readonly guide = inject(RouteGuide);
   protected readonly gps = inject(Gps);
   protected readonly settings = inject(SettingsStore);
+  protected readonly heading = inject(Heading);
   private readonly ride = inject(RideRecorder);
   private readonly ticker = inject(Ticker);
 
   protected readonly zoom = inject(RideView).mapZoom;
+
+  protected readonly attribution = computed(
+    () => (TILE_SOURCES[this.settings.value().mapStyle] ?? TILE_SOURCES.osm).attribution,
+  );
 
   protected readonly remaining = computed(() => {
     const p = this.guide.progress();
@@ -264,7 +273,10 @@ export class MapView {
     this.zoom.update((z) => Math.min(18, Math.max(12, z + delta)));
   }
 
+  /** Der Tipp auf den Kompass holt auf dem iPhone auch die Erlaubnis für den Kompass. */
   protected toggleHeadingUp(): void {
-    this.settings.patch({ headingUp: !this.settings.value().headingUp });
+    const headingUp = !this.settings.value().headingUp;
+    if (headingUp) this.heading.enable();
+    this.settings.patch({ headingUp });
   }
 }

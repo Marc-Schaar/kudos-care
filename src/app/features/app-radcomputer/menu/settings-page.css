@@ -2,3 +2,40 @@
   display: block;
   height: 100%;
 }
+
+/* Unterseite der Einstellungen: ganze Zeile ist das Ziel, wie im Menü. */
+.link-row {
+  min-height: 64px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.link-row .text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.link-row .name {
+  font-family: var(--digits);
+  font-size: var(--t-l);
+  font-weight: 700;
+}
+.link-row .sub {
+  font-size: var(--t-m);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.link-row svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.75;
+}
