@@ -21,6 +21,8 @@ export interface StravaRoute {
   ride: boolean;
   private: boolean;
   updated_at: string | null;
+  /** Grobe Form als Google-Polyline, leer ohne Kartendaten */
+  polyline: string;
 }
 
 /** Ein Rad aus Kudos Care, soweit der Upload es braucht. */

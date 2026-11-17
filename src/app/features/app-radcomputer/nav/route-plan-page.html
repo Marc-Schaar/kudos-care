@@ -1,44 +1,168 @@
 <div class="scroll" [attr.inert]="pending() ? '' : null">
   <rc-sub-header title="Routenplanung" />
 
-  <div class="stack">
-    @if (guide.route(); as route) {
+  @if (guide.route(); as route) {
+    <div class="stack current-block">
       <div class="current">
         <span class="name">{{ route.name }}</span>
         <span class="hint">{{ fmtDistance(route.lengthM) }}, {{ route.cues.length }} Hinweise</span>
       </div>
-      <button type="button" class="btn" (click)="viewCurrent()">Ganze Route ansehen</button>
-      <button type="button" class="btn" (click)="guide.clear()">Route beenden</button>
-    } @else if (guide.busy()) {
-      <p class="hint">Route wird berechnet …</p>
-    }
+      <div class="pair">
+        <button type="button" class="btn" (click)="viewCurrent()">Ganze Route</button>
+        <button type="button" class="btn" (click)="guide.clear()">Route beenden</button>
+      </div>
+    </div>
+  } @else if (guide.busy()) {
+    <p class="hint current-block">Route wird berechnet …</p>
+  }
 
-    <label class="btn file">
-      <input type="file" class="sr-only" (change)="onGpxSelected($event)" />
-      GPX-Datei laden
-    </label>
-    @if (demo.active) {
-      <button type="button" class="btn" (click)="loadDemoRoute()">
-        Beispielroute laden (Demo)
+  <!-- Häufigster Weg zuerst: ein Ziel eintippen -->
+  <form class="where" (submit)="search($event)">
+    <label for="nav-query" class="where-label">Wohin?</label>
+    <div class="search">
+      <input
+        id="nav-query"
+        type="text"
+        [formField]="searchForm.query"
+        placeholder="Adresse oder Ort"
+        autocomplete="off"
+        enterkeyhint="search"
+      />
+      <button type="submit" class="btn" [disabled]="searching() || guide.busy()">
+        {{ searching() ? 'Suche …' : 'Suchen' }}
+      </button>
+    </div>
+  </form>
+  @if (results(); as list) {
+    @if (list.length) {
+      <ul class="places results" aria-label="Suchergebnisse">
+        @for (place of list; track $index) {
+          <li>
+            <button type="button" class="place" (click)="goTo(place)" [disabled]="guide.busy()">
+              {{ place.name }}
+            </button>
+            <button
+              type="button"
+              class="place-side"
+              (click)="save(place)"
+              [attr.aria-label]="place.name + ' als festes Ziel merken'"
+            >
+              Merken
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="hint results">Nichts gefunden. Versuch es mit Straße und Ort.</p>
+    }
+  }
+
+  <div class="section-head">
+    <h3 id="places-title">Feste Ziele</h3>
+    @if (places.list().length) {
+      <button
+        type="button"
+        class="head-action"
+        (click)="toggleEditing()"
+        [attr.aria-pressed]="editing()"
+      >
+        {{ editing() ? 'Fertig' : 'Bearbeiten' }}
       </button>
     }
   </div>
+  <!-- Der Mast: Ziele hängen wie Radwegweiser an einer Stange, km = Luftlinie ab hier -->
+  <div class="mast">
+    <ul class="signs" aria-labelledby="places-title">
+      @for (sign of signs(); track sign.place.name) {
+        <li [class.editing]="editing()">
+          <button
+            type="button"
+            class="sign"
+            (click)="goTo(sign.place)"
+            [disabled]="guide.busy() || editing()"
+            [attr.aria-label]="
+              sign.place.name + (sign.distance ? ', ' + sign.distance + ' Luftlinie' : '')
+            "
+          >
+            <span class="sign-name">{{ sign.place.name }}</span>
+            @if (sign.distance) {
+              <span class="sign-km digits">{{ sign.distance }}</span>
+            }
+          </button>
+          @if (editing()) {
+            <button
+              type="button"
+              class="place-side danger"
+              (click)="removePlace(sign.place)"
+              [attr.aria-label]="sign.place.name + ' löschen'"
+            >
+              Löschen
+            </button>
+          }
+        </li>
+      }
+      <li>
+        @if (adding()) {
+          <form class="add-form" (submit)="saveCurrent($event)">
+            <label for="nav-place" class="sr-only">Name für den Standort</label>
+            <input
+              #placeInput
+              id="nav-place"
+              type="text"
+              [formField]="searchForm.placeName"
+              autocomplete="off"
+              enterkeyhint="done"
+              placeholder="Name, z. B. Zuhause"
+            />
+            <div class="pair">
+              <button type="button" class="btn" (click)="cancelAdd()">Abbrechen</button>
+              <button type="submit" class="btn primary">Merken</button>
+            </div>
+          </form>
+        } @else {
+          <button type="button" class="sign add" (click)="openAdd()" [disabled]="!gps.fix()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <span class="sign-name">
+              {{ gps.fix() ? 'Standort hier merken' : 'Standort merken: warte auf GPS' }}
+            </span>
+          </button>
+        }
+      </li>
+    </ul>
+  </div>
+  @if (places.unavailable()) {
+    <p class="hint mast-hint">
+      Keine Verbindung zu Kudos Care. Deine Ziele erscheinen, sobald du online bist.
+    </p>
+  } @else if (!places.list().length && !adding()) {
+    <p class="hint mast-hint">Merke dir deinen Standort oder ein Suchergebnis als festes Ziel.</p>
+  }
 
-  <h3 class="section-title">Strava-Routen</h3>
-  <div class="stack">
-    @if (stravaRoutes(); as list) {
-      @if (list.length) {
-        <ul class="places" aria-label="Strava-Routen">
-          @for (route of list; track route.id) {
-            <li>
-              <button
-                type="button"
-                class="place wide"
-                (click)="loadStravaRoute(route)"
-                [disabled]="stravaLoading() !== null"
-              >
-                <span>{{ route.name }}</span>
-                <span class="meta">
+  <div class="section-head">
+    <h3 id="strava-title">Deine Strava-Routen</h3>
+  </div>
+  @if (stravaRoutes(); as list) {
+    @if (list.length) {
+      <ul class="routes" aria-labelledby="strava-title">
+        @for (route of list; track route.id) {
+          <li>
+            <button
+              type="button"
+              class="route"
+              (click)="loadStravaRoute(route)"
+              [disabled]="stravaLoading() !== null"
+            >
+              @if (outlines().get(route.id); as o) {
+                <svg class="shape" viewBox="0 0 56 44" aria-hidden="true">
+                  <path [attr.d]="o.d" />
+                  <circle [attr.cx]="o.start.x" [attr.cy]="o.start.y" r="3" />
+                </svg>
+              } @else {
+                <span class="shape" aria-hidden="true"></span>
+              }
+              <span class="route-text">
+                <span class="route-name">{{ route.name }}</span>
+                <span class="route-meta digits">
                   {{
                     stravaLoading() === route.id
                       ? 'lädt …'
@@ -49,125 +173,47 @@
                         (route.ride ? '' : ', keine Radroute')
                   }}
                 </span>
-              </button>
-            </li>
-          }
-        </ul>
-        @if (stravaMore()) {
-          <button
-            type="button"
-            class="btn"
-            (click)="loadStravaList(true)"
-            [disabled]="stravaLoading() !== null"
-          >
-            Weitere laden
-          </button>
-        }
-      } @else {
-        <p class="hint">Keine gespeicherten Routen auf Strava.</p>
-      }
-    } @else {
-      <button
-        type="button"
-        class="btn"
-        (click)="loadStravaList()"
-        [disabled]="stravaLoading() !== null"
-      >
-        {{ stravaLoading() === 'list' ? 'Lädt …' : 'Routen von Strava holen' }}
-      </button>
-    }
-  </div>
-
-  <h3 class="section-title">Zum Ziel führen</h3>
-  <div class="stack">
-    <form class="search" (submit)="search($event)">
-      <div class="form-row">
-        <label for="nav-query">Adresse oder Ort</label>
-        <input
-          id="nav-query"
-          type="text"
-          [formField]="searchForm.query"
-          autocomplete="off"
-          enterkeyhint="search"
-        />
-      </div>
-      <button type="submit" class="btn" [disabled]="searching() || guide.busy()">
-        {{ searching() ? 'Suche …' : 'Suchen' }}
-      </button>
-    </form>
-    @if (results(); as list) {
-      @if (list.length) {
-        <ul class="places" aria-label="Suchergebnisse">
-          @for (place of list; track $index) {
-            <li>
-              <button type="button" class="place" (click)="goTo(place)" [disabled]="guide.busy()">
-                {{ place.name }}
-              </button>
-              <button
-                type="button"
-                class="place-side"
-                (click)="save(place)"
-                [attr.aria-label]="place.name + ' als festes Ziel merken'"
-              >
-                Merken
-              </button>
-            </li>
-          }
-        </ul>
-      } @else {
-        <p class="hint">Nichts gefunden. Versuch es mit Straße und Ort.</p>
-      }
-    }
-  </div>
-
-  <h3 class="section-title">Feste Ziele</h3>
-  <div class="stack">
-    @if (places.list().length) {
-      <ul class="places" aria-label="Feste Ziele">
-        @for (place of places.list(); track place.name) {
-          <li>
-            <button type="button" class="place" (click)="goTo(place)" [disabled]="guide.busy()">
-              {{ place.name }}
-            </button>
-            <button
-              type="button"
-              class="place-side"
-              (click)="removePlace(place)"
-              [attr.aria-label]="place.name + ' löschen'"
-            >
-              Löschen
+              </span>
             </button>
           </li>
         }
       </ul>
-    } @else if (places.unavailable()) {
-      <p class="hint">
-        Keine Verbindung zu Kudos Care. Deine Ziele erscheinen, sobald du online bist.
-      </p>
     } @else {
-      <p class="hint">
-        Noch keine. Speichere unten deinen Standort oder merke dir ein Suchergebnis.
-      </p>
+      <p class="hint">Keine gespeicherten Routen auf Strava.</p>
     }
-    <form class="search" (submit)="saveCurrent($event)">
-      <div class="form-row">
-        <label for="nav-place">Aktuellen Standort speichern als</label>
-        <input
-          id="nav-place"
-          type="text"
-          [formField]="searchForm.placeName"
-          autocomplete="off"
-          placeholder="z. B. Zuhause"
-        />
-      </div>
-      <button type="submit" class="btn">Speichern</button>
-    </form>
+  } @else if (stravaFailed()) {
+    <div class="stack">
+      <p class="hint">Strava-Routen nicht geladen. Die Liste braucht Internet.</p>
+      <button type="button" class="btn" (click)="loadStravaList()">Erneut versuchen</button>
+    </div>
+  } @else {
+    <p class="hint">Routen werden geladen …</p>
+  }
 
-    <p class="hint">
-      Routenberechnung, Suche und Kartenbild brauchen Internet. Eine geladene Route funktioniert
-      danach auch ohne.
-    </p>
+  <div class="more">
+    @if (stravaMore()) {
+      <button
+        type="button"
+        class="btn"
+        (click)="loadStravaList(true)"
+        [disabled]="stravaLoading() !== null"
+      >
+        Weitere Routen
+      </button>
+    }
+    <label class="btn file">
+      <input type="file" class="sr-only" (change)="onGpxSelected($event)" />
+      GPX-Datei laden
+    </label>
+    @if (demo.active) {
+      <button type="button" class="btn" (click)="loadDemoRoute()">Beispielroute (Demo)</button>
+    }
   </div>
+
+  <p class="hint footnote">
+    Routenberechnung, Suche und Kartenbild brauchen Internet. Eine geladene Route funktioniert
+    danach auch ohne.
+  </p>
 </div>
 
 <!-- Zwischenschritt über der Liste: die ganze Route sehen, bevor die Führung beginnt. Die

@@ -6,6 +6,9 @@
 
 /* Geladene Route: dieselbe Innenlinie wie das Wegweiser-Schild, damit sie als
    „das ist dein Weg“ erkennbar ist */
+.current-block {
+  margin-bottom: 24px;
+}
 .current {
   padding: 12px 14px;
   border: 2px solid var(--fg);
@@ -22,17 +25,196 @@
   font-weight: 700;
   line-height: 1.15;
 }
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
 
-.file:focus-within {
-  outline: 3px solid var(--fg);
-  outline-offset: 2px;
+/* „Wohin?“ ist zugleich Überschrift und Beschriftung des Felds */
+.where {
+  display: grid;
+  gap: 10px;
+}
+.where-label {
+  font-family: var(--digits);
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  line-height: 1.1;
 }
 .search {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  align-items: end;
 }
+.search input,
+.add-form input {
+  min-width: 0;
+  min-height: 56px;
+  padding: 0 14px;
+  border: 2px solid var(--edge);
+  border-radius: 4px;
+  background: var(--panel);
+  font-size: var(--t-l);
+}
+.search input:focus,
+.add-form input:focus {
+  outline: none;
+  border-color: var(--fg);
+}
+.results {
+  margin-top: 10px;
+}
+
+.section-head {
+  margin: 28px 0 14px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--fg);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.section-head h3 {
+  font-family: var(--digits);
+  font-size: var(--t-xl);
+  line-height: 1.15;
+}
+.head-action {
+  min-height: 44px;
+  margin-bottom: -6px;
+  padding: 0 2px;
+  font-family: var(--digits);
+  font-size: var(--t-m);
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.head-action[aria-pressed='true'] {
+  color: var(--fg);
+}
+
+/* Der Mast: eine Stange links, die Ziele hängen als Pfeilwegweiser daran. Die km sind
+   Luftlinie wie auf dem Schild an der Straße, nicht die Fahrstrecke. */
+.mast {
+  position: relative;
+  padding-left: 22px;
+}
+.mast::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: -4px;
+  bottom: -12px;
+  width: 6px;
+  border-radius: 3px;
+  background: var(--edge);
+}
+.signs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.signs li.editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Drei Lagen derselben Form wie rc-cue-sign: Fläche, Innenlinie, wieder Fläche. Die
+   Markierungsfarbe (Weiß bei Nacht, Schwarz am Tag) hat auf beiden Gründen den
+   stärksten Kontrast der Seite. */
+.sign {
+  --tip: 24px;
+  --shape: polygon(0 0, calc(100% - var(--tip)) 0, 100% 50%, calc(100% - var(--tip)) 100%, 0 100%);
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px calc(var(--tip) + 16px) 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  color: var(--bg);
+  background: var(--fg);
+  clip-path: var(--shape);
+}
+.sign::before,
+.sign::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: var(--shape);
+}
+.sign::before {
+  inset: 4px;
+  background: var(--bg);
+}
+.sign::after {
+  inset: 6px;
+  background: var(--fg);
+}
+/* clip-path schneidet auch den Fokusring ab: er liegt deshalb innen, in der Linie. */
+.sign:focus-visible {
+  outline: none;
+}
+.sign:focus-visible::before {
+  background: var(--go);
+}
+.sign-name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--digits);
+  font-size: var(--t-xl);
+  font-weight: 700;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.sign-km {
+  font-size: var(--t-xl);
+  white-space: nowrap;
+}
+.sign:disabled {
+  opacity: 0.4;
+}
+.signs li.editing .sign:disabled {
+  opacity: 0.55;
+}
+
+/* Das leere Schild: noch nicht beschriftet, daher nur Umriss */
+.sign.add {
+  color: var(--fg);
+  background: var(--edge);
+}
+.sign.add::after {
+  background: var(--bg);
+}
+.sign.add .sign-name {
+  font-size: var(--t-l);
+}
+.sign.add svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.75;
+  stroke-linecap: round;
+}
+.add-form {
+  display: grid;
+  gap: 8px;
+}
+.mast-hint {
+  margin-top: 18px;
+}
+
 .places {
   list-style: none;
   margin: 0;
@@ -58,23 +240,83 @@
   font-weight: 600;
   line-height: 1.25;
 }
-.place.wide {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 2px;
-}
-.place .meta {
-  font-size: var(--t-m);
-  font-weight: 500;
-  color: var(--muted);
-}
 .place-side {
   font-family: var(--digits);
   font-weight: 700;
   color: var(--muted);
 }
+.place-side.danger {
+  border-color: var(--warn);
+  color: var(--warn);
+}
 .place:disabled {
   opacity: 0.4;
+}
+
+/* Strava-Routen: der Umriss der Strecke erkennt man schneller als ihren Namen */
+.routes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.routes li {
+  border-bottom: 1px solid var(--line);
+}
+.route {
+  width: 100%;
+  min-height: 68px;
+  padding: 10px 0;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  text-align: left;
+}
+.route:disabled {
+  opacity: 0.4;
+}
+.shape {
+  width: 56px;
+  height: 44px;
+}
+.shape path {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.shape circle {
+  fill: var(--fg);
+}
+.route-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.route-name {
+  font-size: var(--t-l);
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.route-meta {
+  font-size: var(--t-m);
+  color: var(--muted);
+}
+
+.more {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.file:focus-within {
+  outline: 3px solid var(--fg);
+  outline-offset: 2px;
+}
+.footnote {
+  margin-top: 20px;
 }
 
 /* Vorschau: die ganze Route vor dem Start, als Ebene über der Liste. Nicht scrollbar,

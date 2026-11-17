@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 
@@ -18,11 +18,15 @@ import { MapCanvas, TILE_SOURCES } from './map-canvas';
 import { MapCamera } from './map-camera';
 import { NavRoute } from './nav-models';
 import { RouteGuide } from './route-guide';
+import { RouteOutline, routeOutline } from './route-outline';
 import { SavedPlaces } from './saved-places';
 import { RC } from '../core/paths';
 
 /** Erst ab diesem Abstand zum Routenstart ist er eine Angabe wert (m). */
 const START_HINT_M = 150;
+/** Kasten für den Umriss einer Strava-Route in der Liste (px) */
+const OUTLINE_W = 56;
+const OUTLINE_H = 44;
 
 interface PendingRoute {
   route: NavRoute;
@@ -31,8 +35,10 @@ interface PendingRoute {
 }
 
 /**
- * Routen laden und Ziele wählen. Jede neue Route erscheint erst als Vorschau mit der
- * ganzen Strecke; „Route starten“ übernimmt sie und wechselt auf die Kartenseite.
+ * Routen laden und Ziele wählen. Oben die Suche („Wohin?“), darunter die festen Ziele als
+ * Schilder an einem Wegweiser-Mast (Luftlinie ab hier), dann die Strava-Routen mit ihrem
+ * Umriss. Jede neue Route erscheint erst als Vorschau mit der ganzen Strecke; „Route
+ * starten“ übernimmt sie und wechselt auf die Kartenseite.
  */
 @Component({
   selector: 'rc-route-plan-page',
@@ -63,7 +69,32 @@ export class RoutePlanPage {
   protected readonly stravaRoutes = signal<StravaRoute[] | null>(null);
   protected readonly stravaMore = signal(false);
   protected readonly stravaLoading = signal<string | null>(null);
+  /** Liste nicht geladen (offline, Strava down): steht in der Liste statt als Toast. */
+  protected readonly stravaFailed = signal(false);
   private stravaPage = 1;
+
+  /** „Bearbeiten“ am Mast: Schilder führen dann nicht, daneben steht „Löschen“. */
+  protected readonly editing = signal(false);
+  /** Das leere Schild am Mast ist zum Namensfeld aufgeklappt. */
+  protected readonly adding = signal(false);
+  private readonly placeInput = viewChild<ElementRef<HTMLInputElement>>('placeInput');
+
+  /** Feste Ziele mit Luftlinie ab dem Standort, wie die km-Angabe auf einem Wegweiser. */
+  protected readonly signs = computed(() => {
+    const fix = this.gps.fix();
+    return this.places.list().map((place) => ({
+      place,
+      distance: fix ? fmtDistance(haversine(fix.lat, fix.lon, place.lat, place.lon)) : null,
+    }));
+  });
+
+  protected readonly outlines = computed(() => {
+    const map = new Map<string, RouteOutline | null>();
+    for (const r of this.stravaRoutes() ?? []) {
+      map.set(r.id, r.polyline ? routeOutline(r.polyline, OUTLINE_W, OUTLINE_H) : null);
+    }
+    return map;
+  });
 
   /** Route in der Vorschau; die laufende Führung bleibt bis zum Start unberührt. */
   protected readonly pending = signal<PendingRoute | null>(null);
@@ -87,6 +118,8 @@ export class RoutePlanPage {
 
   constructor() {
     this.gps.start();
+    void this.loadStravaList();
+    effect(() => this.placeInput()?.nativeElement.focus());
   }
 
   /** Auf die Kartenseite der Fahrt, mit der Karte wieder am Standort. */
@@ -138,12 +171,19 @@ export class RoutePlanPage {
   protected async loadStravaList(more = false): Promise<void> {
     this.stravaPage = more ? this.stravaPage + 1 : 1;
     this.stravaLoading.set('list');
+    this.stravaFailed.set(false);
     try {
       const res = await this.strava.routes(this.stravaPage);
       this.stravaRoutes.update((list) => (more && list ? [...list, ...res.routes] : res.routes));
       this.stravaMore.set(res.more);
     } catch (err) {
-      this.toasts.show(err instanceof Error ? err.message : 'Strava-Routen nicht geladen.', 6000);
+      // Beim ersten Laden ist das ein Zustand der Liste; „Weitere laden“ meldet sich laut.
+      if (more) {
+        this.stravaPage -= 1;
+        this.toasts.show(err instanceof Error ? err.message : 'Strava-Routen nicht geladen.', 6000);
+      } else {
+        this.stravaFailed.set(true);
+      }
     } finally {
       this.stravaLoading.set(null);
     }
@@ -199,6 +239,8 @@ export class RoutePlanPage {
   protected async removePlace(place: Place): Promise<void> {
     if (!(await this.places.remove(place))) {
       this.toasts.show('Löschen fehlgeschlagen. Die Ziele brauchen Internet.');
+    } else if (!this.places.list().length) {
+      this.editing.set(false);
     }
   }
 
@@ -220,7 +262,23 @@ export class RoutePlanPage {
       return;
     }
     this.searchModel.update((m) => ({ ...m, placeName: '' }));
+    this.adding.set(false);
     this.toasts.show(`Gespeichert: ${name}`);
+  }
+
+  protected openAdd(): void {
+    this.editing.set(false);
+    this.adding.set(true);
+  }
+
+  protected cancelAdd(): void {
+    this.adding.set(false);
+    this.searchModel.update((m) => ({ ...m, placeName: '' }));
+  }
+
+  protected toggleEditing(): void {
+    this.adding.set(false);
+    this.editing.update((v) => !v);
   }
 
   protected loadDemoRoute(): void {
