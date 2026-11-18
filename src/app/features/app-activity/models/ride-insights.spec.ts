@@ -51,6 +51,20 @@ describe('rideWeather', () => {
     expect(weather.wet).toBe(true);
   });
 
+  // Regressionstest: Fahrt durch leichten Dauerregen, im Schnitt rund 0,25 mm/h.
+  it('wertet leichten Dauerregen als nass', () => {
+    const drizzle = ride({
+      start_date: '2026-11-18T16:13:38Z',
+      elapsed_time: 5581,
+      weather_data: {
+        time: ['2026-11-18T16:00', '2026-11-18T17:00', '2026-11-18T18:00'],
+        precipitation: [0.2, 0.3, 0.2],
+        temperature_2m: [9.6, 8.9, 8.9],
+      },
+    });
+    expect(rideWeather(drizzle)?.wet).toBe(true);
+  });
+
   it('wertet Regen vor dem Start nicht als nass', () => {
     const before = ride({
       start_date: '2026-11-17T16:10:00Z',

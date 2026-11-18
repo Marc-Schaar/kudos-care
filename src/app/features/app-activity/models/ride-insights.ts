@@ -5,8 +5,11 @@ import { Activity } from '../../../shared/services/strava-service/strava-service
  * Funktionen, damit Startseite und Fahrtenliste dieselbe Antwort geben.
  */
 
-/** Ab hier zählt eine Fahrt als nass: Nieselregen im Stundenmittel liegt darunter. */
-export const WET_MM_PER_HOUR = 0.5;
+/**
+ * Ab hier zählt eine Fahrt als nass. Bewusst niedrig: Die Stundenwerte sind Modelldaten für
+ * eine ganze Rasterzelle, leichter Dauerregen kommt darin nur mit 0,2 bis 0,3 mm/h an.
+ */
+export const WET_MM_PER_HOUR = 0.2;
 
 export interface RideWeather {
   wet: boolean;
