@@ -14,6 +14,7 @@ import {
 
 import { mercX, mercY } from '../core/geo';
 import { GpsFix, MapStyle, Theme } from '../core/models';
+import { WindReading } from '../core/wind';
 import {
   MapCamera,
   MercBounds,
@@ -28,6 +29,7 @@ import {
   zoomAt,
 } from './map-camera';
 import { NavRoute } from './nav-models';
+import { routeWindRuns } from './route-wind';
 
 const MAX_TILES = 160;
 /** So weit darf ein Finger wandern, bevor aus dem Tipp ein Verschieben wird (px). */
@@ -130,6 +132,8 @@ export class MapCanvas {
   readonly position = input<GpsFix | null>(null);
   /** Kurs des Standortpfeils in Grad; die Drehung der Karte steckt in `camera`. */
   readonly heading = input<number | null>(null);
+  /** Färbt die restliche Strecke: rot Gegenwind, grün Rückenwind. `null` = einfarbig. */
+  readonly wind = input<WindReading | null>(null);
   /** `null` = die ganze Route, Norden oben. */
   readonly camera = model<MapCamera | null>(null);
   readonly interactive = input(true);
@@ -163,6 +167,12 @@ export class MapCanvas {
       out[2 * i + 1] = mercY(p.lat);
     });
     return out;
+  });
+
+  private readonly windRuns = computed(() => {
+    const route = this.route();
+    const wind = this.wind();
+    return route && wind ? routeWindRuns(route.points, wind.direction_deg, wind.speed_kmh) : [];
   });
 
   private readonly bounds = computed<MercBounds | null>(() => {
@@ -200,6 +210,7 @@ export class MapCanvas {
     effect(() => {
       // Alles lesen, was das Bild bestimmt: jede Änderung zeichnet neu.
       this.projected();
+      this.windRuns();
       this.passedIndex();
       this.position();
       this.heading();
@@ -268,6 +279,8 @@ export class MapCanvas {
     const fg = css.getPropertyValue('--fg').trim() || '#fff';
     const bg = css.getPropertyValue('--bg').trim() || '#000';
     const muted = css.getPropertyValue('--muted').trim() || '#999';
+    const head = css.getPropertyValue('--head').trim() || '#ff5a4e';
+    const tail = css.getPropertyValue('--tail').trim() || '#3ddc84';
 
     if (this.showTiles()) {
       // Kachelstufe gerundet (Pinch liefert Bruchteile); über der höchsten Stufe des
@@ -343,6 +356,12 @@ export class MapCanvas {
       stroke(0, passed, muted, 4, [2, 9]);
       stroke(passed, last, bg, 10, []);
       stroke(passed, last, fg, 5, []);
+      // Seitenwind bleibt in der Grundfarbe der Linie.
+      for (const run of this.windRuns()) {
+        const from = Math.max(run.from, passed);
+        if (run.kind === 'cross' || from >= run.to) continue;
+        stroke(from, run.to, run.kind === 'head' ? head : tail, 5, []);
+      }
 
       ctx.setLineDash([]);
       if (passed === 0) {

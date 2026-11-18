@@ -508,6 +508,10 @@ dazu und ist bewusst ein abgeschlossener Bereich mit eigener Bedienung:
   fährt weiter mit; `mapFree` = verschoben/gedreht, Karte steht. Beides blendet
   „Zentrieren“ ein (`recenterMap()`: zurück zum Standort, Zoom wieder nach Tempo). Eine
   verschobene Karte kehrt nach 20 s ohne Eingriff von selbst zurück, aber nur in Fahrt.
+  Die noch zu fahrende Strecke ist nach Wind gefärbt (`nav/route-wind.ts`, getestet): rot
+  Gegenwind, grün Rückenwind, Seitenwind in der Grundfarbe, Einteilung aus `relativeWind`
+  wie bei Windpfeil und -balken. Es gibt nur den aktuellen Wind am Standort, er gilt für die
+  ganze Strecke. Ohne Windwert (keine Einwilligung, älter als 30 min) bleibt die Linie einfarbig.
 - **Routenvorschau** (`nav/route-plan-page`): jede neue Route (GPX, Strava, Ziel, Demo)
   erscheint erst als Ebene über der Liste mit der ganzen Strecke, Länge, Hinweisen und dem
   Abstand zum Start; geführt wird erst nach „Route starten“. Dafür sind Laden und Starten

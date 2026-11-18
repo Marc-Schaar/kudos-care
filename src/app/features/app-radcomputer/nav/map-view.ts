@@ -8,6 +8,7 @@ import { RideRecorder } from '../core/ride-recorder';
 import { RideView } from '../core/ride-view';
 import { SettingsStore } from '../core/settings-store';
 import { Ticker } from '../core/ticker';
+import { Wind } from '../core/wind';
 import { Compass } from './compass';
 import { CueSign } from './cue-sign';
 import { MapCanvas, TILE_SOURCES } from './map-canvas';
@@ -74,6 +75,7 @@ const RETURN_MIN_SPEED = 2;
         [passedIndex]="guide.progress()?.index ?? 0"
         [position]="gps.fix()"
         [heading]="heading.value()"
+        [wind]="wind.current()"
         [camera]="camera()"
         (cameraChange)="onUserCamera($event)"
         [showTiles]="settings.value().mapTiles"
@@ -287,6 +289,7 @@ export class MapView {
   protected readonly gps = inject(Gps);
   protected readonly settings = inject(SettingsStore);
   protected readonly heading = inject(Heading);
+  protected readonly wind = inject(Wind);
   private readonly ride = inject(RideRecorder);
   private readonly ticker = inject(Ticker);
   private readonly view = inject(RideView);
@@ -351,9 +354,9 @@ export class MapView {
   });
   protected readonly mapLabel = computed(() => {
     const route = this.guide.route();
-    return route
-      ? `Karte mit Route ${route.name}. Hinweise und Entfernungen stehen als Text darüber und darunter.`
-      : 'Karte ohne Route';
+    if (!route) return 'Karte ohne Route';
+    const wind = this.wind.current() ? ' Rot eingefärbt ist Gegenwind, grün Rückenwind.' : '';
+    return `Karte mit Route ${route.name}.${wind} Hinweise und Entfernungen stehen als Text darüber und darunter.`;
   });
 
   constructor() {
