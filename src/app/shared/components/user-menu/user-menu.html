@@ -99,6 +99,27 @@
           type="button"
           class="menu-item toggle-item"
           role="menuitemcheckbox"
+          [attr.aria-checked]="currentUser.route_weather_consent"
+          [disabled]="saving() || !currentUser.weather_consent"
+          (click)="toggleConsent('route_weather_consent')"
+        >
+          <span class="toggle-text">
+            <span>Regen entlang der Strecke</span>
+            <small>Auf etwa 1 km gerundete Streckenpunkte gehen an Open-Meteo.</small>
+          </span>
+          <span
+            class="menu-switch"
+            [class.on]="currentUser.route_weather_consent"
+            aria-hidden="true"
+          >
+            {{ currentUser.route_weather_consent ? 'AN' : 'AUS' }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="menu-item toggle-item"
+          role="menuitemcheckbox"
           [attr.aria-checked]="currentUser.ai_consent"
           [disabled]="saving()"
           (click)="toggleConsent('ai_consent')"

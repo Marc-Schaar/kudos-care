@@ -113,7 +113,18 @@
   color: var(--critical);
 }
 
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.toggle-text small {
+  font-size: var(--t-xs);
+  color: var(--muted);
+}
+
 .menu-switch {
+  flex: none;
   font-size: var(--t-xs);
   padding: 0.1rem 0.35rem;
   border: 1px solid var(--border);

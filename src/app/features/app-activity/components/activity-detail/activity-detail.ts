@@ -121,10 +121,11 @@ export class ActivityDetail implements OnInit {
 
   /** Das Wetter der Fahrt als zwei Zahlen für die Kopfzeile. */
   public climate = computed(() => {
-    const weather = this.activityService.activityData()?.weather_timeline;
+    const data = this.activityService.activityData();
+    const weather = data?.weather_timeline;
     return {
       temperature: mean(weather?.temperature_2m),
-      precipitation: mean(weather?.precipitation),
+      precipitation: data?.ride_precipitation ?? mean(weather?.precipitation),
     };
   });
 

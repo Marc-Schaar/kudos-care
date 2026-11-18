@@ -28,6 +28,8 @@ export interface Activity {
     time?: string[];
     precipitation?: (number | null)[];
     temperature_2m?: (number | null)[];
+    /** Regen während der Fahrt aus 15-Minuten-Werten. Fehlt, wenn nur Stundenwerte vorliegen. */
+    ride_rain?: { mm_h: number } | null;
   } | null;
 }
 
@@ -60,6 +62,8 @@ export interface CurrentUser {
   email_notifications_enabled: boolean;
   needs_email: boolean;
   weather_consent: boolean;
+  /** Gerundete Streckenpunkte an Open-Meteo, baut auf `weather_consent` auf. */
+  route_weather_consent: boolean;
   ai_consent: boolean;
   /** Radcomputer: Strava-Recht activity:write erteilt (Upload) */
   can_upload?: boolean;
@@ -71,6 +75,7 @@ export interface UserSettingsPatch {
   email?: string;
   email_notifications_enabled?: boolean;
   weather_consent?: boolean;
+  route_weather_consent?: boolean;
   ai_consent?: boolean;
 }
 
@@ -188,6 +193,7 @@ export class StravaService {
       email_notifications_enabled: true,
       needs_email: false,
       weather_consent: false,
+      route_weather_consent: false,
       ai_consent: false,
     });
   }

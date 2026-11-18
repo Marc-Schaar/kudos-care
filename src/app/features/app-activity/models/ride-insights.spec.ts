@@ -65,6 +65,16 @@ describe('rideWeather', () => {
     expect(rideWeather(drizzle)?.wet).toBe(true);
   });
 
+  it('nimmt die 15-Minuten-Werte, wenn es sie gibt', () => {
+    const weather = rideWeather(
+      ride({
+        weather_data: { precipitation: [0, 0], temperature_2m: [9], ride_rain: { mm_h: 0.6 } },
+      }),
+    )!;
+    expect(weather.avgPrecipitation).toBe(0.6);
+    expect(weather.wet).toBe(true);
+  });
+
   it('wertet Regen vor dem Start nicht als nass', () => {
     const before = ride({
       start_date: '2026-11-17T16:10:00Z',

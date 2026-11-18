@@ -86,7 +86,7 @@ export class UserMenu {
   }
 
   /** Einwilligungen in die Weitergabe an Dritte, siehe `app_auth/consent.py` im Backend. */
-  toggleConsent(key: 'weather_consent' | 'ai_consent') {
+  toggleConsent(key: 'weather_consent' | 'route_weather_consent' | 'ai_consent') {
     const enabled = !this.user()?.[key];
     this.saving.set(true);
     this.stravaService.updateSettings({ [key]: enabled }).subscribe({

@@ -38,9 +38,11 @@ function hourMs(time: string): number {
  * nicht gefahren wurde. Bei einer einstündigen Fahrt durch einen Schauer drückte das den
  * Wert unter die Schwelle, die Fahrt erschien trocken. Gewichtet wird deshalb jede Stunde
  * mit dem Anteil, den die Fahrt an ihr hat. Ohne Zeiten bleibt es beim Mittelwert.
+ * Liegen 15-Minuten-Werte vor, gilt der vom Backend daraus berechnete Wert.
  */
 export function ridePrecipitation(activity: Activity): number | null {
   const data = activity.weather_data;
+  if (data?.ride_rain) return data.ride_rain.mm_h;
   const values = data?.precipitation;
   if (!values?.length) return null;
   const times = data?.time;

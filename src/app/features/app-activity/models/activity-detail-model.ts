@@ -10,6 +10,8 @@ export interface ActivityDetailModel {
   bike_name: string | null;
   geo_json_full: { type: string; features: ActivityFeature[] };
   weather_timeline: Partial<WeatherTimeline>;
+  /** Regen während der Fahrt in mm/h, dieselbe Zahl wie in Fahrtenliste und Verschleiß. */
+  ride_precipitation?: number | null;
   /**
    * Abschnittsweiser Gegenwind/Niederschlag für die Karte. Wird vom Backend aus
    * dem GPS-Stream berechnet — dieselbe Quelle wie `weather_timeline.avg_headwind`.
