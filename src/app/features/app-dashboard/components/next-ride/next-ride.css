@@ -233,6 +233,11 @@
   margin-top: 0.35rem;
 }
 
+/* Restwert als Einheit: bricht die Zeile, dann vor „jetzt“, nie zwischen Wort und Zahl. */
+.remaining {
+  white-space: nowrap;
+}
+
 .change {
   flex: none;
   align-self: center;
